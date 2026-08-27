@@ -1,5 +1,7 @@
 package net.filmix.core.data
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.filmix.core.model.Post
@@ -33,6 +35,17 @@ class CatalogRepository(private val api: FilmixApi) {
     suspend fun search(query: String, page: Int = 1): List<Post> = io {
         api.search(story = query, page = page).map { it.toDomain() }
     }
+
+    /** Type-ahead results; deliberately unpaged and capped for a dropdown. */
+    suspend fun suggest(word: String, limit: Int = 8): List<Post> = io {
+        api.suggest(word).take(limit).map { it.toDomain() }
+    }
+
+    /** Paged search results, for the results grid. */
+    fun searchPager(query: String): Pager<Int, Post> = Pager(
+        config = PagingConfig(pageSize = PAGE_SIZE, initialLoadSize = PAGE_SIZE),
+        pagingSourceFactory = { SearchPagingSource(this, query) },
+    )
 
     /**
      * Full detail. Catalog listings omit `short_story` and `player_links`, so

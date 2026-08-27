@@ -76,6 +76,10 @@ interface FilmixApi {
         @Query("story") story: String,
         @Query("page") page: Int = 1,
     ): List<PostDto>
+
+    /** Type-ahead. Same entry shape as the catalog, minus the heavier fields. */
+    @GET("api/v2/suggest")
+    suspend fun suggest(@Query("word") word: String): List<PostDto>
 }
 
 /** Mirror discovery lives on a different host, so it takes an absolute URL. */

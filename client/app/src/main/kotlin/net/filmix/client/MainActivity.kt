@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.window.core.layout.WindowWidthSizeClass
 import net.filmix.core.designsystem.theme.FilmixTheme
 import net.filmix.core.model.Post
@@ -25,6 +26,8 @@ import net.filmix.feature.home.HomeScreen
 import net.filmix.feature.home.HomeViewModel
 import net.filmix.feature.profile.ProfileScreen
 import net.filmix.feature.profile.ProfileViewModel
+import net.filmix.feature.search.SearchScreen
+import net.filmix.feature.search.SearchViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -106,6 +109,24 @@ private fun FilmixApp(graph: AppGraph) {
                     onRetry = vm::refresh,
                     onPostClick = { openPostId = it.id },
                     onPlayClick = { openPostId = it.id },
+                )
+            }
+
+            Destination.Search -> {
+                val vm: SearchViewModel = viewModel(factory = factory)
+                val q by vm.query.collectAsState()
+                val suggestions by vm.suggestions.collectAsState()
+                val results = vm.results.collectAsLazyPagingItems()
+                SearchScreen(
+                    query = q,
+                    suggestions = suggestions,
+                    results = results,
+                    compact = compact,
+                    modifier = modifier,
+                    onQueryChange = vm::onQueryChange,
+                    onSubmit = vm::submit,
+                    onClear = vm::clear,
+                    onPostClick = { openPostId = it.id },
                 )
             }
 

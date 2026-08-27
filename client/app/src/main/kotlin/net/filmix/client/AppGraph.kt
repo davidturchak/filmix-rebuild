@@ -18,6 +18,7 @@ import net.filmix.core.network.NetworkFactory
 import net.filmix.feature.detail.DetailViewModel
 import net.filmix.feature.home.HomeViewModel
 import net.filmix.feature.profile.ProfileViewModel
+import net.filmix.feature.search.SearchViewModel
 import java.util.Locale
 
 /**
@@ -82,6 +83,9 @@ class GraphViewModelFactory(private val graph: AppGraph) : ViewModelProvider.Fac
 
         modelClass.isAssignableFrom(HomeViewModel::class.java) ->
             HomeViewModel(graph.catalogRepository) as T
+
+        modelClass.isAssignableFrom(SearchViewModel::class.java) ->
+            SearchViewModel(graph.catalogRepository) as T
 
         modelClass.isAssignableFrom(ProfileViewModel::class.java) ->
             ProfileViewModel(graph.authRepository) as T

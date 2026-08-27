@@ -42,6 +42,7 @@ dependencies {
     implementation(project(":feature:profile"))
     implementation(project(":feature:detail"))
     implementation(project(":feature:player"))
+    implementation(project(":feature:search"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -56,6 +57,7 @@ dependencies {
     implementation(libs.androidx.window.core)
     implementation(libs.androidx.adaptive)
     implementation(libs.coil.compose)
+    implementation(libs.paging.compose)
     implementation(libs.coil.network.okhttp)
     implementation(libs.compose.ui.tooling.preview)
     debugImplementation(libs.compose.ui.tooling)

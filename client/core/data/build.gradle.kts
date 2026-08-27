@@ -22,6 +22,7 @@ dependencies {
     api(project(":core:network"))
     implementation(libs.androidx.core.ktx)
     api(libs.datastore.preferences)
+    api(libs.paging.runtime)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
