@@ -2,10 +2,12 @@ package net.filmix.client
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,6 +17,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowWidthSizeClass
 import net.filmix.core.designsystem.theme.FilmixTheme
+import net.filmix.feature.detail.DetailScreen
+import net.filmix.feature.detail.DetailViewModel
 import net.filmix.feature.home.HomeScreen
 import net.filmix.feature.home.HomeViewModel
 import net.filmix.feature.profile.ProfileScreen
@@ -42,9 +46,29 @@ private fun FilmixApp(graph: AppGraph) {
     // process death restore) rather than snapping back to Home.
     var destination by rememberSaveable { mutableStateOf(Destination.Home) }
 
+    // Detail is an overlay rather than a tab: it covers whichever tab the user
+    // came from, so back returns them there with that tab's state intact.
+    // Navigation-Compose takes this over when search and the player land.
+    var openPostId by rememberSaveable { mutableStateOf<Int?>(null) }
+
     val widthClass = currentWindowAdaptiveInfo().windowSizeClass.windowWidthSizeClass
     val compact = widthClass == WindowWidthSizeClass.COMPACT
     val factory = remember(graph) { GraphViewModelFactory(graph) }
+
+    val postId = openPostId
+    if (postId != null) {
+        BackHandler { openPostId = null }
+        val detailVm: DetailViewModel = viewModel(factory = factory)
+        val detailState by detailVm.state.collectAsState()
+        LaunchedEffect(postId) { detailVm.load(postId) }
+        DetailScreen(
+            state = detailState,
+            compact = compact,
+            onBack = { openPostId = null },
+            onRelatedClick = { openPostId = it.id },
+        )
+        return
+    }
 
     AppScaffold(
         current = destination,
@@ -60,6 +84,8 @@ private fun FilmixApp(graph: AppGraph) {
                     compact = compact,
                     modifier = modifier,
                     onRetry = vm::refresh,
+                    onPostClick = { openPostId = it.id },
+                    onPlayClick = { openPostId = it.id },
                 )
             }
 

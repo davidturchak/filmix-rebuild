@@ -2,7 +2,11 @@ package net.filmix.core.network.dto
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
+import net.filmix.core.model.Html
 import net.filmix.core.model.LastEpisode
+import net.filmix.core.model.PersonRef
+import net.filmix.core.model.StreamLink
 import net.filmix.core.model.Post
 
 /** `GET http://ap.gnft.pro/server.json` */
@@ -68,6 +72,49 @@ data class PostDto(
     val favorited: Boolean = false,
     @SerialName("watch_later") val watchLater: Boolean = false,
     @SerialName("last_episode") val lastEpisode: LastEpisodeDto? = null,
+    val rip: String? = null,
+    @SerialName("post_url") val postUrl: String = "",
+    @SerialName("rate_p") val ratePositive: Int = 0,
+    @SerialName("rate_n") val rateNegative: Int = 0,
+    @SerialName("found_actors") val foundActors: List<PersonRefDto> = emptyList(),
+    val relates: List<RelateDto> = emptyList(),
+    @SerialName("player_links") val playerLinks: PlayerLinksDto? = null,
+)
+
+@Serializable
+data class PersonRefDto(
+    val id: Int = 0,
+    val name: String = "",
+    @SerialName("original_name") val originalName: String = "",
+)
+
+@Serializable
+data class RelateDto(
+    val id: Int = 0,
+    @SerialName("alt_name") val altName: String = "",
+    val title: String = "",
+    val poster: String? = null,
+    val year: Int = 0,
+    val category: String = "",
+)
+
+/**
+ * `playlist` is polymorphic: an empty JSON *array* when a title has no episode
+ * tree (films, and anything rights-blocked), but an *object* keyed by season
+ * when it does. Decoding it into a fixed type fails one case or the other, so
+ * it is held as a raw element and interpreted by [PlayerLinksDto.seasons].
+ */
+@Serializable
+data class PlayerLinksDto(
+    val movie: List<MovieLinkDto> = emptyList(),
+    val playlist: JsonElement? = null,
+    val trailer: JsonElement? = null,
+)
+
+@Serializable
+data class MovieLinkDto(
+    val link: String = "",
+    val translation: String = "",
 )
 
 /**
@@ -86,23 +133,45 @@ fun PostDto.toDomain(): Post = Post(
     id = id,
     section = section,
     altName = altName,
-    title = title,
-    originalTitle = originalTitle,
+    title = Html.toPlainText(title),
+    originalTitle = Html.toPlainText(originalTitle),
     year = year,
     posterUrl = poster,
     quality = quality,
     date = date,
     duration = duration,
-    shortStory = shortStory,
+    shortStory = Html.toPlainText(shortStory),
     kpRating = kpRating,
     imdbRating = imdbRating,
-    countries = countries,
-    categories = categories,
-    actors = actors,
-    directors = directors,
+    // Every free-text field can carry entities — cast names routinely contain
+    // things like "J&#233;r&#233;my".
+    countries = countries.map(Html::toPlainText),
+    categories = categories.map(Html::toPlainText),
+    actors = actors.map(Html::toPlainText),
+    directors = directors.map(Html::toPlainText),
     favorited = favorited,
     watchLater = watchLater,
     lastEpisode = lastEpisode
         ?.takeIf { it.season.isNotEmpty() || it.episode.isNotEmpty() }
         ?.let { LastEpisode(season = it.season, episode = it.episode) },
+    rip = rip,
+    postUrl = postUrl,
+    ratePositive = ratePositive,
+    rateNegative = rateNegative,
+    cast = foundActors.map {
+        PersonRef(it.id, Html.toPlainText(it.name), Html.toPlainText(it.originalName))
+    },
+    related = relates.map { relate ->
+        Post(
+            id = relate.id,
+            title = Html.toPlainText(relate.title),
+            year = relate.year,
+            posterUrl = relate.poster,
+            altName = relate.altName,
+        )
+    },
+    // Links without a quality bracket are unplayable by this client, so they
+    // are dropped rather than surfaced as broken rows.
+    sources = playerLinks?.movie.orEmpty()
+        .mapNotNull { StreamLink.parse(it.translation, it.link) },
 )

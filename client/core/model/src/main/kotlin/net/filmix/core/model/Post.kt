@@ -26,6 +26,14 @@ data class Post(
     val favorited: Boolean = false,
     val watchLater: Boolean = false,
     val lastEpisode: LastEpisode? = null,
+    val rip: String? = null,
+    val postUrl: String = "",
+    val ratePositive: Int = 0,
+    val rateNegative: Int = 0,
+    val cast: List<PersonRef> = emptyList(),
+    val related: List<Post> = emptyList(),
+    /** Playable sources, already parsed out of the API's bracketed link format. */
+    val sources: List<VideoSource> = emptyList(),
 ) {
     /** Sections 7, 714 and 93 are series in the upstream API. */
     val isSeries: Boolean get() = section in SERIES_SECTIONS
@@ -39,6 +47,8 @@ data class Post(
  * Season and episode as the API reports them — strings, because `episode` can
  * name a range of releases ("1-4"), not just a single number.
  */
+data class PersonRef(val id: Int, val name: String, val originalName: String = "")
+
 data class LastEpisode(val season: String, val episode: String) {
     /** e.g. "S1 E1-4". */
     val label: String get() = buildString {

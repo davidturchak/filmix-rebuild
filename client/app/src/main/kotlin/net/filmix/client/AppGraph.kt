@@ -12,6 +12,7 @@ import net.filmix.core.data.TokenStore
 import net.filmix.core.network.DeviceParams
 import net.filmix.core.network.FilmixApi
 import net.filmix.core.network.NetworkFactory
+import net.filmix.feature.detail.DetailViewModel
 import net.filmix.feature.home.HomeViewModel
 import net.filmix.feature.profile.ProfileViewModel
 import java.util.Locale
@@ -67,6 +68,9 @@ class AppGraph(context: Context) {
 class GraphViewModelFactory(private val graph: AppGraph) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
+        modelClass.isAssignableFrom(DetailViewModel::class.java) ->
+            DetailViewModel(graph.catalogRepository) as T
+
         modelClass.isAssignableFrom(HomeViewModel::class.java) ->
             HomeViewModel(graph.catalogRepository) as T
 

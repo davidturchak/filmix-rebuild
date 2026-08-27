@@ -16,6 +16,7 @@ android {
 }
 
 dependencies {
+    testImplementation(libs.junit)
     api(project(":core:model"))
     api(libs.kotlinx.serialization.json)
     api(libs.retrofit)
