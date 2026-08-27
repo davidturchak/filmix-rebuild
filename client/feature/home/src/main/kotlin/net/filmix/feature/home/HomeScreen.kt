@@ -19,7 +19,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -29,6 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import net.filmix.core.designsystem.component.PosterCard
+import net.filmix.core.designsystem.component.focusRing
 import net.filmix.core.designsystem.component.Rail
 import net.filmix.core.designsystem.theme.Dimens
 import net.filmix.core.model.Post
@@ -202,7 +205,16 @@ private fun Hero(
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(onClick = onPlayClick, shape = MaterialTheme.shapes.extraLarge) {
+                val playInteraction = remember { MutableInteractionSource() }
+                Button(
+                    onClick = onPlayClick,
+                    shape = MaterialTheme.shapes.extraLarge,
+                    interactionSource = playInteraction,
+                    modifier = Modifier.focusRing(
+                        shape = MaterialTheme.shapes.extraLarge,
+                        interactionSource = playInteraction,
+                    ),
+                ) {
                     Icon(Icons.Filled.PlayArrow, contentDescription = null)
                     Text(
                         text = "Смотреть",

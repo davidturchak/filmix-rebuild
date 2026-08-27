@@ -30,6 +30,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +45,7 @@ import net.filmix.core.designsystem.component.AccentChip
 import net.filmix.core.designsystem.component.ChipRow
 import net.filmix.core.designsystem.component.MetaChip
 import net.filmix.core.designsystem.component.PosterCard
+import net.filmix.core.designsystem.component.focusRing
 import net.filmix.core.designsystem.component.Rail
 import net.filmix.core.designsystem.theme.Dimens
 import net.filmix.core.designsystem.theme.ImdbGold
@@ -256,9 +258,15 @@ private fun Backdrop(
                 ) {
                     val best = post.sources.firstOrNull()
                     if (best != null) {
+                        val playInteraction = remember { MutableInteractionSource() }
                         Button(
                             onClick = { onPlay(best) },
                             shape = MaterialTheme.shapes.extraLarge,
+                            interactionSource = playInteraction,
+                            modifier = Modifier.focusRing(
+                                shape = MaterialTheme.shapes.extraLarge,
+                                interactionSource = playInteraction,
+                            ),
                         ) {
                             Icon(Icons.Filled.PlayArrow, contentDescription = null)
                             Text("Смотреть", Modifier.padding(start = 8.dp))
@@ -291,12 +299,14 @@ private fun Backdrop(
 @Composable
 private fun SourceRow(source: VideoSource, onClick: () -> Unit) {
     val parsed = remember(source.rawTranslation) { ParsedTranslation.from(source.rawTranslation) }
+    val interaction = remember { MutableInteractionSource() }
     Row(
         Modifier
             .fillMaxWidth()
+            .focusRing(shape = MaterialTheme.shapes.medium, interactionSource = interaction)
             .clip(MaterialTheme.shapes.medium)
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .clickable(onClick = onClick)
+            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),

@@ -2,6 +2,10 @@ package net.filmix.core.designsystem.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.indication
+import androidx.compose.runtime.remember
+import androidx.compose.material3.ripple
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,10 +43,22 @@ fun PosterCard(
     height: Dp = Dimens.posterHeight,
     onClick: () -> Unit = {},
 ) {
-    Column(modifier = modifier.width(width).clickable(onClick = onClick)) {
+    // One interaction source drives both the click and the focus ring, so a
+    // D-pad landing on the card lights up the same element the remote will act on.
+    val interaction = remember { MutableInteractionSource() }
+    Column(
+        modifier = modifier
+            .width(width)
+            .clickable(
+                interactionSource = interaction,
+                indication = ripple(),
+                onClick = onClick,
+            ),
+    ) {
         Box(
             Modifier
                 .size(width = width, height = height)
+                .focusRing(shape = MaterialTheme.shapes.medium, interactionSource = interaction)
                 .clip(MaterialTheme.shapes.medium)
                 .background(MaterialTheme.colorScheme.surfaceVariant),
         ) {
