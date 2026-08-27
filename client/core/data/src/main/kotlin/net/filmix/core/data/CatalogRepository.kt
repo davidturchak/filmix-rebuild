@@ -5,9 +5,12 @@ import androidx.paging.PagingConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.filmix.core.model.Post
+import net.filmix.core.model.CatalogFilter
+import net.filmix.core.model.FilterOptions
 import net.filmix.core.model.SortDirection
 import net.filmix.core.model.SortOrder
 import net.filmix.core.network.FilmixApi
+import net.filmix.core.network.dto.toDomain as postToDomain
 import net.filmix.core.network.dto.toDomain
 
 /**
@@ -46,17 +49,34 @@ class CatalogRepository(private val api: FilmixApi) {
     suspend fun catalog(
         sort: SortOrder = SortOrder.Default,
         direction: SortDirection = SortDirection.Default,
+        filter: CatalogFilter = CatalogFilter(),
         page: Int = 1,
     ): List<Post> = io {
-        api.catalog(orderBy = sort.apiValue, orderDir = direction.apiValue, page = page)
-            .map { it.toDomain() }
+        api.catalog(
+            orderBy = sort.apiValue,
+            orderDir = direction.apiValue,
+            filter = filter.toApiValue(),
+            page = page,
+        ).map { it.toDomain() }
     }
 
-    /** Paged, sorted catalog for the browse grid. */
-    fun catalogPager(sort: SortOrder, direction: SortDirection): Pager<Int, Post> = Pager(
+    /** Paged, sorted, filtered catalog for the browse grid. */
+    fun catalogPager(
+        sort: SortOrder,
+        direction: SortDirection,
+        filter: CatalogFilter = CatalogFilter(),
+    ): Pager<Int, Post> = Pager(
         config = PagingConfig(pageSize = PAGE_SIZE, initialLoadSize = PAGE_SIZE),
-        pagingSourceFactory = { CatalogPagingSource(this, sort, direction) },
+        pagingSourceFactory = { CatalogPagingSource(this, sort, direction, filter) },
     )
+
+    /** Filter choices; cached for the process since they rarely change. */
+    suspend fun filterOptions(): FilterOptions = cachedFilters ?: io {
+        api.filterList().toDomain().also { cachedFilters = it }
+    }
+
+    @Volatile
+    private var cachedFilters: FilterOptions? = null
 
     /** Paged search results, for the results grid. */
     fun searchPager(query: String): Pager<Int, Post> = Pager(

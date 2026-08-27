@@ -2,6 +2,7 @@ package net.filmix.core.data
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import net.filmix.core.model.CatalogFilter
 import net.filmix.core.model.Post
 import net.filmix.core.model.SortDirection
 import net.filmix.core.model.SortOrder
@@ -14,11 +15,12 @@ class CatalogPagingSource(
     private val repository: CatalogRepository,
     private val sort: SortOrder,
     private val direction: SortDirection,
+    private val filter: CatalogFilter = CatalogFilter(),
 ) : PagingSource<Int, Post>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Post> {
         val page = params.key ?: FIRST_PAGE
-        return runCatching { repository.catalog(sort, direction, page) }.fold(
+        return runCatching { repository.catalog(sort, direction, filter, page) }.fold(
             onSuccess = { items ->
                 LoadResult.Page(
                     data = items,

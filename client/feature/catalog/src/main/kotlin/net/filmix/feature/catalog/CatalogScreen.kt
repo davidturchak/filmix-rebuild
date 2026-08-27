@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -22,6 +23,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -30,6 +35,8 @@ import androidx.paging.compose.LazyPagingItems
 import net.filmix.core.designsystem.component.PosterCard
 import net.filmix.core.designsystem.theme.Dimens
 import net.filmix.core.model.Post
+import net.filmix.core.model.CatalogFilter
+import net.filmix.core.model.FilterOptions
 import net.filmix.core.model.SortDirection
 import net.filmix.core.model.SortOrder
 
@@ -40,24 +47,56 @@ fun CatalogScreen(
     direction: SortDirection,
     modifier: Modifier = Modifier,
     compact: Boolean = false,
+    filter: CatalogFilter = CatalogFilter(),
+    filterOptions: FilterOptions = FilterOptions(),
     onSortChange: (SortOrder) -> Unit = {},
     onDirectionToggle: () -> Unit = {},
+    onFilterChange: (CatalogFilter) -> Unit = {},
+    onClearFilter: () -> Unit = {},
     onPostClick: (Post) -> Unit = {},
 ) {
+    var showFilters by remember { mutableStateOf(false) }
     Column(
         modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
     ) {
-        SortBar(sort, direction, onSortChange, onDirectionToggle)
+        SortBar(
+            sort = sort,
+            direction = direction,
+            activeFilters = filter.activeCount,
+            filtersEnabled = !filterOptions.isEmpty,
+            onSortChange = onSortChange,
+            onDirectionToggle = onDirectionToggle,
+            onOpenFilters = { showFilters = true },
+        )
+
+        if (showFilters) {
+            FilterSheet(
+                options = filterOptions,
+                filter = filter,
+                onFilterChange = onFilterChange,
+                onClear = onClearFilter,
+                onDismiss = { showFilters = false },
+            )
+        }
 
         Box(Modifier.fillMaxSize()) {
             when {
                 items.loadState.refresh is LoadState.Loading ->
                     CircularProgressIndicator(Modifier.align(Alignment.Center))
 
+                // Error must be checked before "no results": a failed load also
+                // has an item count of zero.
                 items.loadState.refresh is LoadState.Error -> Text(
                     "Не удалось загрузить каталог",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.align(Alignment.Center),
+                )
+
+                items.itemCount == 0 -> Text(
+                    "Ничего не найдено по выбранным фильтрам",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.align(Alignment.Center),
@@ -106,8 +145,11 @@ fun CatalogScreen(
 private fun SortBar(
     sort: SortOrder,
     direction: SortDirection,
+    activeFilters: Int,
+    filtersEnabled: Boolean,
     onSortChange: (SortOrder) -> Unit,
     onDirectionToggle: () -> Unit,
+    onOpenFilters: () -> Unit,
 ) {
     Row(
         Modifier
@@ -116,6 +158,16 @@ private fun SortBar(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        if (filtersEnabled) {
+            FilterChip(
+                selected = activeFilters > 0,
+                onClick = onOpenFilters,
+                leadingIcon = { Icon(Icons.Filled.FilterList, contentDescription = null) },
+                label = {
+                    Text(if (activeFilters > 0) "Фильтры ($activeFilters)" else "Фильтры")
+                },
+            )
+        }
         SortOrder.entries.forEach { option ->
             FilterChip(
                 selected = option == sort,

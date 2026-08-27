@@ -1,5 +1,6 @@
 package net.filmix.core.network
 
+import net.filmix.core.network.dto.FilterListDto
 import net.filmix.core.network.dto.NotificationDto
 import net.filmix.core.network.dto.PostDto
 import net.filmix.core.network.dto.ServerListDto
@@ -77,6 +78,10 @@ interface FilmixApi {
         @Query("story") story: String,
         @Query("page") page: Int = 1,
     ): List<PostDto>
+
+    /** Available filter values: sections, categories, countries, years, vo. */
+    @GET("api/v2/filter_list")
+    suspend fun filterList(): FilterListDto
 
     /** Requires a paired account; returns [] otherwise. */
     @GET("api/v2/favourites")

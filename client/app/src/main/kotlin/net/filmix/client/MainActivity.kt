@@ -121,15 +121,20 @@ private fun FilmixApp(graph: AppGraph) {
             Destination.Catalog -> {
                 val vm: CatalogViewModel = viewModel(factory = factory)
                 val sort by vm.sort.collectAsState()
+                val filterOptions by vm.filterOptions.collectAsState()
                 val items = vm.items.collectAsLazyPagingItems()
                 CatalogScreen(
                     items = items,
                     sort = sort.order,
                     direction = sort.direction,
+                    filter = sort.filter,
+                    filterOptions = filterOptions,
                     compact = compact,
                     modifier = modifier,
                     onSortChange = vm::setSort,
                     onDirectionToggle = vm::toggleDirection,
+                    onFilterChange = vm::setFilter,
+                    onClearFilter = vm::clearFilter,
                     onPostClick = { openPostId = it.id },
                 )
             }

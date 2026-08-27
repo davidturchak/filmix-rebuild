@@ -14,14 +14,20 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import net.filmix.core.data.CatalogRepository
 import net.filmix.core.data.SettingsStore
+import net.filmix.core.model.CatalogFilter
+import net.filmix.core.model.FilterOptions
 import net.filmix.core.model.Post
 import net.filmix.core.model.SortDirection
 import net.filmix.core.model.SortOrder
 
-/** Sort and direction travel together — either one changing must rebuild the pager. */
-data class CatalogSort(
+/**
+ * Sort, direction and filter travel together — any one changing must rebuild
+ * the pager, and holding them in one value keeps that a single distinct state.
+ */
+data class CatalogQuery(
     val order: SortOrder = SortOrder.Default,
     val direction: SortDirection = SortDirection.Default,
+    val filter: CatalogFilter = CatalogFilter(),
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -30,8 +36,11 @@ class CatalogViewModel(
     private val settings: SettingsStore,
 ) : ViewModel() {
 
-    private val _sort = MutableStateFlow(CatalogSort())
-    val sort: StateFlow<CatalogSort> = _sort.asStateFlow()
+    private val _sort = MutableStateFlow(CatalogQuery())
+    val sort: StateFlow<CatalogQuery> = _sort.asStateFlow()
+
+    private val _filterOptions = MutableStateFlow(FilterOptions())
+    val filterOptions: StateFlow<FilterOptions> = _filterOptions.asStateFlow()
 
     /**
      * Sorting is applied by the backend, so a change restarts paging from page
@@ -41,13 +50,15 @@ class CatalogViewModel(
      * an unchanged sort order.
      */
     val items: Flow<PagingData<Post>> = _sort
-        .flatMapLatest { (order, direction) -> catalog.catalogPager(order, direction).flow }
+        .flatMapLatest { (order, direction, filter) ->
+            catalog.catalogPager(order, direction, filter).flow
+        }
         .cachedIn(viewModelScope)
 
     init {
         // Restore the last choice so the tab opens where the user left it.
         viewModelScope.launch {
-            _sort.value = CatalogSort(
+            _sort.value = CatalogQuery(
                 order = SortOrder.fromApiValue(settings.catalogSort()),
                 direction = if (settings.catalogAscending()) {
                     SortDirection.Asc
@@ -56,7 +67,19 @@ class CatalogViewModel(
                 },
             )
         }
+        // Filter choices are static enough to fetch once and cache.
+        viewModelScope.launch {
+            _filterOptions.value = runCatching { catalog.filterOptions() }
+                .getOrDefault(FilterOptions())
+        }
     }
+
+    fun setFilter(filter: CatalogFilter) {
+        if (filter == _sort.value.filter) return
+        _sort.value = _sort.value.copy(filter = filter)
+    }
+
+    fun clearFilter() = setFilter(CatalogFilter())
 
     fun setSort(order: SortOrder) {
         if (order == _sort.value.order) return

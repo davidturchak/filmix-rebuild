@@ -3,6 +3,9 @@ package net.filmix.core.network.dto
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
+import net.filmix.core.model.FilterOption
+import net.filmix.core.model.FilterOptions
 import net.filmix.core.model.Html
 import net.filmix.core.model.LastEpisode
 import net.filmix.core.model.PersonRef
@@ -127,6 +130,35 @@ data class LastEpisodeDto(
     val season: String = "",
     val episode: String = "",
     val translation: String = "",
+)
+
+/**
+ * `/api/v2/filter_list`. Every group is an object keyed by id, and most keys
+ * carry an `f` prefix (`"f53": "Австралия"`) while `sections` does not
+ * (`"7": "Сериалы"`) — [toOptions] strips it either way.
+ *
+ * `years` values are numbers rather than strings, so the value type is a raw
+ * element and rendered with [JsonPrimitive.content].
+ */
+@Serializable
+data class FilterListDto(
+    val sections: Map<String, JsonPrimitive> = emptyMap(),
+    val categories: Map<String, JsonPrimitive> = emptyMap(),
+    val countries: Map<String, JsonPrimitive> = emptyMap(),
+    val years: Map<String, JsonPrimitive> = emptyMap(),
+    val vo: Map<String, JsonPrimitive> = emptyMap(),
+)
+
+private fun Map<String, JsonPrimitive>.toOptions(): List<FilterOption> = mapNotNull { (key, value) ->
+    key.removePrefix("f").toIntOrNull()?.let { id -> FilterOption(id, value.content) }
+}
+
+fun FilterListDto.toDomain(): FilterOptions = FilterOptions(
+    sections = sections.toOptions(),
+    genres = categories.toOptions().sortedBy { it.label },
+    countries = countries.toOptions().sortedBy { it.label },
+    years = years.toOptions().sortedByDescending { it.id },
+    voices = vo.toOptions().sortedBy { it.label },
 )
 
 /**
