@@ -24,8 +24,6 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,6 +46,8 @@ import net.filmix.core.designsystem.component.AccentChip
 import net.filmix.core.designsystem.component.ChipRow
 import net.filmix.core.designsystem.component.MetaChip
 import net.filmix.core.designsystem.component.PosterCard
+import net.filmix.core.designsystem.component.FilledTonalIconButton
+import net.filmix.core.designsystem.component.IconButton
 import net.filmix.core.designsystem.component.PrimaryButton
 import net.filmix.core.designsystem.component.focusRing
 import net.filmix.core.designsystem.component.Rail

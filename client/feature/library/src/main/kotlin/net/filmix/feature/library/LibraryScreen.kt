@@ -1,6 +1,7 @@
 package net.filmix.feature.library
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -16,12 +17,14 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import net.filmix.core.designsystem.component.PosterCard
 import net.filmix.core.designsystem.component.PrimaryButton
+import net.filmix.core.designsystem.component.focusRing
 import net.filmix.core.designsystem.theme.LocalDimensions
 import net.filmix.core.model.Post
 
@@ -59,12 +62,30 @@ fun LibraryScreen(
         TabRow(
             selectedTabIndex = state.tab.ordinal,
             containerColor = MaterialTheme.colorScheme.background,
+            // Room above and below for the focus ring.
+            modifier = Modifier.padding(vertical = 4.dp),
         ) {
             LibraryTab.entries.forEach { tab ->
+                val interaction = remember { MutableInteractionSource() }
                 Tab(
                     selected = tab == state.tab,
                     onClick = { onTabChange(tab) },
                     text = { Text(tab.label) },
+                    interactionSource = interaction,
+                    // The underline belongs to the *selected* tab, so a focused
+                    // unselected one had nothing but a 10% state layer to show
+                    // for itself — invisible at three metres.
+                    // Padding first, so the ring is drawn inside it. No lift
+                    // either: a tab fills half the row, so the ring's usual 6%
+                    // scale pushed its outer edge past the screen and the right
+                    // side of it was simply clipped away.
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp)
+                        .focusRing(
+                            shape = MaterialTheme.shapes.small,
+                            scaleWhenFocused = 1f,
+                            interactionSource = interaction,
+                        ),
                 )
             }
         }

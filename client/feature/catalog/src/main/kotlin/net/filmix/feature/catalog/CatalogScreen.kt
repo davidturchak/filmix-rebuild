@@ -22,7 +22,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +34,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import net.filmix.core.designsystem.component.FocusChip
 import net.filmix.core.designsystem.component.PosterCard
+import net.filmix.core.designsystem.component.TextButton
 import net.filmix.core.designsystem.component.rememberFocusReturn
 import net.filmix.core.designsystem.theme.LocalDimensions
 import net.filmix.core.model.Post

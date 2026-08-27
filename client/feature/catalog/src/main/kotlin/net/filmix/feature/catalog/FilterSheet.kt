@@ -1,6 +1,5 @@
 package net.filmix.feature.catalog
 
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -19,7 +18,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,7 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import net.filmix.core.designsystem.component.FocusChip
-import net.filmix.core.designsystem.component.focusRing
+import net.filmix.core.designsystem.component.TextButton
 import net.filmix.core.designsystem.component.PrimaryButton
 import net.filmix.core.model.CatalogFilter
 import net.filmix.core.model.FilterOption
@@ -78,12 +76,7 @@ fun FilterSheet(
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (!filter.isEmpty) {
-                    val clearInteraction = remember { MutableInteractionSource() }
-                    TextButton(
-                        onClick = onClear,
-                        interactionSource = clearInteraction,
-                        modifier = Modifier.focusRing(interactionSource = clearInteraction),
-                    ) { Text("Сбросить") }
+                    TextButton(onClick = onClear) { Text("Сбросить") }
                 }
                 PrimaryButton(onClick = onDismiss) {
                     Text("Готово")
@@ -171,12 +164,7 @@ private fun Group(
                 color = MaterialTheme.colorScheme.onSurface,
             )
             if (options.size > preview.size) {
-                val interaction = remember { MutableInteractionSource() }
-                TextButton(
-                    onClick = { expanded = !expanded },
-                    interactionSource = interaction,
-                    modifier = Modifier.focusRing(interactionSource = interaction),
-                ) {
+                TextButton(onClick = { expanded = !expanded }) {
                     Text(if (expanded) "Свернуть" else "Ещё ${options.size - preview.size}")
                     Icon(
                         if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,

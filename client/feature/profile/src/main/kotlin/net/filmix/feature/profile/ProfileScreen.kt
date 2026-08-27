@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import net.filmix.core.data.PairingState
 import net.filmix.core.designsystem.component.FocusChip
+import net.filmix.core.designsystem.component.OutlinedButton
 import net.filmix.core.designsystem.component.PrimaryButton
 import net.filmix.core.model.AppVersion
 import net.filmix.core.model.UpdateState
@@ -129,7 +128,7 @@ fun ProfileScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    OutlinedButton(onClick = onSignOut, shape = MaterialTheme.shapes.extraLarge) {
+                    OutlinedButton(onClick = onSignOut) {
                         Text("Выйти")
                     }
                 }

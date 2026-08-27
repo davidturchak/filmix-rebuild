@@ -22,12 +22,9 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -51,9 +48,10 @@ import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import coil3.compose.AsyncImage
+import net.filmix.core.designsystem.component.FilledTonalIconButton
+import net.filmix.core.designsystem.component.IconButton
 import net.filmix.core.designsystem.component.PosterCard
 import net.filmix.core.designsystem.component.rememberFocusReturn
-import net.filmix.core.designsystem.component.focusRing
 import net.filmix.core.designsystem.component.describeError
 import net.filmix.core.designsystem.component.rememberVoiceSearch
 import net.filmix.core.designsystem.theme.LocalIsTv
@@ -177,7 +175,6 @@ private fun MicButton(
     listening: Boolean,
     onClick: () -> Unit,
 ) {
-    val interaction = remember { MutableInteractionSource() }
     FilledTonalIconButton(
         onClick = onClick,
         colors = if (listening) {
@@ -186,12 +183,12 @@ private fun MicButton(
                 contentColor = MaterialTheme.colorScheme.onPrimary,
             )
         } else {
-            IconButtonDefaults.filledTonalIconButtonColors()
+            null
         },
-        interactionSource = interaction,
-        modifier = Modifier
-            .focusRequester(focusRequester)
-            .focusRing(interactionSource = interaction),
+        // While listening the container is the accent itself, so the accent
+        // ring would vanish exactly when the button matters most.
+        ringColor = if (listening) MaterialTheme.colorScheme.onPrimary else null,
+        modifier = Modifier.focusRequester(focusRequester),
     ) {
         Icon(Icons.Filled.Mic, contentDescription = "Голосовой поиск")
     }
