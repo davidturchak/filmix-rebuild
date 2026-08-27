@@ -1,9 +1,9 @@
 {
-  "versionCode": 41,
-  "versionName": "0.5.0",
-  "commit": "fde49b7",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.5.0.apk",
+  "versionCode": 44,
+  "versionName": "0.5.1",
+  "commit": "6a99fa9",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.5.1.apk",
   "sizeBytes": 2944649,
-  "sha256": "c984c0933ce8750ed3488e10020f0474c8dc55dcab9d13bf926bbf378cfdeb4f",
-  "notes": "Android TV: rail tabs select on focus with a visible ring, BACK returns to Home, lists come back where you left them, search reaches its results, focus visible on every button, country filter previews \u0420\u043e\u0441\u0441\u0438\u044f/\u0418\u0437\u0440\u0430\u0438\u043b\u044c/\u0421\u0428\u0410/\u041a\u043e\u0440\u0435\u044f/\u0424\u0440\u0430\u043d\u0446\u0438\u044f/\u0413\u0435\u0440\u043c\u0430\u043d\u0438\u044f, and pairing now populates history and favourites without a restart."
+  "sha256": "f32d874176a964d44ff079c5f9d2b4ae227b2cd76f7724edc21cc57050126497",
+  "notes": "Playback: the on-screen controls can be summoned again with any key on the remote \u2014 CENTRE, the D-pad or play/pause \u2014 including after they time out mid-film."
 }
