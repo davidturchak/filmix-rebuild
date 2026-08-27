@@ -1,9 +1,9 @@
 {
-  "versionCode": 22,
+  "versionCode": 23,
   "versionName": "0.3.0",
-  "commit": "ac9ee91",
+  "commit": "7de5223",
   "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.3.0.apk",
-  "sizeBytes": 2806293,
-  "sha256": "5da0bfa799e8298b7bd96caadad99dedc6636394c06f341841fd6bfa0fecdd67",
-  "notes": "\u041f\u0435\u0440\u0435\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u043d\u0438\u0435 \u0432 filmix-ng. \u0421\u0435\u0440\u0438\u0438: \u0432\u044b\u0431\u043e\u0440 \u0441\u0435\u0437\u043e\u043d\u0430, \u043e\u0437\u0432\u0443\u0447\u043a\u0438 \u0438 \u0441\u0435\u0440\u0438\u0438. \u041a\u0430\u0442\u0430\u043b\u043e\u0433 \u0441 \u0441\u043e\u0440\u0442\u0438\u0440\u043e\u0432\u043a\u043e\u0439 \u0438 \u0444\u0438\u043b\u044c\u0442\u0440\u0430\u043c\u0438."
+  "sizeBytes": 2928213,
+  "sha256": "e286e2a8052a749225b2abbdb9e1b9ece79434a1a10d86ce63f485f942c93712",
+  "notes": "filmix-ng: \u043f\u0435\u0440\u0435\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u043d\u0438\u0435, \u043d\u043e\u0432\u0430\u044f \u0438\u043a\u043e\u043d\u043a\u0430. \u0421\u0435\u0440\u0438\u0438: \u0432\u044b\u0431\u043e\u0440 \u0441\u0435\u0437\u043e\u043d\u0430, \u043e\u0437\u0432\u0443\u0447\u043a\u0438 \u0438 \u0441\u0435\u0440\u0438\u0438."
 }
