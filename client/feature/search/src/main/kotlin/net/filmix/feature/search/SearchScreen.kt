@@ -33,10 +33,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -67,6 +74,7 @@ fun SearchScreen(
     onVoiceResult: (String) -> Unit = {},
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
 
     // On a remote, typing means driving an on-screen grid key by key. Voice is
     // the faster path and is what the original app offered on TV.
@@ -114,7 +122,25 @@ fun SearchScreen(
                 },
             ),
             shape = MaterialTheme.shapes.extraLarge,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                // A focused text field swallows D-pad up/down as caret
+                // movement, and does so even when it is single-line and the
+                // caret has nowhere to go — so focus could never leave the
+                // field downwards and the results underneath were unreachable
+                // by remote. Preview the key and move focus ourselves, only
+                // claiming it when something actually took the focus.
+                .onPreviewKeyEvent { event ->
+                    if (event.type != KeyEventType.KeyDown) {
+                        false
+                    } else {
+                        when (event.key) {
+                            Key.DirectionDown -> focusManager.moveFocus(FocusDirection.Down)
+                            Key.DirectionUp -> focusManager.moveFocus(FocusDirection.Up)
+                            else -> false
+                        }
+                    }
+                },
         )
             if (voice.available && !isTv) {
                 MicButton(micFocus, voice.listening, voice::start)
