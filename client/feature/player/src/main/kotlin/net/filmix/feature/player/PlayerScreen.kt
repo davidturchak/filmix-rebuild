@@ -1,6 +1,7 @@
 package net.filmix.feature.player
 
 import android.app.Activity
+import android.view.View
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -11,9 +12,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
@@ -101,18 +108,63 @@ fun PlayerScreen(
 
     BackHandler { onBack() }
 
-    Box(modifier.fillMaxSize().background(Color.Black)) {
-        AndroidView(
-            factory = { ctx ->
-                PlayerView(ctx).apply {
-                    this.player = player
-                    useController = true
-                    setShowNextButton(false)
-                    setShowPreviousButton(false)
+    // Held rather than built inline, so focus can be handed to it. On a remote
+    // that is the whole game: PlayerView reveals its controls from its own
+    // dispatchKeyEvent, so a press only counts if this view has Android focus.
+    // Without it the screen answered no key at all — not CENTRE, not the D-pad,
+    // not even MEDIA_PLAY_PAUSE — and BACK was the only way out.
+    val playerView = remember {
+        PlayerView(context).apply {
+            this.player = player
+            useController = true
+            setShowNextButton(false)
+            setShowPreviousButton(false)
+            isFocusable = true
+            isFocusableInTouchMode = true
+            // The controls auto-show at the start of playback and take focus
+            // for their buttons; when the timeout hides them again, focus would
+            // go with them and leave the window with nothing focused — which is
+            // why the controls went missing partway through rather than at
+            // once. Take it back each time they close.
+            setControllerVisibilityListener(
+                PlayerView.ControllerVisibilityListener { visibility ->
+                    if (visibility != View.VISIBLE) requestFocus()
+                },
+            )
+        }
+    }
+
+    LaunchedEffect(playerView) {
+        // A frame, so the view is attached and can actually hold focus.
+        withFrameNanos { }
+        playerView.requestFocus()
+    }
+
+    Box(
+        modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            // The backstop. Handing the view focus above is what makes the
+            // controls navigable once they are up, but whether a press reaches
+            // it depends on who holds focus at that instant — and the state
+            // where nothing did is the bug. Compose is in the dispatch path
+            // either way, so claim the first press here and summon the controls
+            // outright; once they are visible their own buttons hold focus and
+            // handle everything, so the event is passed through untouched.
+            .onPreviewKeyEvent { event ->
+                when {
+                    event.type != KeyEventType.KeyDown -> false
+                    // Back exits playback; it must not flash the controls first.
+                    event.key == Key.Back -> false
+                    playerView.isControllerFullyVisible -> false
+                    else -> {
+                        playerView.showController()
+                        true
+                    }
                 }
             },
-            modifier = Modifier.fillMaxSize(),
-        )
+    ) {
+        AndroidView(factory = { playerView }, modifier = Modifier.fillMaxSize())
     }
 }
 
