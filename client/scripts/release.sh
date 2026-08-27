@@ -53,12 +53,12 @@ read -r VERSION_CODE VERSION_NAME <<<"$(
 SHA=$(sha256sum "$APK" | cut -d' ' -f1)
 SIZE=$(stat -c%s "$APK")
 COMMIT=$(git -C "$REPO_DIR" rev-parse --short HEAD)
-NAME="filmix-client-$VERSION_NAME.apk"
+NAME="filmix-ng-$VERSION_NAME.apk"
 
 mkdir -p "$BUILD_DIR"
 # Keep only the current release: the repo is not an archive, and each APK is
 # ~2.6MB of binary that stays in git history forever.
-rm -f "$BUILD_DIR"/filmix-client-*.apk
+rm -f "$BUILD_DIR"/filmix-client-*.apk "$BUILD_DIR"/filmix-ng-*.apk
 cp "$APK" "$BUILD_DIR/$NAME"
 
 RAW_BASE="https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD"

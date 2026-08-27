@@ -13,7 +13,7 @@ plugins {
  * anyone having to remember to bump it; versionName stays hand-managed because
  * it is the number users read.
  */
-val appVersionName = "0.2.0"
+val appVersionName = "0.3.0"
 
 fun git(vararg args: String): String = runCatching {
     providers.exec {
@@ -53,7 +53,10 @@ android {
     }
 
     defaultConfig {
-        applicationId = "net.filmix.client"
+        // Deliberately outside net.filmix.*, which is the namespace of the
+        // app Play Protect flags. The Kotlin namespace stays put — Play
+        // Protect matches on the manifest package, not the R class package.
+        applicationId = "dev.turchak.filmixng"
         minSdk = 26
         targetSdk = 35
         versionCode = commitCount
