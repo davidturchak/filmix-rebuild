@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The original app's launcher orange, so the icon reads as the same family. -->
+    <color name="ic_launcher_background">#FFF26739</color>
+</resources>
