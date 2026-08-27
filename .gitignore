@@ -9,6 +9,9 @@ tools/
 
 # APK under analysis — not ours to redistribute
 *.apk
+# ...but our own published releases must be tracked, since the in-app updater
+# downloads them from raw.githubusercontent.com.
+!BUILD/*.apk
 
 # Decompiler output — build artifacts, reproducible from the APK (see README)
 apktool_out/
