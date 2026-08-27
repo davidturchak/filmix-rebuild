@@ -195,6 +195,7 @@ private fun FilmixApp(graph: AppGraph) {
                     onSignOut = vm::signOut,
                     preferredQuality = quality,
                     onQualityChange = vm::setPreferredQuality,
+                    version = vm.version,
                 )
             }
 

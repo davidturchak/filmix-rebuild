@@ -4,6 +4,26 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+/**
+ * Single source of truth for the app version.
+ *
+ * versionCode is derived from the commit count so it always increases without
+ * anyone having to remember to bump it; versionName stays hand-managed because
+ * it is the number users read.
+ */
+val appVersionName = "0.2.0"
+
+fun git(vararg args: String): String = runCatching {
+    providers.exec {
+        commandLine("git", *args)
+        workingDir = rootDir
+    }.standardOutput.asText.get().trim()
+}.getOrDefault("")
+
+val gitSha: String = git("rev-parse", "--short", "HEAD").ifEmpty { "unknown" }
+val gitDirty: Boolean = git("status", "--porcelain").isNotEmpty()
+val commitCount: Int = git("rev-list", "--count", "HEAD").toIntOrNull() ?: 1
+
 android {
     namespace = "net.filmix.client"
     compileSdk = 35
@@ -12,8 +32,11 @@ android {
         applicationId = "net.filmix.client"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = commitCount
+        versionName = appVersionName
+
+        buildConfigField("String", "GIT_SHA", "\"$gitSha\"")
+        buildConfigField("boolean", "GIT_DIRTY", "$gitDirty")
     }
 
     buildTypes {

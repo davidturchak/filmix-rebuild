@@ -15,6 +15,7 @@ import net.filmix.core.data.SettingsStore
 import net.filmix.core.data.TokenStore
 import net.filmix.core.network.DeviceParams
 import net.filmix.core.network.FilmixApi
+import net.filmix.core.model.AppVersion
 import net.filmix.core.network.NetworkFactory
 import net.filmix.feature.catalog.CatalogViewModel
 import net.filmix.feature.detail.DetailViewModel
@@ -38,6 +39,14 @@ class AppGraph(context: Context) {
     private val appContext = context.applicationContext
 
     val tokenStore = TokenStore(appContext)
+
+    val version = AppVersion(
+        name = BuildConfig.VERSION_NAME,
+        code = BuildConfig.VERSION_CODE,
+        gitSha = BuildConfig.GIT_SHA,
+        gitDirty = BuildConfig.GIT_DIRTY,
+        debug = BuildConfig.DEBUG,
+    )
 
     private val deviceParams = DeviceParams(
         deviceId = androidId(appContext),
@@ -103,7 +112,7 @@ class GraphViewModelFactory(private val graph: AppGraph) : ViewModelProvider.Fac
             SearchViewModel(graph.catalogRepository) as T
 
         modelClass.isAssignableFrom(ProfileViewModel::class.java) ->
-            ProfileViewModel(graph.authRepository, graph.settingsStore) as T
+            ProfileViewModel(graph.authRepository, graph.settingsStore, graph.version) as T
 
         else -> error("Unknown ViewModel ${modelClass.name}")
     }

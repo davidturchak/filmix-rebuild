@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import net.filmix.core.data.PairingState
+import net.filmix.core.model.AppVersion
 
 sealed interface ProfileUiState {
     data object Idle : ProfileUiState
@@ -48,6 +49,7 @@ fun ProfileScreen(
     onSignOut: () -> Unit = {},
     preferredQuality: Int? = null,
     onQualityChange: (Int?) -> Unit = {},
+    version: AppVersion? = null,
 ) {
     Box(
         modifier
@@ -147,7 +149,37 @@ fun ProfileScreen(
 
                 else -> Unit
             }
+
+            if (version != null) {
+                VersionFooter(version)
+            }
         }
+    }
+}
+
+/**
+ * Build identity. Shown in full rather than as a bare version name so a build
+ * on a device can be matched to a commit — several builds share a version name
+ * during development.
+ */
+@Composable
+private fun VersionFooter(version: AppVersion) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.padding(top = 32.dp),
+    ) {
+        Text(
+            "Filmix Client",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            version.full,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.outline,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 

@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import net.filmix.core.data.AuthRepository
 import net.filmix.core.data.SettingsStore
+import net.filmix.core.model.AppVersion
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import net.filmix.core.data.PairingState
@@ -16,6 +17,7 @@ import net.filmix.core.data.PairingState
 class ProfileViewModel(
     private val auth: AuthRepository,
     private val settings: SettingsStore,
+    val version: AppVersion,
 ) : ViewModel() {
 
     val preferredQuality: StateFlow<Int?> = settings.preferredQuality
