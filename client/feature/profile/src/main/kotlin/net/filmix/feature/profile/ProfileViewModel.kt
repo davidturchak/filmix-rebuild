@@ -8,9 +8,23 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import net.filmix.core.data.AuthRepository
+import net.filmix.core.data.SettingsStore
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import net.filmix.core.data.PairingState
 
-class ProfileViewModel(private val auth: AuthRepository) : ViewModel() {
+class ProfileViewModel(
+    private val auth: AuthRepository,
+    private val settings: SettingsStore,
+) : ViewModel() {
+
+    val preferredQuality: StateFlow<Int?> = settings.preferredQuality
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    fun setPreferredQuality(quality: Int?) {
+        viewModelScope.launch { settings.setPreferredQuality(quality) }
+    }
+
 
     private val _state = MutableStateFlow<ProfileUiState>(ProfileUiState.Idle)
     val state: StateFlow<ProfileUiState> = _state.asStateFlow()

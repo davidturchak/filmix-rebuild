@@ -24,6 +24,8 @@ import net.filmix.feature.detail.DetailScreen
 import net.filmix.feature.detail.DetailViewModel
 import net.filmix.feature.home.HomeScreen
 import net.filmix.feature.home.HomeViewModel
+import net.filmix.feature.library.LibraryScreen
+import net.filmix.feature.library.LibraryViewModel
 import net.filmix.feature.profile.ProfileScreen
 import net.filmix.feature.profile.ProfileViewModel
 import net.filmix.feature.search.SearchScreen
@@ -89,6 +91,8 @@ private fun FilmixApp(graph: AppGraph) {
             onPlay = { source ->
                 detailState.post?.let { playing = it to source }
             },
+            onToggleFavourite = detailVm::toggleFavourite,
+            onToggleWatchLater = detailVm::toggleWatchLater,
         )
         return
     }
@@ -130,14 +134,29 @@ private fun FilmixApp(graph: AppGraph) {
                 )
             }
 
+            Destination.Favourites -> {
+                val vm: LibraryViewModel = viewModel(factory = factory)
+                val libState by vm.state.collectAsState()
+                LibraryScreen(
+                    state = libState,
+                    compact = compact,
+                    modifier = modifier,
+                    onTabChange = vm::selectTab,
+                    onPostClick = { openPostId = it.id },
+                )
+            }
+
             Destination.Profile -> {
                 val vm: ProfileViewModel = viewModel(factory = factory)
                 val state by vm.state.collectAsState()
+                val quality by vm.preferredQuality.collectAsState()
                 ProfileScreen(
                     state = state,
                     modifier = modifier,
                     onStartPairing = vm::startPairing,
                     onSignOut = vm::signOut,
+                    preferredQuality = quality,
+                    onQualityChange = vm::setPreferredQuality,
                 )
             }
 

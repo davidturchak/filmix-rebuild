@@ -1,6 +1,7 @@
 package net.filmix.feature.profile
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -44,6 +46,8 @@ fun ProfileScreen(
     modifier: Modifier = Modifier,
     onStartPairing: () -> Unit = {},
     onSignOut: () -> Unit = {},
+    preferredQuality: Int? = null,
+    onQualityChange: (Int?) -> Unit = {},
 ) {
     Box(
         modifier
@@ -120,6 +124,12 @@ fun ProfileScreen(
                     }
                 }
 
+                else -> Unit
+            }
+
+            QualityPreference(preferredQuality, onQualityChange)
+
+            when (state) {
                 is ProfileUiState.Failed -> {
                     Text(
                         "Не удалось получить код",
@@ -134,6 +144,42 @@ fun ProfileScreen(
                     )
                     Button(onClick = onStartPairing) { Text("Повторить") }
                 }
+
+                else -> Unit
+            }
+        }
+    }
+}
+
+/**
+ * Preferred stream height. "Авто" means always take the best the source
+ * offers, which is what StreamLink.selectQuality falls back to.
+ */
+@Composable
+private fun QualityPreference(selected: Int?, onChange: (Int?) -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.padding(top = 24.dp),
+    ) {
+        Text(
+            "Качество по умолчанию",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf<Pair<String, Int?>>(
+                "Авто" to null,
+                "480p" to 480,
+                "720p" to 720,
+                "1080p" to 1080,
+                "4K" to 2160,
+            ).forEach { (label, value) ->
+                FilterChip(
+                    selected = selected == value,
+                    onClick = { onChange(value) },
+                    label = { Text(label) },
+                )
             }
         }
     }

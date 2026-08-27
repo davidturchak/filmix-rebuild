@@ -17,10 +17,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -62,6 +67,8 @@ fun DetailScreen(
     onBack: () -> Unit = {},
     onPlay: (VideoSource) -> Unit = {},
     onRelatedClick: (Post) -> Unit = {},
+    onToggleFavourite: () -> Unit = {},
+    onToggleWatchLater: () -> Unit = {},
 ) {
     Box(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         when {
@@ -73,7 +80,14 @@ fun DetailScreen(
                 modifier = Modifier.align(Alignment.Center),
             )
 
-            else -> Content(state.post, compact, onPlay, onRelatedClick)
+            else -> Content(
+                state.post,
+                compact,
+                onPlay,
+                onRelatedClick,
+                onToggleFavourite,
+                onToggleWatchLater,
+            )
         }
 
         IconButton(
@@ -95,12 +109,16 @@ private fun Content(
     compact: Boolean,
     onPlay: (VideoSource) -> Unit,
     onRelatedClick: (Post) -> Unit,
+    onToggleFavourite: () -> Unit,
+    onToggleWatchLater: () -> Unit,
 ) {
     LazyColumn(
         contentPadding = PaddingValues(bottom = Dimens.sectionGap),
         verticalArrangement = Arrangement.spacedBy(Dimens.sectionGap),
     ) {
-        item("hero") { Backdrop(post, compact, onPlay) }
+        item("hero") {
+            Backdrop(post, compact, onPlay, onToggleFavourite, onToggleWatchLater)
+        }
 
         if (post.shortStory.isNotEmpty()) {
             item("synopsis") {
@@ -161,7 +179,13 @@ private fun Content(
 }
 
 @Composable
-private fun Backdrop(post: Post, compact: Boolean, onPlay: (VideoSource) -> Unit) {
+private fun Backdrop(
+    post: Post,
+    compact: Boolean,
+    onPlay: (VideoSource) -> Unit,
+    onToggleFavourite: () -> Unit,
+    onToggleWatchLater: () -> Unit,
+) {
     Box(
         Modifier
             .fillMaxWidth()
@@ -226,14 +250,31 @@ private fun Backdrop(post: Post, compact: Boolean, onPlay: (VideoSource) -> Unit
                     post.imdbRating?.takeIf { it.isNotEmpty() && it != "0" }
                         ?.let { MetaChip("IMDb $it", accent = ImdbGold) }
                 }
-                val best = post.sources.firstOrNull()
-                if (best != null) {
-                    Button(
-                        onClick = { onPlay(best) },
-                        shape = MaterialTheme.shapes.extraLarge,
-                    ) {
-                        Icon(Icons.Filled.PlayArrow, contentDescription = null)
-                        Text("Смотреть", Modifier.padding(start = 8.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    val best = post.sources.firstOrNull()
+                    if (best != null) {
+                        Button(
+                            onClick = { onPlay(best) },
+                            shape = MaterialTheme.shapes.extraLarge,
+                        ) {
+                            Icon(Icons.Filled.PlayArrow, contentDescription = null)
+                            Text("Смотреть", Modifier.padding(start = 8.dp))
+                        }
+                    }
+                    FilledTonalIconButton(onClick = onToggleFavourite) {
+                        Icon(
+                            if (post.favorited) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                            contentDescription = "В избранное",
+                        )
+                    }
+                    FilledTonalIconButton(onClick = onToggleWatchLater) {
+                        Icon(
+                            if (post.watchLater) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
+                            contentDescription = "Смотреть позже",
+                        )
                     }
                 }
             }

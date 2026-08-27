@@ -129,6 +129,21 @@ data class LastEpisodeDto(
     val translation: String = "",
 )
 
+/**
+ * Notification feed entry. Fields are permissive because the shape has not been
+ * observed with real data — the feed is empty for unpaired accounts.
+ */
+@Serializable
+data class NotificationDto(
+    val id: Long = 0,
+    @SerialName("post_id") val postId: Int = 0,
+    val title: String = "",
+    val message: String = "",
+    val date: String = "",
+    val poster: String? = null,
+    val read: Boolean = false,
+)
+
 fun PostDto.toDomain(): Post = Post(
     id = id,
     section = section,

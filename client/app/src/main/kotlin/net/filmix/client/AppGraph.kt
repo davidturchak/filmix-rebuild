@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import net.filmix.core.data.AuthRepository
 import net.filmix.core.data.CatalogRepository
+import net.filmix.core.data.LibraryRepository
 import net.filmix.core.data.PlaybackRepository
 import net.filmix.core.data.ResumeStore
 import net.filmix.core.data.SettingsStore
@@ -17,6 +18,7 @@ import net.filmix.core.network.FilmixApi
 import net.filmix.core.network.NetworkFactory
 import net.filmix.feature.detail.DetailViewModel
 import net.filmix.feature.home.HomeViewModel
+import net.filmix.feature.library.LibraryViewModel
 import net.filmix.feature.profile.ProfileViewModel
 import net.filmix.feature.search.SearchViewModel
 import java.util.Locale
@@ -62,6 +64,8 @@ class AppGraph(context: Context) {
 
     val playbackRepository = PlaybackRepository(api, resumeStore, settingsStore)
 
+    val libraryRepository = LibraryRepository(api, tokenStore)
+
     @SuppressLint("HardwareIds")
     private fun androidId(context: Context): String =
         Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID).orEmpty()
@@ -79,16 +83,19 @@ class GraphViewModelFactory(private val graph: AppGraph) : ViewModelProvider.Fac
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
         modelClass.isAssignableFrom(DetailViewModel::class.java) ->
-            DetailViewModel(graph.catalogRepository) as T
+            DetailViewModel(graph.catalogRepository, graph.libraryRepository) as T
 
         modelClass.isAssignableFrom(HomeViewModel::class.java) ->
             HomeViewModel(graph.catalogRepository) as T
+
+        modelClass.isAssignableFrom(LibraryViewModel::class.java) ->
+            LibraryViewModel(graph.libraryRepository) as T
 
         modelClass.isAssignableFrom(SearchViewModel::class.java) ->
             SearchViewModel(graph.catalogRepository) as T
 
         modelClass.isAssignableFrom(ProfileViewModel::class.java) ->
-            ProfileViewModel(graph.authRepository) as T
+            ProfileViewModel(graph.authRepository, graph.settingsStore) as T
 
         else -> error("Unknown ViewModel ${modelClass.name}")
     }

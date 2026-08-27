@@ -1,5 +1,6 @@
 package net.filmix.core.network
 
+import net.filmix.core.network.dto.NotificationDto
 import net.filmix.core.network.dto.PostDto
 import net.filmix.core.network.dto.ServerListDto
 import net.filmix.core.network.dto.TokenRequestDto
@@ -76,6 +77,39 @@ interface FilmixApi {
         @Query("story") story: String,
         @Query("page") page: Int = 1,
     ): List<PostDto>
+
+    /** Requires a paired account; returns [] otherwise. */
+    @GET("api/v2/favourites")
+    suspend fun favourites(
+        @Query("orderby") orderBy: String = "date",
+        @Query("orderdir") orderDir: String = "desc",
+        @Query("page") page: Int = 1,
+        @Query("section") section: Int? = null,
+    ): List<PostDto>
+
+    /** "Watch later". Requires a paired account; returns [] otherwise. */
+    @GET("api/v2/deferred")
+    suspend fun deferred(
+        @Query("page") page: Int = 1,
+        @Query("section") section: Int? = null,
+    ): List<PostDto>
+
+    /**
+     * Toggles are GET despite mutating — the reference app routes both through
+     * its GET helper, and POST is not accepted.
+     */
+    @GET("api/v2/toggle_fav/{id}")
+    suspend fun toggleFavourite(@Path("id") id: Int): retrofit2.Response<Unit>
+
+    @GET("api/v2/toggle_wl/{id}")
+    suspend fun toggleWatchLater(@Path("id") id: Int): retrofit2.Response<Unit>
+
+    /** `last_id` is required; omitting it returns HTTP 400. */
+    @GET("api/v2/notifications/all")
+    suspend fun notifications(@Query("last_id") lastId: Long = 0): List<NotificationDto>
+
+    @POST("api/v2/notifications/readall")
+    suspend fun markAllNotificationsRead(): retrofit2.Response<Unit>
 
     /** Type-ahead. Same entry shape as the catalog, minus the heavier fields. */
     @GET("api/v2/suggest")
