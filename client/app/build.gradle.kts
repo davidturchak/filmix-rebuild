@@ -41,7 +41,16 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8 full mode: debug dex is ~20MB of unshrunk Compose/Media3/
+            // Retrofit; shrinking and resource stripping is what makes the
+            // shippable size honest.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
