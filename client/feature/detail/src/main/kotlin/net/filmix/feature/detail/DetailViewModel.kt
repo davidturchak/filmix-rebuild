@@ -19,6 +19,19 @@ class DetailViewModel(
 
     private var loadedId: Int? = null
 
+    private val _selection = MutableStateFlow(EpisodeSelection())
+    val selection: StateFlow<EpisodeSelection> = _selection.asStateFlow()
+
+    fun selectSeason(season: String) {
+        // Translations are season-specific, so clear it and let resolve() pick
+        // the first one available in the newly chosen season.
+        _selection.value = EpisodeSelection(season = season, translation = null)
+    }
+
+    fun selectTranslation(name: String) {
+        _selection.value = _selection.value.copy(translation = name)
+    }
+
     /**
      * Optimistic: the endpoints confirm success but do not report the resulting
      * flag, so the local copy is flipped immediately and reverted if the call
@@ -60,6 +73,7 @@ class DetailViewModel(
         loadedId = id
         viewModelScope.launch {
             _state.value = DetailUiState(loading = true)
+            _selection.value = EpisodeSelection()
             _state.value = runCatching { catalog.post(id) }.fold(
                 onSuccess = { DetailUiState(post = it, loading = false) },
                 onFailure = { DetailUiState(loading = false, error = "Не удалось загрузить") },

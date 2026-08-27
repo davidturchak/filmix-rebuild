@@ -33,6 +33,24 @@ object StreamLink {
     }
 
     /**
+     * Builds a source from a series episode, which needs no bracket parsing:
+     * the API already supplies a `%s` template and an explicit quality list.
+     * Returns null if either is missing or the template has no placeholder.
+     */
+    fun fromTemplate(
+        translation: String,
+        link: String,
+        qualities: List<Int>,
+    ): VideoSource? {
+        if (link.isEmpty() || !link.contains("%s") || qualities.isEmpty()) return null
+        return VideoSource(
+            rawTranslation = translation,
+            templateUrl = link,
+            qualities = qualities.distinct().sortedDescending(),
+        )
+    }
+
+    /**
      * Picks [preferred] when the source offers it, else the highest available —
      * matching the reference app's `Collections.max` fallback.
      */

@@ -51,6 +51,7 @@ import net.filmix.core.designsystem.theme.Dimens
 import net.filmix.core.designsystem.theme.ImdbGold
 import net.filmix.core.designsystem.theme.KinopoiskOrange
 import net.filmix.core.model.ParsedTranslation
+import net.filmix.core.model.Episode
 import net.filmix.core.model.Post
 import net.filmix.core.model.StreamLink
 import net.filmix.core.model.VideoSource
@@ -71,6 +72,10 @@ fun DetailScreen(
     onRelatedClick: (Post) -> Unit = {},
     onToggleFavourite: () -> Unit = {},
     onToggleWatchLater: () -> Unit = {},
+    selection: EpisodeSelection = EpisodeSelection(),
+    onSelectSeason: (String) -> Unit = {},
+    onSelectTranslation: (String) -> Unit = {},
+    onPlayEpisode: (Episode) -> Unit = {},
 ) {
     Box(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         when {
@@ -89,6 +94,10 @@ fun DetailScreen(
                 onRelatedClick,
                 onToggleFavourite,
                 onToggleWatchLater,
+                selection,
+                onSelectSeason,
+                onSelectTranslation,
+                onPlayEpisode,
             )
         }
 
@@ -113,13 +122,41 @@ private fun Content(
     onRelatedClick: (Post) -> Unit,
     onToggleFavourite: () -> Unit,
     onToggleWatchLater: () -> Unit,
+    selection: EpisodeSelection,
+    onSelectSeason: (String) -> Unit,
+    onSelectTranslation: (String) -> Unit,
+    onPlayEpisode: (Episode) -> Unit,
 ) {
     LazyColumn(
         contentPadding = PaddingValues(bottom = Dimens.sectionGap),
         verticalArrangement = Arrangement.spacedBy(Dimens.sectionGap),
     ) {
         item("hero") {
-            Backdrop(post, compact, onPlay, onToggleFavourite, onToggleWatchLater)
+            Backdrop(
+                post = post,
+                compact = compact,
+                onPlay = onPlay,
+                onToggleFavourite = onToggleFavourite,
+                onToggleWatchLater = onToggleWatchLater,
+                // A series has no single "play" source; the CTA starts the
+                // first episode of the selected season and translation.
+                firstEpisode = selection.resolve(post.playlist)?.second?.episodes?.firstOrNull(),
+                onPlayEpisode = onPlayEpisode,
+            )
+        }
+
+        if (!post.playlist.isEmpty) {
+            item("episodes") {
+                Section("Серии") {
+                    EpisodePicker(
+                        playlist = post.playlist,
+                        selection = selection,
+                        onSelectSeason = onSelectSeason,
+                        onSelectTranslation = onSelectTranslation,
+                        onPlayEpisode = onPlayEpisode,
+                    )
+                }
+            }
         }
 
         if (post.shortStory.isNotEmpty()) {
@@ -187,6 +224,8 @@ private fun Backdrop(
     onPlay: (VideoSource) -> Unit,
     onToggleFavourite: () -> Unit,
     onToggleWatchLater: () -> Unit,
+    firstEpisode: Episode?,
+    onPlayEpisode: (Episode) -> Unit,
 ) {
     Box(
         Modifier
@@ -257,10 +296,15 @@ private fun Backdrop(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     val best = post.sources.firstOrNull()
-                    if (best != null) {
+                    if (best != null || firstEpisode != null) {
                         val playInteraction = remember { MutableInteractionSource() }
                         Button(
-                            onClick = { onPlay(best) },
+                            onClick = {
+                                when {
+                                    best != null -> onPlay(best)
+                                    firstEpisode != null -> onPlayEpisode(firstEpisode)
+                                }
+                            },
                             shape = MaterialTheme.shapes.extraLarge,
                             interactionSource = playInteraction,
                             modifier = Modifier.focusRing(
@@ -269,7 +313,14 @@ private fun Backdrop(
                             ),
                         ) {
                             Icon(Icons.Filled.PlayArrow, contentDescription = null)
-                            Text("Смотреть", Modifier.padding(start = 8.dp))
+                            Text(
+                                if (best == null && firstEpisode != null) {
+                                    "Смотреть · ${firstEpisode.label}"
+                                } else {
+                                    "Смотреть"
+                                },
+                                Modifier.padding(start = 8.dp),
+                            )
                         }
                     }
                     FilledTonalIconButton(onClick = onToggleFavourite) {

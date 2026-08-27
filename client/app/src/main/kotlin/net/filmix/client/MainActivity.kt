@@ -5,6 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -14,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.window.core.layout.WindowWidthSizeClass
@@ -86,10 +90,15 @@ private fun FilmixApp(graph: AppGraph) {
         BackHandler { openPostId = null }
         val detailVm: DetailViewModel = viewModel(factory = factory)
         val detailState by detailVm.state.collectAsState()
+        val selection by detailVm.selection.collectAsState()
         LaunchedEffect(postId) { detailVm.load(postId) }
         DetailScreen(
             state = detailState,
             compact = compact,
+            // Detail renders outside AppScaffold, so it needs its own insets —
+            // without them the season chips sit under the status bar and the
+            // top row of the picker swallows taps.
+            modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing),
             onBack = { openPostId = null },
             onRelatedClick = { openPostId = it.id },
             onPlay = { source ->
@@ -97,6 +106,12 @@ private fun FilmixApp(graph: AppGraph) {
             },
             onToggleFavourite = detailVm::toggleFavourite,
             onToggleWatchLater = detailVm::toggleWatchLater,
+            selection = selection,
+            onSelectSeason = detailVm::selectSeason,
+            onSelectTranslation = detailVm::selectTranslation,
+            onPlayEpisode = { episode ->
+                detailState.post?.let { playing = it to episode.source }
+            },
         )
         return
     }

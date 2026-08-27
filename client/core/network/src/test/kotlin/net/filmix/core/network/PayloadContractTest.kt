@@ -85,3 +85,64 @@ class PayloadContractTest {
         assertTrue(links.all { it.link.contains(".mp4") })
     }
 }
+
+/**
+ * The series episode tree, from GET /api/v2/post/141341 (Внешние отмели):
+ * 5 seasons, 222 episodes, nested season -> translation -> episode.
+ */
+class SeriesPlaylistContractTest {
+
+    private val json = NetworkFactory.json
+
+    private fun fixture(name: String): String =
+        checkNotNull(javaClass.classLoader?.getResourceAsStream(name)) { "missing fixture $name" }
+            .bufferedReader().use { it.readText() }
+
+    private val post by lazy {
+        json.decodeFromString<PostDto>(fixture("post_series_playlist.json")).toDomain()
+    }
+
+    @Test
+    fun `all five seasons parse`() {
+        assertEquals(5, post.playlist.seasons.size)
+    }
+
+    @Test
+    fun `seasons are ordered numerically despite arriving as 4,5,1,2,3`() {
+        assertEquals(
+            listOf("1", "2", "3", "4", "5"),
+            post.playlist.seasons.map { it.number },
+        )
+    }
+
+    @Test
+    fun `every episode across the tree yields a playable source`() {
+        val episodes = post.playlist.seasons
+            .flatMap { it.translations }
+            .flatMap { it.episodes }
+        assertEquals(222, episodes.size)
+        assertTrue(episodes.all { it.source.qualities.isNotEmpty() })
+        assertTrue(episodes.all { it.source.templateUrl.contains("%s") })
+    }
+
+    @Test
+    fun `a season carries several competing translations`() {
+        val season4 = post.playlist.seasons.first { it.number == "4" }
+        assertTrue(season4.translations.size > 1)
+        assertTrue(season4.translations.any { it.name == "LostFilm" })
+    }
+
+    @Test
+    fun `episodes within a translation are numerically ordered`() {
+        val episodes = post.playlist.seasons.first { it.number == "4" }
+            .translations.first().episodes.map { it.number }
+        assertEquals(episodes.sortedBy { it.toInt() }, episodes)
+    }
+
+    @Test
+    fun `a film has no playlist`() {
+        val movie = json.decodeFromString<PostDto>(fixture("post_movie.json")).toDomain()
+        assertTrue(movie.playlist.isEmpty)
+        assertTrue(movie.sources.isNotEmpty())
+    }
+}

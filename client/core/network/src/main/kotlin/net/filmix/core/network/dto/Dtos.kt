@@ -3,12 +3,22 @@ package net.filmix.core.network.dto
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.JsonPrimitive
 import net.filmix.core.model.FilterOption
 import net.filmix.core.model.FilterOptions
 import net.filmix.core.model.Html
 import net.filmix.core.model.LastEpisode
+import net.filmix.core.model.Episode
 import net.filmix.core.model.PersonRef
+import net.filmix.core.model.Season
+import net.filmix.core.model.SeriesPlaylist
+import net.filmix.core.model.SeriesTranslation
 import net.filmix.core.model.StreamLink
 import net.filmix.core.model.Post
 
@@ -178,6 +188,48 @@ data class NotificationDto(
     val read: Boolean = false,
 )
 
+/**
+ * Reads the season → translation → episode tree.
+ *
+ * Held as a raw element because the field is polymorphic: an empty JSON array
+ * for films and rights-blocked titles, an object for real series. Anything
+ * that does not fit the expected shape is skipped rather than failing the
+ * whole post — a single malformed episode should not cost the user the page.
+ */
+internal fun JsonElement?.toSeriesPlaylist(): SeriesPlaylist {
+    val root = (this as? JsonObject) ?: return SeriesPlaylist.Empty
+    val seasons = root.entries
+        .sortedWith(compareBy(numericKey) { it.key })
+        .mapNotNull { (seasonNumber, seasonNode) ->
+            val translations = (seasonNode as? JsonObject)?.entries
+                ?.mapNotNull { (translationName, episodesNode) ->
+                    val episodes = (episodesNode as? JsonObject)?.entries
+                        ?.sortedWith(compareBy(numericKey) { it.key })
+                        ?.mapNotNull { (episodeNumber, episodeNode) ->
+                            episodeNode.toEpisode(translationName, episodeNumber)
+                        }
+                        .orEmpty()
+                    if (episodes.isEmpty()) null else SeriesTranslation(translationName, episodes)
+                }
+                .orEmpty()
+            if (translations.isEmpty()) null else Season(seasonNumber, translations)
+        }
+    return SeriesPlaylist(seasons)
+}
+
+private val numericKey: Comparator<String> =
+    compareBy({ it.toIntOrNull() ?: Int.MAX_VALUE }, { it })
+
+private fun JsonElement.toEpisode(translation: String, number: String): Episode? {
+    val node = this as? JsonObject ?: return null
+    val link = node["link"]?.jsonPrimitive?.contentOrNull.orEmpty()
+    val qualities = runCatching {
+        node["qualities"]?.jsonArray?.mapNotNull { it.jsonPrimitive.intOrNull }
+    }.getOrNull().orEmpty()
+    val source = StreamLink.fromTemplate(translation, link, qualities) ?: return null
+    return Episode(number = number, source = source)
+}
+
 fun PostDto.toDomain(): Post = Post(
     id = id,
     section = section,
@@ -224,4 +276,5 @@ fun PostDto.toDomain(): Post = Post(
     // are dropped rather than surfaced as broken rows.
     sources = playerLinks?.movie.orEmpty()
         .mapNotNull { StreamLink.parse(it.translation, it.link) },
+    playlist = playerLinks?.playlist.toSeriesPlaylist(),
 )

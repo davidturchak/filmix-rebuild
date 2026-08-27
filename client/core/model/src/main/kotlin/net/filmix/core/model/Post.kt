@@ -37,8 +37,10 @@ data class Post(
     val rateNegative: Int = 0,
     val cast: List<PersonRef> = emptyList(),
     val related: List<Post> = emptyList(),
-    /** Playable sources, already parsed out of the API's bracketed link format. */
+    /** Playable sources for a film, parsed from the API's bracketed link format. */
     val sources: List<VideoSource> = emptyList(),
+    /** Season/translation/episode tree for a series; empty for films. */
+    val playlist: SeriesPlaylist = SeriesPlaylist.Empty,
 ) {
     /** Sections 7, 714 and 93 are series in the upstream API. */
     val isSeries: Boolean get() = section in SERIES_SECTIONS
