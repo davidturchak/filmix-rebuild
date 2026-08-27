@@ -290,7 +290,14 @@ private fun Backdrop(
                     )
                 }
                 // Facts as chips rather than the original's "Жанр: …" text rows.
-                ChipRow {
+                //
+                // Weighted for the same reason the home hero's synopsis is: this
+                // Box has a fixed height, so the Column measures in order and
+                // the last child takes what is left. A chip per country *and*
+                // per genre wraps to three rows on a TV, which left the play
+                // button — the whole point of the screen — measured at nothing.
+                // Chips are the decoration here, so chips are what gives way.
+                ChipRow(Modifier.weight(1f, fill = false)) {
                     post.rip?.let { AccentChip(it) }
                     post.year.takeIf { it > 0 }?.let { MetaChip(it.toString()) }
                     post.duration.takeIf { it > 0 }?.let { MetaChip("$it мин") }

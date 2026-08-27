@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -70,6 +71,13 @@ fun AppScaffold(
     current: Destination,
     compact: Boolean,
     onSelect: (Destination) -> Unit,
+    /**
+     * Bumped by the caller whenever [current] changed from somewhere other than
+     * the rail itself — BACK, in practice. On TV focus *is* the selection, so
+     * otherwise the pill moves to Home while the ring stays on the tab the user
+     * left, and the next press steps from the wrong place.
+     */
+    railFocusTick: Int = 0,
     content: @Composable (Modifier) -> Unit,
 ) {
     if (compact) {
@@ -94,6 +102,15 @@ fun AppScaffold(
     } else {
         val isTv = LocalIsTv.current
         val requesters = remember { Destination.entries.associateWith { FocusRequester() } }
+        // Only on a tick, never on `current` alone: selecting by focus already
+        // put the ring where it belongs, and re-requesting on every change would
+        // yank focus out of the content the user is in.
+        LaunchedEffect(railFocusTick) {
+            if (railFocusTick == 0) return@LaunchedEffect
+            withFrameNanos { }
+            runCatching { requesters.getValue(current).requestFocus() }
+        }
+
         // enableEdgeToEdge draws beneath the system bars, so without this the
         // top of every screen sits under the status bar — tab rows and filter
         // chips end up partly untappable.

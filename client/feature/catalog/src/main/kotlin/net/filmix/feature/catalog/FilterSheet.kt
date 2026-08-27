@@ -28,6 +28,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import net.filmix.core.designsystem.component.FocusChip
 import net.filmix.core.designsystem.component.TextButton
@@ -76,10 +78,24 @@ fun FilterSheet(
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
+                val doneFocus = remember { FocusRequester() }
                 if (!filter.isEmpty) {
-                    TextButton(onClick = onClear) { Text("Сбросить") }
+                    TextButton(
+                        onClick = {
+                            onClear()
+                            // Clearing removes this very button, and focus dies
+                            // with it. The sheet does not trap focus, so the
+                            // next press could land on the catalog grid behind
+                            // the scrim; hand it to Готово instead, which is
+                            // where a user who has just reset is heading.
+                            doneFocus.requestFocus()
+                        },
+                    ) { Text("Сбросить") }
                 }
-                PrimaryButton(onClick = onDismiss) {
+                PrimaryButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.focusRequester(doneFocus),
+                ) {
                     Text("Готово")
                 }
             }

@@ -63,7 +63,8 @@ fun CatalogScreen(
     // The grid is paged, so the restored offset can point into a page that has
     // not replayed yet; nudging the item into view gives the requester
     // something to attach to.
-    val focusReturn = rememberFocusReturn { index ->
+    val focusReturn = rememberFocusReturn { key ->
+        val index = key.toIntOrNull() ?: return@rememberFocusReturn
         if (gridState.layoutInfo.visibleItemsInfo.none { it.index == index }) {
             gridState.scrollToItem(index)
         }

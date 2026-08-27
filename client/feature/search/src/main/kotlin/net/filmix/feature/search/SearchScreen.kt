@@ -280,7 +280,8 @@ private fun ResultsGrid(
     val refreshing = results.loadState.refresh is LoadState.Loading
     val failed = results.loadState.refresh is LoadState.Error
     val gridState = rememberLazyGridState()
-    val focusReturn = rememberFocusReturn { index ->
+    val focusReturn = rememberFocusReturn { key ->
+        val index = key.toIntOrNull() ?: return@rememberFocusReturn
         if (gridState.layoutInfo.visibleItemsInfo.none { it.index == index }) {
             gridState.scrollToItem(index)
         }

@@ -12,7 +12,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import net.filmix.core.designsystem.theme.LocalIsTv
 
-/** How long to keep trying before giving up on an item that never appears. */
+/** Frames to wait for the item to turn up on its own, before scrolling to it. */
+private const val FramesBeforeScroll = 8
+
+/** How long to keep trying after that, before giving up on it entirely. */
 private const val RestoreFrames = 120
 
 /**
@@ -28,39 +31,46 @@ private const val RestoreFrames = 120
  * Touch is unaffected: there is nothing to restore when nothing was focused.
  */
 class FocusReturn internal constructor(
-    private val pending: MutableState<Int>,
+    private val pending: MutableState<String>,
     internal val requester: FocusRequester,
     internal val enabled: Boolean,
 ) {
     /**
-     * Attach to every item, identified by anything stable — a list index or a
-     * post id. Only the item being returned to actually claims the requester,
-     * so there is never more than one holder.
+     * Attach to every item. Only the one being returned to claims the requester,
+     * so exactly one node holds it — which means [id] has to be unique across
+     * the whole screen, not just within one list. A post id alone is not: the
+     * home screen's rails routinely carry the same film in two of them, and two
+     * holders send focus, and the scroll that follows it, to the wrong rail.
      */
-    fun modifier(id: Int): Modifier =
-        if (enabled && id == pending.value) Modifier.focusRequester(requester) else Modifier
+    fun modifier(id: Any): Modifier =
+        if (enabled && pending.value == id.toString()) {
+            Modifier.focusRequester(requester)
+        } else {
+            Modifier
+        }
 
     /** Call from the item's click handler, before navigating away. */
-    fun opened(id: Int) {
-        pending.value = id
+    fun opened(id: Any) {
+        pending.value = id.toString()
     }
 
-    internal fun target(): Int = pending.value
+    internal fun target(): String = pending.value
 
     internal fun clear() {
-        pending.value = -1
+        pending.value = ""
     }
 }
 
 /**
- * [bringIntoView] is for lists that can come back with the item scrolled out of
- * range — a paged grid restoring an offset into pages it has not replayed yet.
- * Rails need nothing: their offsets come back with them.
+ * [bringIntoView] is the fallback for a list that can come back with the item
+ * scrolled out of range — a paged grid restoring an offset into pages it has not
+ * replayed yet. It receives the key that [FocusReturn.opened] was given, so a
+ * grid keyed by position converts it back with `toIntOrNull()`.
  */
 @Composable
-fun rememberFocusReturn(bringIntoView: suspend (Int) -> Unit = {}): FocusReturn {
+fun rememberFocusReturn(bringIntoView: suspend (String) -> Unit = {}): FocusReturn {
     val enabled = LocalIsTv.current
-    val pending = rememberSaveable { mutableStateOf(-1) }
+    val pending = rememberSaveable { mutableStateOf("") }
     val requester = remember { FocusRequester() }
     val focusReturn = remember(enabled) { FocusReturn(pending, requester, enabled) }
 
@@ -69,19 +79,32 @@ fun rememberFocusReturn(bringIntoView: suspend (Int) -> Unit = {}): FocusReturn 
     // would re-fire as paging appends a page and yank focus back mid-scroll.
     LaunchedEffect(Unit) {
         val target = focusReturn.target()
-        if (!enabled || target < 0) return@LaunchedEffect
-        bringIntoView(target)
-        // The item is usually a frame or two behind: paging replays its cached
-        // pages after the first composition, so requesting focus straight away
-        // hits a requester with nothing attached to it yet. Retrying per frame
-        // costs nothing and needs no per-layout notion of "is it visible".
-        repeat(RestoreFrames) {
-            if (runCatching { requester.requestFocus() }.isSuccess) {
-                focusReturn.clear()
-                return@LaunchedEffect
-            }
-            withFrameNanos {}
+        if (!enabled || target.isEmpty()) return@LaunchedEffect
+
+        // Ask before scrolling. The restored offset usually has the item on
+        // screen already, and scrolling to it would throw that offset away to
+        // pin the item against the top edge — the jump this exists to avoid.
+        // The item is often a frame or two late all the same, because paging
+        // replays its cached pages after the first composition.
+        if (!requester.claimFocusWithin(FramesBeforeScroll)) {
+            bringIntoView(target)
+            requester.claimFocusWithin(RestoreFrames)
         }
+
+        // Cleared either way. A target that never appears — a film dropped by a
+        // refresh, a rail that came back shorter — would otherwise spend the
+        // whole retry budget again on every later return to this screen.
+        focusReturn.clear()
     }
     return focusReturn
+}
+
+/** True as soon as the requester has something to give focus to. */
+private suspend fun FocusRequester.claimFocusWithin(frames: Int): Boolean {
+    repeat(frames) {
+        // Losing the race with disposal is not worth crashing over.
+        if (runCatching { requestFocus() }.isSuccess) return true
+        withFrameNanos { }
+    }
+    return false
 }

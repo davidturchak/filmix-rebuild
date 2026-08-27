@@ -136,14 +136,18 @@ private fun FilmixApp(graph: AppGraph) {
     // app: one press from the catalog dropped the user on the Google TV
     // launcher mid-browse. It now walks back to Home, and only leaves from
     // there — where BACK meaning "exit" is what a user expects.
+    var railFocusTick by remember { mutableStateOf(0) }
     BackHandler(enabled = destination != Destination.Home) {
         destination = Destination.Home
+        // The rail selects on focus, so the ring has to follow the pill.
+        railFocusTick++
     }
 
     AppScaffold(
         current = destination,
         compact = compact,
         onSelect = { destination = it },
+        railFocusTick = railFocusTick,
     ) { modifier ->
         tabState.SaveableStateProvider(destination.name) {
             when (destination) {

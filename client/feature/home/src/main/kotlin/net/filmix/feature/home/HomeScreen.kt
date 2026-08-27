@@ -85,8 +85,11 @@ fun HomeScreen(
         return
     }
 
-    // Post id rather than an index: a card's place in a rail is not stable
-    // across a refresh, but which film the user opened is.
+    // Keyed by rail *and* post id. The id alone is not unique on this screen —
+    // the same film turns up in "Продолжить просмотр" and "Популярное" both —
+    // and two cards claiming the requester sends focus, and the scroll chasing
+    // it, into whichever rail Compose reached first. An index would not do
+    // either: a rail's contents shift under it on a refresh.
     val focusReturn = rememberFocusReturn()
     LazyColumn(
         modifier = modifier
@@ -110,13 +113,14 @@ fun HomeScreen(
             key = { index -> state.rails[index].title },
         ) { index ->
             val rail = state.rails[index]
+            val cardKey = { post: Post -> "${'$'}{rail.title}/${'$'}{post.id}" }
             Rail(
                 title = rail.title,
                 items = rail.items,
                 key = { it.id },
             ) { post ->
                 PosterCard(
-                    modifier = focusReturn.modifier(post.id),
+                    modifier = focusReturn.modifier(cardKey(post)),
                     title = post.title,
                     posterUrl = post.posterUrl,
                     rating = post.rating,
@@ -125,7 +129,7 @@ fun HomeScreen(
                     width = if (compact) LocalDimensions.current.posterWidthCompact else LocalDimensions.current.posterWidth,
                     height = if (compact) LocalDimensions.current.posterHeightCompact else LocalDimensions.current.posterHeight,
                     onClick = {
-                        focusReturn.opened(post.id)
+                        focusReturn.opened(cardKey(post))
                         onPostClick(post)
                     },
                 )
