@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">filmixapp.cyou</domain>
+        <domain includeSubdomains="true">filmixapp.vip</domain>
+        <domain includeSubdomains="true">fxapp.biz</domain>
+        <domain includeSubdomains="true">gnft.pro</domain>
+    </domain-config>
+</network-security-config>

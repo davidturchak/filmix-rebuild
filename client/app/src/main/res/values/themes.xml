@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Compose owns the real theming; this only paints the window before
+         first composition so launch does not flash white. -->
+    <style name="Theme.FilmixClient" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#0E0F13</item>
+        <item name="android:statusBarColor">#0E0F13</item>
+        <item name="android:navigationBarColor">#0E0F13</item>
+    </style>
+</resources>
