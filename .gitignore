@@ -1,0 +1,21 @@
+# Signing keys — never commit private keys
+*.keystore
+*.jks
+*.p12
+*.idsig
+
+# Third-party tooling (re-downloadable; jadx artifacts exceed GitHub's 100MB limit)
+tools/
+
+# APK under analysis — not ours to redistribute
+*.apk
+
+# Decompiler output — build artifacts, reproducible from the APK (see README)
+apktool_out/
+jadx_out/
+extracted/
+
+# Build output
+build/
+dist/
+*.log

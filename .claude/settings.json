@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "android-reverse-engineering-claude-skill": {
+      "source": {
+        "source": "github",
+        "repo": "incogbyte/android-reverse-engineering-claude-skill"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "android-reverse-engineering@android-reverse-engineering-claude-skill": true
+  }
+}
