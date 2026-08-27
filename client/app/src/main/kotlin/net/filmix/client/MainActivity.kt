@@ -201,6 +201,7 @@ private fun FilmixApp(graph: AppGraph) {
                         modifier = modifier,
                         onTabChange = vm::selectTab,
                         onPostClick = { openPostId = it.id },
+                        onRetry = vm::refresh,
                     )
                 }
 
@@ -214,6 +215,7 @@ private fun FilmixApp(graph: AppGraph) {
                         onPostClick = { openPostId = it.id },
                         onRemove = vm::remove,
                         onClearAll = vm::clearAll,
+                        onRetry = vm::refresh,
                     )
                 }
 

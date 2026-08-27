@@ -5,17 +5,29 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import net.filmix.core.data.LibraryRepository
+import net.filmix.core.data.SessionState
 import net.filmix.core.model.Post
 
-class HistoryViewModel(private val library: LibraryRepository) : ViewModel() {
+class HistoryViewModel(
+    private val library: LibraryRepository,
+    private val session: SessionState,
+) : ViewModel() {
 
     private val _state = MutableStateFlow(HistoryUiState(loading = true))
     val state: StateFlow<HistoryUiState> = _state.asStateFlow()
 
     init {
         refresh()
+        // See LibraryViewModel: activity-scoped, so pairing happens after this
+        // screen has already decided it is signed out.
+        viewModelScope.launch {
+            session.linked.filterNotNull().collect { linked ->
+                if (linked != _state.value.signedIn) refresh()
+            }
+        }
     }
 
     fun refresh() {
@@ -26,8 +38,14 @@ class HistoryViewModel(private val library: LibraryRepository) : ViewModel() {
                 _state.value = HistoryUiState(loading = false, signedIn = false)
                 return@launch
             }
-            val items = runCatching { library.history() }.getOrDefault(emptyList())
-            _state.value = HistoryUiState(items = items, loading = false, signedIn = true)
+            val items = runCatching { library.history() }
+            _state.value = HistoryUiState(
+                items = items.getOrDefault(emptyList()),
+                loading = false,
+                signedIn = true,
+                // Otherwise a failed request reads as "История пуста".
+                failed = items.isFailure,
+            )
         }
     }
 

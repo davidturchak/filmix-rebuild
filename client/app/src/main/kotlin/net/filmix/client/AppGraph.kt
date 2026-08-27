@@ -11,6 +11,7 @@ import net.filmix.core.data.CatalogRepository
 import net.filmix.core.data.LibraryRepository
 import net.filmix.core.data.PlaybackRepository
 import net.filmix.core.data.ResumeStore
+import net.filmix.core.data.SessionState
 import net.filmix.core.data.SettingsStore
 import net.filmix.core.data.UpdateRepository
 import net.filmix.core.data.TokenStore
@@ -66,7 +67,10 @@ class AppGraph(context: Context) {
 
     val api: FilmixApi = NetworkFactory.filmixApi(okHttp)
 
-    val authRepository = AuthRepository(api, tokenStore)
+    /** Shared so pairing on the profile screen reaches the library screens. */
+    val sessionState = SessionState()
+
+    val authRepository = AuthRepository(api, tokenStore, sessionState)
 
     val catalogRepository = CatalogRepository(api)
 
@@ -106,10 +110,10 @@ class GraphViewModelFactory(private val graph: AppGraph) : ViewModelProvider.Fac
             HomeViewModel(graph.catalogRepository) as T
 
         modelClass.isAssignableFrom(HistoryViewModel::class.java) ->
-            HistoryViewModel(graph.libraryRepository) as T
+            HistoryViewModel(graph.libraryRepository, graph.sessionState) as T
 
         modelClass.isAssignableFrom(LibraryViewModel::class.java) ->
-            LibraryViewModel(graph.libraryRepository) as T
+            LibraryViewModel(graph.libraryRepository, graph.sessionState) as T
 
         modelClass.isAssignableFrom(SearchViewModel::class.java) ->
             SearchViewModel(graph.catalogRepository) as T

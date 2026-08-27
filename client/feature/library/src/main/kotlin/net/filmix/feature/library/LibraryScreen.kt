@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import net.filmix.core.designsystem.component.PosterCard
+import net.filmix.core.designsystem.component.PrimaryButton
 import net.filmix.core.designsystem.theme.LocalDimensions
 import net.filmix.core.model.Post
 
@@ -35,6 +36,7 @@ data class LibraryUiState(
     val watchLater: List<Post> = emptyList(),
     val loading: Boolean = false,
     val paired: Boolean = true,
+    val failed: Boolean = false,
 ) {
     val visible: List<Post>
         get() = if (tab == LibraryTab.Favourites) favourites else watchLater
@@ -46,6 +48,7 @@ fun LibraryScreen(
     modifier: Modifier = Modifier,
     compact: Boolean = false,
     onTabChange: (LibraryTab) -> Unit = {},
+    onRetry: () -> Unit = {},
     onPostClick: (Post) -> Unit = {},
 ) {
     Column(
@@ -75,6 +78,11 @@ fun LibraryScreen(
                 !state.paired -> Message(
                     "Войдите в аккаунт на вкладке «Профиль», чтобы синхронизировать списки.",
                 )
+
+                // Checked before "empty": a failed request also has no items,
+                // and telling the user their favourites are empty when the call
+                // never landed sends them looking in the wrong place.
+                state.failed -> Retry("Не удалось загрузить списки", onRetry)
 
                 state.visible.isEmpty() -> Message(
                     if (state.tab == LibraryTab.Favourites) {
@@ -111,6 +119,25 @@ fun LibraryScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+/** A failure the user can act on, unlike an empty list. */
+@Composable
+internal fun BoxScope.Retry(text: String, onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier.align(Alignment.Center),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        PrimaryButton(onClick = onRetry, modifier = Modifier.padding(top = 16.dp)) {
+            Text("Повторить")
         }
     }
 }

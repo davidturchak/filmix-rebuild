@@ -21,6 +21,7 @@ import net.filmix.core.network.dto.UserDataDto
 class AuthRepository(
     private val api: FilmixApi,
     private val tokenStore: TokenStore,
+    private val session: SessionState,
 ) {
 
     val isPaired: Flow<Boolean> = tokenStore.isPaired
@@ -35,8 +36,15 @@ class AuthRepository(
         )
     }
 
-    /** Null while unlinked. */
-    suspend fun fetchProfile(): UserDataDto? = api.userProfile().userData
+    /**
+     * Null while unlinked.
+     *
+     * This is the only place linking becomes knowable, so it publishes the
+     * answer: the polling loop below calls it every few seconds, and the moment
+     * it turns non-null the library and history screens reload themselves.
+     */
+    suspend fun fetchProfile(): UserDataDto? =
+        api.userProfile().userData.also { session.set(it != null) }
 
     /**
      * Emits [PairingState] until the device links or [timeoutMs] elapses.
@@ -59,7 +67,10 @@ class AuthRepository(
         emit(PairingState.Expired)
     }
 
-    suspend fun signOut() = tokenStore.clear()
+    suspend fun signOut() {
+        tokenStore.clear()
+        session.set(false)
+    }
 }
 
 data class PairingCode(val userCode: String, val expiresAt: Long)

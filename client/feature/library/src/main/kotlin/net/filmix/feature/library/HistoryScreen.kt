@@ -36,6 +36,7 @@ data class HistoryUiState(
     val items: List<Post> = emptyList(),
     val loading: Boolean = false,
     val signedIn: Boolean = true,
+    val failed: Boolean = false,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,6 +47,7 @@ fun HistoryScreen(
     compact: Boolean = false,
     onPostClick: (Post) -> Unit = {},
     onRemove: (Post) -> Unit = {},
+    onRetry: () -> Unit = {},
     onClearAll: () -> Unit = {},
 ) {
     var confirmClear by remember { mutableStateOf(false) }
@@ -84,6 +86,9 @@ fun HistoryScreen(
                 !state.signedIn -> Message(
                     "Войдите в аккаунт на вкладке «Профиль», чтобы видеть историю просмотров.",
                 )
+
+                // Before "empty", for the same reason as the library screen.
+                state.failed -> Retry("Не удалось загрузить историю", onRetry)
 
                 state.items.isEmpty() -> Message("История пуста")
 
