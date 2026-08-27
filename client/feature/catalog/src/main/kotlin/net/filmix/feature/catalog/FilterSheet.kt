@@ -1,5 +1,6 @@
 package net.filmix.feature.catalog
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -31,17 +32,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import net.filmix.core.designsystem.component.FocusChip
+import net.filmix.core.designsystem.component.focusRing
 import net.filmix.core.model.CatalogFilter
 import net.filmix.core.model.FilterOption
 import net.filmix.core.model.FilterOptions
 import net.filmix.core.model.QualityFilter
+import net.filmix.core.model.previewOptions
 
 /**
  * Filter picker, mirroring the groups the original app offered: content type,
  * genre, country, year, voice-over and quality flags.
  *
  * Countries (209) and years (117) are far too many to show flat, so each group
- * collapses and shows a capped preview until expanded.
+ * collapses until expanded. Countries name their own preview — see
+ * [PinnedCountries] — because alphabetical order buries every country anyone
+ * actually filters by.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,9 +78,27 @@ fun FilterSheet(
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (!filter.isEmpty) {
-                    TextButton(onClick = onClear) { Text("Сбросить") }
+                    val clearInteraction = remember { MutableInteractionSource() }
+                    TextButton(
+                        onClick = onClear,
+                        interactionSource = clearInteraction,
+                        modifier = Modifier.focusRing(interactionSource = clearInteraction),
+                    ) { Text("Сбросить") }
                 }
-                Button(onClick = onDismiss, shape = MaterialTheme.shapes.extraLarge) {
+                val doneInteraction = remember { MutableInteractionSource() }
+                Button(
+                    onClick = onDismiss,
+                    shape = MaterialTheme.shapes.extraLarge,
+                    interactionSource = doneInteraction,
+                    // Orange on orange: the accent ring is invisible against a
+                    // primary-filled button, which left the only confirm
+                    // control in the sheet looking permanently unfocused.
+                    modifier = Modifier.focusRing(
+                        shape = MaterialTheme.shapes.extraLarge,
+                        interactionSource = doneInteraction,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    ),
+                ) {
                     Text("Готово")
                 }
             }
@@ -99,7 +122,7 @@ fun FilterSheet(
                 }
             }
             item("country") {
-                Group("Страна", options.countries, filter.countries) {
+                Group("Страна", options.countries, filter.countries, PinnedCountries) {
                     onFilterChange(filter.toggleCountry(it))
                 }
             }
@@ -126,27 +149,33 @@ private fun Group(
     title: String,
     options: List<FilterOption>,
     selected: Set<Int>,
+    pinned: List<Int> = emptyList(),
     onToggle: (Int) -> Unit,
 ) {
     if (options.isEmpty()) return
-    // Start expanded only when the group is short enough to be scannable.
-    var expanded by rememberSaveable(title) { mutableStateOf(options.size <= PREVIEW_COUNT) }
 
-    // Selected values always stay visible, even while collapsed, so the user
-    // can see and undo a choice without re-expanding.
-    val visible = remember(options, selected, expanded) {
-        if (expanded) {
-            options
-        } else {
-            val chosen = options.filter { it.id in selected }
-            (chosen + options.filterNot { it.id in selected }).take(PREVIEW_COUNT)
-        }
+    // What the group shows while collapsed. Selected values always stay
+    // visible, so the user can see and undo a choice without re-expanding.
+    // [pinned] names the preview outright; otherwise it is the first
+    // PREVIEW_COUNT, which only reads well for a group with a useful order.
+    val preview = remember(options, selected, pinned) {
+        previewOptions(options, selected, pinned, limit = PREVIEW_COUNT)
     }
 
+    // Start expanded only when the group is short enough to be scannable.
+    var expanded by rememberSaveable(title) { mutableStateOf(options.size <= preview.size) }
+    val visible = if (expanded) options else preview
+
     Column(Modifier.padding(vertical = 8.dp)) {
+        // The toggle sits next to the title rather than pushed to the far edge:
+        // D-pad focus search works in a vertical beam, so a right-aligned
+        // control in a header row of its own is only reachable from whichever
+        // chip below happens to share its column. Walking down the country
+        // group skipped "Ещё 203" entirely, which made the group impossible to
+        // expand by remote.
         Row(
             Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -154,9 +183,14 @@ private fun Group(
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            if (options.size > PREVIEW_COUNT) {
-                TextButton(onClick = { expanded = !expanded }) {
-                    Text(if (expanded) "Свернуть" else "Ещё ${options.size - PREVIEW_COUNT}")
+            if (options.size > preview.size) {
+                val interaction = remember { MutableInteractionSource() }
+                TextButton(
+                    onClick = { expanded = !expanded },
+                    interactionSource = interaction,
+                    modifier = Modifier.focusRing(interactionSource = interaction),
+                ) {
+                    Text(if (expanded) "Свернуть" else "Ещё ${options.size - preview.size}")
                     Icon(
                         if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
                         contentDescription = null,
@@ -201,3 +235,25 @@ private fun QualityGroup(selected: Set<QualityFilter>, onToggle: (QualityFilter)
 }
 
 private const val PREVIEW_COUNT = 12
+
+/**
+ * Countries worth showing before the group is expanded.
+ *
+ * The backend returns all 209 and the group previewed the first twelve
+ * alphabetically, so a user opening the filters was offered Австралия, Австрия,
+ * Азербайджан and Албания while every country they might plausibly pick sat
+ * behind "Ещё 197".
+ *
+ * Ids, not labels: the id is what the catalog query is built from, and it does
+ * not move if a label is retranslated. Verified against
+ * `GET /api/v2/filter_list`, which returns these labels for both `app_lang=ru`
+ * and `app_lang=uk`.
+ */
+private val PinnedCountries = listOf(
+    6, // Россия
+    18, // Израиль
+    2, // США
+    12, // Корея
+    8, // Франция
+    3, // Германия
+)

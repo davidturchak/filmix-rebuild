@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 
@@ -31,10 +32,14 @@ fun Modifier.focusRing(
     shape: Shape? = null,
     scaleWhenFocused: Float = 1.06f,
     interactionSource: MutableInteractionSource? = null,
+    // The accent ring vanishes on an accent-filled surface — a primary Button
+    // focused looks exactly like one that is not. Such callers pass onPrimary.
+    color: Color? = null,
 ): Modifier = composed {
     val source = interactionSource ?: remember { MutableInteractionSource() }
     val focused by source.collectIsFocusedAsState()
     val ringShape = shape ?: MaterialTheme.shapes.medium
+    val ringColor = color ?: MaterialTheme.colorScheme.primary
     val scale by animateFloatAsState(
         targetValue = if (focused) scaleWhenFocused else 1f,
         label = "focusScale",
@@ -43,11 +48,7 @@ fun Modifier.focusRing(
         .scale(scale)
         .border(
             width = if (focused) 3.dp else 0.dp,
-            color = if (focused) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                androidx.compose.ui.graphics.Color.Transparent
-            },
+            color = if (focused) ringColor else Color.Transparent,
             shape = ringShape,
         )
 }
