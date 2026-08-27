@@ -1,6 +1,7 @@
 package net.filmix.client
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -25,10 +26,21 @@ import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import net.filmix.core.designsystem.component.focusRing
+import net.filmix.core.designsystem.component.isFocused
+import net.filmix.core.designsystem.component.rememberFocusInteraction
+import net.filmix.core.designsystem.theme.LocalIsTv
 
 enum class Destination(@StringRes val label: Int, val icon: ImageVector) {
     Home(R.string.nav_home, Icons.Filled.Home),
@@ -44,6 +56,7 @@ enum class Destination(@StringRes val label: Int, val icon: ImageVector) {
  * app did: a bottom bar on phones, a persistent rail from medium widths up —
  * which is what the 1181dp tablet gets.
  */
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun AppScaffold(
     current: Destination,
@@ -71,17 +84,47 @@ fun AppScaffold(
             content(Modifier.padding(padding).consumeWindowInsets(padding))
         }
     } else {
+        val isTv = LocalIsTv.current
+        val requesters = remember { Destination.entries.associateWith { FocusRequester() } }
         // enableEdgeToEdge draws beneath the system bars, so without this the
         // top of every screen sits under the status bar — tab rows and filter
         // chips end up partly untappable.
         Row(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
-            NavigationRail(containerColor = MaterialTheme.colorScheme.surface) {
+            NavigationRail(
+                containerColor = MaterialTheme.colorScheme.surface,
+                modifier = Modifier
+                    // Coming back out of the content with LEFT has to land on
+                    // the tab you are already on. Plain focus search picks
+                    // whichever item is nearest vertically instead — LEFT from
+                    // the third row of the catalog grid lands on Profile — and
+                    // because focus selects on TV that silently switched tabs.
+                    // Order matters: focusProperties has to precede the
+                    // focusTarget that focusGroup adds, or it configures the
+                    // items instead of the group and does nothing.
+                    .focusProperties { enter = { requesters.getValue(current) } }
+                    .focusGroup(),
+            ) {
                 Destination.entries.forEach { dest ->
+                    val interaction = rememberFocusInteraction()
+                    val focused by interaction.isFocused()
+                    // A remote has no cheap "commit" gesture, so landing on a
+                    // tab opens it: D-pad down from Home shows Catalog without
+                    // a separate centre press. Touch keeps click-to-select,
+                    // because a pointer never focuses anything.
+                    if (isTv) {
+                        LaunchedEffect(focused) { if (focused) onSelect(dest) }
+                    }
                     NavigationRailItem(
                         selected = dest == current,
                         onClick = { onSelect(dest) },
                         icon = { Icon(dest.icon, contentDescription = null) },
                         label = { Text(stringResource(dest.label)) },
+                        interactionSource = interaction,
+                        modifier = Modifier
+                            .focusRequester(requesters.getValue(dest))
+                            // No lift: the item is as wide as the rail, so a
+                            // scaled ring would be clipped at both edges.
+                            .focusRing(scaleWhenFocused = 1f, interactionSource = interaction),
                     )
                 }
             }
