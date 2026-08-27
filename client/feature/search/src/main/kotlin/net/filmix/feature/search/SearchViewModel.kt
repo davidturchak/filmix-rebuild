@@ -50,7 +50,14 @@ class SearchViewModel(private val catalog: CatalogRepository) : ViewModel() {
             .distinctUntilChanged()
             .map { term -> term.trim() }
             .onEach { term ->
-                _suggestions.value = if (term.length < MIN_QUERY) {
+                _suggestions.value = if (term.length < MIN_QUERY || term == submitted.value) {
+                    // Nothing to suggest for a term already searched — the grid
+                    // below is showing its results. This is not hypothetical
+                    // tidiness: a spoken query writes the term into _query to
+                    // display it, which starts this pipeline, and the screen
+                    // shows suggestions *instead of* results whenever any
+                    // exist. Voice results appeared and were then replaced by a
+                    // suggestion list a debounce later.
                     emptyList()
                 } else {
                     runCatching { catalog.suggest(term) }.getOrDefault(emptyList())

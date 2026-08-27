@@ -2,6 +2,7 @@ package net.filmix.feature.library
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,11 +42,29 @@ class LibraryViewModel(
         }
     }
 
+    private var loadJob: Job? = null
+
     fun refresh() {
-        viewModelScope.launch {
+        // Cancel the run in flight. There are four triggers now — init, the
+        // session signal, a library revision, and Retry — and two of them fire
+        // together when the user favourites something. Left to race, the slower
+        // read could land last and put a stale list on screen with nothing to
+        // correct it.
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _state.value = _state.value.copy(loading = true)
-            val paired = runCatching { library.isSignedIn() }.getOrDefault(false)
-            if (!paired) {
+            // Three outcomes, not two: a failure to *ask* is not a no. Folding
+            // it into "not paired" told a linked user to sign in — with no
+            // retry, and no recovery, since nothing will re-emit for them.
+            val paired = runCatching { library.isSignedIn() }
+            if (paired.isFailure) {
+                _state.value = _state.value.copy(
+                    loading = false,
+                    failed = LibraryTab.entries.toSet(),
+                )
+                return@launch
+            }
+            if (paired.getOrDefault(false).not()) {
                 _state.value =
                     _state.value.copy(loading = false, paired = false, failed = emptySet())
                 return@launch

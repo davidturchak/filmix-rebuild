@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -22,6 +23,9 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.window.core.layout.WindowWidthSizeClass
@@ -49,7 +53,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        graph = AppGraph(this)
+        graph = AppGraph.get(this)
         // UiModeManager is the authoritative signal — a TV reports 960x540dp,
         // *less* height than the tablet, so a width breakpoint would classify
         // it as an ordinary medium screen and apply arm's-length metrics.
@@ -96,6 +100,7 @@ private fun FilmixApp(graph: AppGraph) {
             post = active.first,
             source = active.second,
             repository = graph.playbackRepository,
+            saveScope = graph.appScope,
             onExit = { playing = null },
         )
         return
@@ -237,6 +242,23 @@ private fun FilmixApp(graph: AppGraph) {
                     val quality by vm.preferredQuality.collectAsState()
                     val updateState by vm.updateState.collectAsState()
                     val context = LocalContext.current
+                    val lifecycleOwner = LocalLifecycleOwner.current
+                    // Granted in Settings, in another app, and the user comes
+                    // back — so it has to be re-read on resume. Sampled once at
+                    // composition, the "open settings" prompt stayed up after
+                    // they had already said yes.
+                    var canInstall by remember {
+                        mutableStateOf(UpdateInstaller.canRequestInstalls(context))
+                    }
+                    DisposableEffect(lifecycleOwner) {
+                        val observer = LifecycleEventObserver { _, event ->
+                            if (event == Lifecycle.Event.ON_RESUME) {
+                                canInstall = UpdateInstaller.canRequestInstalls(context)
+                            }
+                        }
+                        lifecycleOwner.lifecycle.addObserver(observer)
+                        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+                    }
                     ProfileScreen(
                         state = state,
                         modifier = modifier,
@@ -246,7 +268,7 @@ private fun FilmixApp(graph: AppGraph) {
                         onQualityChange = vm::setPreferredQuality,
                         version = vm.version,
                         updateState = updateState,
-                        canInstallUpdates = UpdateInstaller.canRequestInstalls(context),
+                        canInstallUpdates = canInstall,
                         onCheckUpdate = vm::checkForUpdate,
                         onDownloadUpdate = vm::downloadUpdate,
                         onInstallUpdate = {

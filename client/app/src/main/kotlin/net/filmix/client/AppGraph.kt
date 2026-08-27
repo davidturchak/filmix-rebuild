@@ -6,6 +6,9 @@ import android.os.Build
 import android.provider.Settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import net.filmix.core.data.AuthRepository
 import net.filmix.core.data.CatalogRepository
 import net.filmix.core.data.LibraryRepository
@@ -36,7 +39,7 @@ import java.util.Locale
  * manual leaves the feature modules free of any DI dependency — they take
  * plain constructor arguments. Swap in Hilt when the feature count grows.
  */
-class AppGraph(context: Context) {
+class AppGraph private constructor(context: Context) {
 
     private val appContext = context.applicationContext
 
@@ -70,6 +73,13 @@ class AppGraph(context: Context) {
     /** Shared so pairing on the profile screen reaches the library screens. */
     val sessionState = SessionState()
 
+    /**
+     * For writes that must outlive the screen that started them — the resume
+     * position saved while the player is being torn down. A composition scope is
+     * already cancelled by then, so those writes were simply dropped.
+     */
+    val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     val authRepository = AuthRepository(api, tokenStore, sessionState)
 
     val catalogRepository = CatalogRepository(api)
@@ -93,6 +103,26 @@ class AppGraph(context: Context) {
         val vendor = Build.MANUFACTURER
         val model = Build.MODEL
         return if (model.startsWith(vendor)) model else "$vendor $model"
+    }
+
+    companion object {
+        @Volatile
+        private var instance: AppGraph? = null
+
+        /**
+         * One graph per process, not one per Activity.
+         *
+         * ViewModels are retained across an Activity recreation and this
+         * Activity does not declare locale or font scale in `configChanges`, so
+         * a per-Activity graph handed the retained library screens a
+         * [SessionState] that nobody would write to again — and pairing stopped
+         * reaching them, which is the exact staleness the signal exists to
+         * prevent. Holding the application context, so this is not a leak.
+         */
+        fun get(context: Context): AppGraph =
+            instance ?: synchronized(this) {
+                instance ?: AppGraph(context.applicationContext).also { instance = it }
+            }
     }
 }
 

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
@@ -30,11 +31,21 @@ class HistoryViewModel(
         }
     }
 
+    private var loadJob: Job? = null
+
     fun refresh() {
-        viewModelScope.launch {
+        // See LibraryViewModel: more than one trigger, so cancel the run in
+        // flight rather than letting two land in an arbitrary order.
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _state.value = _state.value.copy(loading = true)
-            val signedIn = runCatching { library.isSignedIn() }.getOrDefault(false)
-            if (!signedIn) {
+            // A failure to ask is not a no — see LibraryViewModel.
+            val signedIn = runCatching { library.isSignedIn() }
+            if (signedIn.isFailure) {
+                _state.value = _state.value.copy(loading = false, failed = true)
+                return@launch
+            }
+            if (signedIn.getOrDefault(false).not()) {
                 _state.value = HistoryUiState(loading = false, signedIn = false)
                 return@launch
             }

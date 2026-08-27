@@ -38,13 +38,18 @@ fun UpdateSection(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         when (state) {
-            UpdateState.Idle -> TextButton(onClick = onCheck) { Text("Проверить обновления") }
-
-            UpdateState.Checking -> Text(
-                "Проверка обновлений…",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            // One button across both states rather than a button replaced by a
+            // label: on a remote, swapping it out takes the focus the user just
+            // pressed with it, leaving the screen with no cursor mid-check.
+            UpdateState.Idle, UpdateState.Checking -> TextButton(onClick = onCheck) {
+                Text(
+                    if (state == UpdateState.Checking) {
+                        "Проверка обновлений…"
+                    } else {
+                        "Проверить обновления"
+                    },
+                )
+            }
 
             UpdateState.UpToDate -> Text(
                 "Установлена последняя версия",

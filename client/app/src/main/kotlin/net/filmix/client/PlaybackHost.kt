@@ -5,9 +5,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import net.filmix.core.data.PlaybackRepository
 import net.filmix.core.data.PlaybackRequest
@@ -29,10 +29,17 @@ fun PlaybackHost(
     post: Post,
     source: VideoSource,
     repository: PlaybackRepository,
+    /**
+     * Deliberately not a composition scope. The player reports its final
+     * position as it is torn down, which happens in the same pass that removes
+     * this composable — a `rememberCoroutineScope` is cancelled by then, so that
+     * write never ran and a user who paused, seeked and left kept their old
+     * resume point.
+     */
+    saveScope: CoroutineScope,
     modifier: Modifier = Modifier,
     onExit: () -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
     var request by remember(source) { mutableStateOf<PlaybackRequest?>(null) }
     var unavailable by remember(source) { mutableStateOf(false) }
 
@@ -43,7 +50,7 @@ fun PlaybackHost(
         } else {
             request = prepared
             // Fire-and-forget: history reporting must not gate playback.
-            scope.launch { repository.reportWatched(prepared) }
+            saveScope.launch { repository.reportWatched(prepared) }
         }
     }
 
@@ -57,7 +64,7 @@ fun PlaybackHost(
                 startPositionMs = active.startPositionMs,
                 modifier = modifier,
                 onProgress = { position, duration ->
-                    scope.launch { repository.saveProgress(active, position, duration) }
+                    saveScope.launch { repository.saveProgress(active, position, duration) }
                 },
                 onBack = onExit,
             )
