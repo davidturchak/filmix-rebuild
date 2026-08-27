@@ -1,9 +1,9 @@
 {
-  "versionCode": 27,
-  "versionName": "0.4.0",
-  "commit": "f775e05",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.4.0.apk",
-  "sizeBytes": 2928265,
-  "sha256": "3edd97c22cfa4f3e242faa96b63793dcc6e24df604c1b4818f05038ce5b253cd",
-  "notes": "Android TV: D-pad focus, TV layout sizing, working voice search"
+  "versionCode": 41,
+  "versionName": "0.5.0",
+  "commit": "fde49b7",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.5.0.apk",
+  "sizeBytes": 2944649,
+  "sha256": "c984c0933ce8750ed3488e10020f0474c8dc55dcab9d13bf926bbf378cfdeb4f",
+  "notes": "Android TV: rail tabs select on focus with a visible ring, BACK returns to Home, lists come back where you left them, search reaches its results, focus visible on every button, country filter previews \u0420\u043e\u0441\u0441\u0438\u044f/\u0418\u0437\u0440\u0430\u0438\u043b\u044c/\u0421\u0428\u0410/\u041a\u043e\u0440\u0435\u044f/\u0424\u0440\u0430\u043d\u0446\u0438\u044f/\u0413\u0435\u0440\u043c\u0430\u043d\u0438\u044f, and pairing now populates history and favourites without a restart."
 }
