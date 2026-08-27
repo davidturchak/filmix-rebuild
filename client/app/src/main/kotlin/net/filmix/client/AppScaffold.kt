@@ -3,7 +3,10 @@ package net.filmix.client
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -63,11 +66,15 @@ fun AppScaffold(
                     }
                 }
             },
+            contentWindowInsets = WindowInsets.safeDrawing,
         ) { padding ->
             content(Modifier.padding(padding).consumeWindowInsets(padding))
         }
     } else {
-        Row(Modifier.fillMaxSize()) {
+        // enableEdgeToEdge draws beneath the system bars, so without this the
+        // top of every screen sits under the status bar — tab rows and filter
+        // chips end up partly untappable.
+        Row(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
             NavigationRail(containerColor = MaterialTheme.colorScheme.surface) {
                 Destination.entries.forEach { dest ->
                     NavigationRailItem(
