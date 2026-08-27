@@ -37,10 +37,18 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import net.filmix.core.designsystem.component.focusRing
 import net.filmix.core.designsystem.component.isFocused
 import net.filmix.core.designsystem.component.rememberFocusInteraction
 import net.filmix.core.designsystem.theme.LocalIsTv
+
+/**
+ * Top inset for the rail's focus ring — see the call site. Kept out of the
+ * device-class Dimensions because it corrects a Material layout quirk rather
+ * than scaling with the viewing distance.
+ */
+private val RailFocusRingInset = 8.dp
 
 enum class Destination(@StringRes val label: Int, val icon: ImageVector) {
     Home(R.string.nav_home, Icons.Filled.Home),
@@ -124,7 +132,14 @@ fun AppScaffold(
                             .focusRequester(requesters.getValue(dest))
                             // No lift: the item is as wide as the rail, so a
                             // scaled ring would be clipped at both edges.
-                            .focusRing(scaleWhenFocused = 1f, interactionSource = interaction),
+                            .focusRing(scaleWhenFocused = 1f, interactionSource = interaction)
+                            // Material places the selected pill flush with the
+                            // item's top edge, while the label's line height
+                            // leaves ~5dp of slack underneath. A ring on the
+                            // raw bounds therefore sits directly on the pill
+                            // and looks generous under the label; padding the
+                            // top back inside the ring evens the two up.
+                            .padding(top = RailFocusRingInset),
                     )
                 }
             }
