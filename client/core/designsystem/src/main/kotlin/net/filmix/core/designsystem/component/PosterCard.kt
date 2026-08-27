@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,12 +21,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import net.filmix.core.designsystem.theme.Dimens
+import net.filmix.core.designsystem.theme.RatingNegative
+import net.filmix.core.designsystem.theme.RatingNeutral
+import net.filmix.core.designsystem.theme.RatingPositive
 
 /**
  * The single browsing primitive: poster art first, title underneath, quality
@@ -37,7 +43,7 @@ fun PosterCard(
     title: String,
     posterUrl: String?,
     modifier: Modifier = Modifier,
-    quality: String? = null,
+    rating: Int? = null,
     subtitle: String? = null,
     width: Dp = Dimens.posterWidth,
     height: Dp = Dimens.posterHeight,
@@ -68,10 +74,10 @@ fun PosterCard(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
             )
-            if (quality != null) {
-                QualityBadge(
-                    text = quality,
-                    modifier = Modifier.align(Alignment.TopStart).padding(6.dp),
+            if (rating != null) {
+                RatingBadge(
+                    rating = rating,
+                    modifier = Modifier.align(Alignment.TopStart),
                 )
             }
         }
@@ -96,6 +102,35 @@ fun PosterCard(
     }
 }
 
+/**
+ * Site score, rendered the way the original app does it: a small tab pinned to
+ * the poster's top-left, green when positive, red when negative, grey at zero,
+ * with the value signed (`+14`, `-3`, `0`).
+ */
+@Composable
+fun RatingBadge(rating: Int, modifier: Modifier = Modifier) {
+    val background = when {
+        rating > 0 -> RatingPositive
+        rating < 0 -> RatingNegative
+        else -> RatingNeutral
+    }
+    Text(
+        text = if (rating > 0) "+$rating" else rating.toString(),
+        style = MaterialTheme.typography.labelSmall,
+        color = Color.White,
+        textAlign = TextAlign.Center,
+        maxLines = 1,
+        modifier = modifier
+            // Square on the poster edge, rounded away from it — the original's
+            // 0dp/1dp corner asymmetry, nudged up so it reads at this size.
+            .clip(RoundedCornerShape(topEnd = 4.dp, bottomEnd = 4.dp))
+            .background(background)
+            .widthIn(min = 36.dp)
+            .padding(horizontal = 6.dp, vertical = 3.dp),
+    )
+}
+
+/** Kept for callers that still want to surface the release/rip label. */
 @Composable
 fun QualityBadge(text: String, modifier: Modifier = Modifier) {
     Text(

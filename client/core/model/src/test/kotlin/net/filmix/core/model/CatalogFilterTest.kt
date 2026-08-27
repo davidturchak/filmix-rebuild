@@ -70,3 +70,13 @@ class CatalogFilterTest {
         assertEquals(4, filter.activeCount)
     }
 }
+
+/** Badge text mirrors the reference: signed when positive, plain otherwise. */
+class RatingLabelTest {
+    private fun label(rating: Int) = if (rating > 0) "+$rating" else rating.toString()
+
+    @Test fun positive() = assertEquals("+14", label(14))
+    @Test fun large() = assertEquals("+12697", label(12697))
+    @Test fun zero() = assertEquals("0", label(0))
+    @Test fun negative() = assertEquals("-3", label(-3))
+}

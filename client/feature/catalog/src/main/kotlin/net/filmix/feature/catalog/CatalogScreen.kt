@@ -115,7 +115,7 @@ fun CatalogScreen(
                         PosterCard(
                             title = post.title,
                             posterUrl = post.posterUrl,
-                            quality = post.quality,
+                            rating = post.rating,
                             subtitle = post.lastEpisode?.label
                                 ?: post.year.takeIf { it > 0 }?.toString(),
                             width = if (compact) {

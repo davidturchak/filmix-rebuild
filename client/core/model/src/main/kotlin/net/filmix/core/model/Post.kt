@@ -17,6 +17,11 @@ data class Post(
     val date: String = "",
     val duration: Int = 0,
     val shortStory: String = "",
+    /**
+     * Site score — the net of up and down votes, so it can be negative. The
+     * original app shows it as a coloured badge on every poster.
+     */
+    val rating: Int = 0,
     val kpRating: String? = null,
     val imdbRating: String? = null,
     val countries: List<String> = emptyList(),

@@ -30,6 +30,12 @@ val KinopoiskOrange = Color(0xFFF39300)
 val VoteUp = Color(0xFF83BF45)
 val VoteDown = Color(0xFFEE3442)
 
+// Poster rating badge — the original app's rounded_positive / _negative /
+// _neutral shape drawables, alpha and all.
+val RatingPositive = Color(0x9889C71F)
+val RatingNegative = Color(0x98EA383D)
+val RatingNeutral = Color(0x989196A4)
+
 // Series status
 val StatusOngoing = Color(0xFF75C71B)
 val StatusEnded = Color(0xFFFF293D)

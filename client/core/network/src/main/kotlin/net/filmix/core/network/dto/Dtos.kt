@@ -66,6 +66,8 @@ data class PostDto(
     val date: String = "",
     val duration: Int = 0,
     @SerialName("short_story") val shortStory: String = "",
+    /** Site score: net of up/down votes. Negative for poorly-received titles. */
+    val rating: String? = null,
     @SerialName("kp_rating") val kpRating: String? = null,
     @SerialName("imdb_rating") val imdbRating: String? = null,
     val countries: List<String> = emptyList(),
@@ -188,6 +190,7 @@ fun PostDto.toDomain(): Post = Post(
     date = date,
     duration = duration,
     shortStory = Html.toPlainText(shortStory),
+    rating = rating?.toIntOrNull() ?: 0,
     kpRating = kpRating,
     imdbRating = imdbRating,
     // Every free-text field can carry entities — cast names routinely contain
