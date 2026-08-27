@@ -1,9 +1,9 @@
 {
-  "versionCode": 44,
-  "versionName": "0.5.1",
-  "commit": "6a99fa9",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.5.1.apk",
+  "versionCode": 47,
+  "versionName": "0.5.2",
+  "commit": "bbcdca8",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.5.2.apk",
   "sizeBytes": 2944649,
-  "sha256": "f32d874176a964d44ff079c5f9d2b4ae227b2cd76f7724edc21cc57050126497",
-  "notes": "Playback: the on-screen controls can be summoned again with any key on the remote \u2014 CENTRE, the D-pad or play/pause \u2014 including after they time out mid-film."
+  "sha256": "f2a9b5e2c9e2e4a9bf0799f98f284e660b365c760cc3c40a829fdd366f383442",
+  "notes": "Search: the clear button can be reached with the remote \u2014 right out of the text field, centre to clear. Press back first if the on-screen keyboard is up, since it owns the D-pad while open."
 }
