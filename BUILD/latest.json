@@ -1,9 +1,9 @@
 {
-  "versionCode": 51,
-  "versionName": "0.5.3",
-  "commit": "6b9cb77",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.5.3.apk",
+  "versionCode": 55,
+  "versionName": "0.5.4",
+  "commit": "11b1d04",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.5.4.apk",
   "sizeBytes": 2944649,
-  "sha256": "a01f838b908ae05a5a788d82643b92970678326d1aa8662a531f4b0dd59499a7",
-  "notes": "Playback: volume and play/pause keys work again while the controls are hidden. Favourites: a failure loading \u00ab\u0421\u043c\u043e\u0442\u0440\u0435\u0442\u044c \u043f\u043e\u0437\u0436\u0435\u00bb no longer hides the favourites that did load. Filters: choosing a country no longer moves the chip out from under the focus ring."
+  "sha256": "b3e676394d598bfb85f97f51f1afe81dfc31a234f2dd7ae10ca1a80cf14f61f8",
+  "notes": "Detail: the watch button can no longer be squeezed out by a long title and a wide chip row. Search: a spoken query's results stay on screen. Favourites and history: a network failure now offers a retry instead of asking you to sign in, and pairing survives a font-size change. Playback: the resume position is saved when you leave. Filters: resetting keeps the focus inside the sheet."
 }
