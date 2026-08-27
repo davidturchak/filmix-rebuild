@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import net.filmix.core.designsystem.component.PosterCard
+import net.filmix.core.designsystem.component.rememberFocusReturn
 import net.filmix.core.designsystem.component.focusRing
 import net.filmix.core.designsystem.component.Rail
 import net.filmix.core.designsystem.theme.LocalDimensions
@@ -87,6 +88,9 @@ fun HomeScreen(
         return
     }
 
+    // Post id rather than an index: a card's place in a rail is not stable
+    // across a refresh, but which film the user opened is.
+    val focusReturn = rememberFocusReturn()
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -115,6 +119,7 @@ fun HomeScreen(
                 key = { it.id },
             ) { post ->
                 PosterCard(
+                    modifier = focusReturn.modifier(post.id),
                     title = post.title,
                     posterUrl = post.posterUrl,
                     rating = post.rating,
@@ -122,7 +127,10 @@ fun HomeScreen(
                         ?: post.year.takeIf { it > 0 }?.toString(),
                     width = if (compact) LocalDimensions.current.posterWidthCompact else LocalDimensions.current.posterWidth,
                     height = if (compact) LocalDimensions.current.posterHeightCompact else LocalDimensions.current.posterHeight,
-                    onClick = { onPostClick(post) },
+                    onClick = {
+                        focusReturn.opened(post.id)
+                        onPostClick(post)
+                    },
                 )
             }
         }

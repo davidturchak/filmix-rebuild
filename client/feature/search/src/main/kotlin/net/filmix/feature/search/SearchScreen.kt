@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -44,6 +45,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import coil3.compose.AsyncImage
 import net.filmix.core.designsystem.component.PosterCard
+import net.filmix.core.designsystem.component.rememberFocusReturn
 import net.filmix.core.designsystem.component.focusRing
 import net.filmix.core.designsystem.component.describeError
 import net.filmix.core.designsystem.component.rememberVoiceSearch
@@ -177,6 +179,12 @@ private fun ResultsGrid(
 ) {
     val refreshing = results.loadState.refresh is LoadState.Loading
     val failed = results.loadState.refresh is LoadState.Error
+    val gridState = rememberLazyGridState()
+    val focusReturn = rememberFocusReturn { index ->
+        if (gridState.layoutInfo.visibleItemsInfo.none { it.index == index }) {
+            gridState.scrollToItem(index)
+        }
+    }
 
     Box(Modifier.fillMaxSize()) {
         when {
@@ -197,6 +205,7 @@ private fun ResultsGrid(
             )
 
             else -> LazyVerticalGrid(
+                state = gridState,
                 columns = GridCells.Adaptive(
                     minSize = if (compact) LocalDimensions.current.posterWidthCompact else LocalDimensions.current.posterWidth,
                 ),
@@ -207,6 +216,7 @@ private fun ResultsGrid(
                 items(count = results.itemCount) { index ->
                     val post = results[index] ?: return@items
                     PosterCard(
+                        modifier = focusReturn.modifier(index),
                         title = post.title,
                         posterUrl = post.posterUrl,
                         rating = post.rating,
@@ -214,7 +224,10 @@ private fun ResultsGrid(
                             ?: post.year.takeIf { it > 0 }?.toString(),
                         width = if (compact) LocalDimensions.current.posterWidthCompact else LocalDimensions.current.posterWidth,
                         height = if (compact) LocalDimensions.current.posterHeightCompact else LocalDimensions.current.posterHeight,
-                        onClick = { onPostClick(post) },
+                        onClick = {
+                            focusReturn.opened(index)
+                            onPostClick(post)
+                        },
                     )
                 }
             }

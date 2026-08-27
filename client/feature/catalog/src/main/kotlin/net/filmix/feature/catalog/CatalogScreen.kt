@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
@@ -34,6 +35,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import net.filmix.core.designsystem.component.FocusChip
 import net.filmix.core.designsystem.component.PosterCard
+import net.filmix.core.designsystem.component.rememberFocusReturn
 import net.filmix.core.designsystem.theme.LocalDimensions
 import net.filmix.core.model.Post
 import net.filmix.core.model.CatalogFilter
@@ -57,6 +59,15 @@ fun CatalogScreen(
     onPostClick: (Post) -> Unit = {},
 ) {
     var showFilters by remember { mutableStateOf(false) }
+    val gridState = rememberLazyGridState()
+    // The grid is paged, so the restored offset can point into a page that has
+    // not replayed yet; nudging the item into view gives the requester
+    // something to attach to.
+    val focusReturn = rememberFocusReturn { index ->
+        if (gridState.layoutInfo.visibleItemsInfo.none { it.index == index }) {
+            gridState.scrollToItem(index)
+        }
+    }
     Column(
         modifier
             .fillMaxSize()
@@ -104,6 +115,7 @@ fun CatalogScreen(
                 )
 
                 else -> LazyVerticalGrid(
+                    state = gridState,
                     columns = GridCells.Adaptive(
                         minSize = if (compact) LocalDimensions.current.posterWidthCompact else LocalDimensions.current.posterWidth,
                     ),
@@ -114,6 +126,7 @@ fun CatalogScreen(
                     items(count = items.itemCount) { index ->
                         val post = items[index] ?: return@items
                         PosterCard(
+                            modifier = focusReturn.modifier(index),
                             title = post.title,
                             posterUrl = post.posterUrl,
                             rating = post.rating,
@@ -129,7 +142,10 @@ fun CatalogScreen(
                             } else {
                                 LocalDimensions.current.posterHeight
                             },
-                            onClick = { onPostClick(post) },
+                            onClick = {
+                                focusReturn.opened(index)
+                                onPostClick(post)
+                            },
                         )
                     }
                 }

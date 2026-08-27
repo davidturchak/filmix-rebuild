@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -82,6 +83,13 @@ private fun FilmixApp(graph: AppGraph) {
     val compact = widthClass == WindowWidthSizeClass.COMPACT
     val factory = remember(graph) { GraphViewModelFactory(graph) }
 
+    // Detail and the player replace the tab rather than sitting on top of it, so
+    // the tab's content leaves composition and its rememberSaveable state — a
+    // grid's scroll offset above all — would be thrown away. The holder keeps
+    // each tab's state per key, so coming back lands where the user left, and
+    // so does switching tabs.
+    val tabState = rememberSaveableStateHolder()
+
     val active = playing
     if (active != null) {
         PlaybackHost(
@@ -129,113 +137,115 @@ private fun FilmixApp(graph: AppGraph) {
         compact = compact,
         onSelect = { destination = it },
     ) { modifier ->
-        when (destination) {
-            Destination.Home -> {
-                val vm: HomeViewModel = viewModel(factory = factory)
-                val homeState by vm.state.collectAsState()
-                HomeScreen(
-                    state = homeState,
-                    compact = compact,
-                    modifier = modifier,
-                    onRetry = vm::refresh,
-                    onPostClick = { openPostId = it.id },
-                    onPlayClick = { openPostId = it.id },
-                )
-            }
+        tabState.SaveableStateProvider(destination.name) {
+            when (destination) {
+                Destination.Home -> {
+                    val vm: HomeViewModel = viewModel(factory = factory)
+                    val homeState by vm.state.collectAsState()
+                    HomeScreen(
+                        state = homeState,
+                        compact = compact,
+                        modifier = modifier,
+                        onRetry = vm::refresh,
+                        onPostClick = { openPostId = it.id },
+                        onPlayClick = { openPostId = it.id },
+                    )
+                }
 
-            Destination.Catalog -> {
-                val vm: CatalogViewModel = viewModel(factory = factory)
-                val sort by vm.sort.collectAsState()
-                val filterOptions by vm.filterOptions.collectAsState()
-                val items = vm.items.collectAsLazyPagingItems()
-                CatalogScreen(
-                    items = items,
-                    sort = sort.order,
-                    direction = sort.direction,
-                    filter = sort.filter,
-                    filterOptions = filterOptions,
-                    compact = compact,
-                    modifier = modifier,
-                    onSortChange = vm::setSort,
-                    onDirectionToggle = vm::toggleDirection,
-                    onFilterChange = vm::setFilter,
-                    onClearFilter = vm::clearFilter,
-                    onPostClick = { openPostId = it.id },
-                )
-            }
+                Destination.Catalog -> {
+                    val vm: CatalogViewModel = viewModel(factory = factory)
+                    val sort by vm.sort.collectAsState()
+                    val filterOptions by vm.filterOptions.collectAsState()
+                    val items = vm.items.collectAsLazyPagingItems()
+                    CatalogScreen(
+                        items = items,
+                        sort = sort.order,
+                        direction = sort.direction,
+                        filter = sort.filter,
+                        filterOptions = filterOptions,
+                        compact = compact,
+                        modifier = modifier,
+                        onSortChange = vm::setSort,
+                        onDirectionToggle = vm::toggleDirection,
+                        onFilterChange = vm::setFilter,
+                        onClearFilter = vm::clearFilter,
+                        onPostClick = { openPostId = it.id },
+                    )
+                }
 
-            Destination.Search -> {
-                val vm: SearchViewModel = viewModel(factory = factory)
-                val q by vm.query.collectAsState()
-                val suggestions by vm.suggestions.collectAsState()
-                val results = vm.results.collectAsLazyPagingItems()
-                SearchScreen(
-                    query = q,
-                    suggestions = suggestions,
-                    results = results,
-                    compact = compact,
-                    modifier = modifier,
-                    onQueryChange = vm::onQueryChange,
-                    onSubmit = vm::submit,
-                    onClear = vm::clear,
-                    onPostClick = { openPostId = it.id },
-                    onVoiceResult = vm::submitVoiceResult,
-                )
-            }
+                Destination.Search -> {
+                    val vm: SearchViewModel = viewModel(factory = factory)
+                    val q by vm.query.collectAsState()
+                    val suggestions by vm.suggestions.collectAsState()
+                    val results = vm.results.collectAsLazyPagingItems()
+                    SearchScreen(
+                        query = q,
+                        suggestions = suggestions,
+                        results = results,
+                        compact = compact,
+                        modifier = modifier,
+                        onQueryChange = vm::onQueryChange,
+                        onSubmit = vm::submit,
+                        onClear = vm::clear,
+                        onPostClick = { openPostId = it.id },
+                        onVoiceResult = vm::submitVoiceResult,
+                    )
+                }
 
-            Destination.Favourites -> {
-                val vm: LibraryViewModel = viewModel(factory = factory)
-                val libState by vm.state.collectAsState()
-                LibraryScreen(
-                    state = libState,
-                    compact = compact,
-                    modifier = modifier,
-                    onTabChange = vm::selectTab,
-                    onPostClick = { openPostId = it.id },
-                )
-            }
+                Destination.Favourites -> {
+                    val vm: LibraryViewModel = viewModel(factory = factory)
+                    val libState by vm.state.collectAsState()
+                    LibraryScreen(
+                        state = libState,
+                        compact = compact,
+                        modifier = modifier,
+                        onTabChange = vm::selectTab,
+                        onPostClick = { openPostId = it.id },
+                    )
+                }
 
-            Destination.History -> {
-                val vm: HistoryViewModel = viewModel(factory = factory)
-                val historyState by vm.state.collectAsState()
-                HistoryScreen(
-                    state = historyState,
-                    compact = compact,
-                    modifier = modifier,
-                    onPostClick = { openPostId = it.id },
-                    onRemove = vm::remove,
-                    onClearAll = vm::clearAll,
-                )
-            }
+                Destination.History -> {
+                    val vm: HistoryViewModel = viewModel(factory = factory)
+                    val historyState by vm.state.collectAsState()
+                    HistoryScreen(
+                        state = historyState,
+                        compact = compact,
+                        modifier = modifier,
+                        onPostClick = { openPostId = it.id },
+                        onRemove = vm::remove,
+                        onClearAll = vm::clearAll,
+                    )
+                }
 
-            Destination.Profile -> {
-                val vm: ProfileViewModel = viewModel(factory = factory)
-                val state by vm.state.collectAsState()
-                val quality by vm.preferredQuality.collectAsState()
-                val updateState by vm.updateState.collectAsState()
-                val context = LocalContext.current
-                ProfileScreen(
-                    state = state,
-                    modifier = modifier,
-                    onStartPairing = vm::startPairing,
-                    onSignOut = vm::signOut,
-                    preferredQuality = quality,
-                    onQualityChange = vm::setPreferredQuality,
-                    version = vm.version,
-                    updateState = updateState,
-                    canInstallUpdates = UpdateInstaller.canRequestInstalls(context),
-                    onCheckUpdate = vm::checkForUpdate,
-                    onDownloadUpdate = vm::downloadUpdate,
-                    onInstallUpdate = {
-                        vm.downloadedApk?.let { UpdateInstaller.install(context, it) }
-                    },
-                    onGrantInstallPermission = {
-                        UpdateInstaller.openInstallPermissionSettings(context)
-                    },
-                )
-            }
+                Destination.Profile -> {
+                    val vm: ProfileViewModel = viewModel(factory = factory)
+                    val state by vm.state.collectAsState()
+                    val quality by vm.preferredQuality.collectAsState()
+                    val updateState by vm.updateState.collectAsState()
+                    val context = LocalContext.current
+                    ProfileScreen(
+                        state = state,
+                        modifier = modifier,
+                        onStartPairing = vm::startPairing,
+                        onSignOut = vm::signOut,
+                        preferredQuality = quality,
+                        onQualityChange = vm::setPreferredQuality,
+                        version = vm.version,
+                        updateState = updateState,
+                        canInstallUpdates = UpdateInstaller.canRequestInstalls(context),
+                        onCheckUpdate = vm::checkForUpdate,
+                        onDownloadUpdate = vm::downloadUpdate,
+                        onInstallUpdate = {
+                            vm.downloadedApk?.let { UpdateInstaller.install(context, it) }
+                        },
+                        onGrantInstallPermission = {
+                            UpdateInstaller.openInstallPermissionSettings(context)
+                        },
+                    )
+                }
 
-            else -> Placeholder(destination, modifier)
+                else -> Placeholder(destination, modifier)
+            }
         }
     }
 }
