@@ -6,9 +6,15 @@
     <!-- Self-update: hands the downloaded APK to the system package installer,
          which still asks the user to confirm. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Voice search drives SpeechRecognizer directly; the intent route opens
+         the TV search overlay without ever engaging the microphone. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <!-- The mic lives in the remote, and the TV declares no mic feature —
+         requiring it would filter the app off the devices where voice matters. -->
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
 
     <application
         android:allowBackup="true"

@@ -27,6 +27,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -44,6 +45,7 @@ import androidx.paging.compose.LazyPagingItems
 import coil3.compose.AsyncImage
 import net.filmix.core.designsystem.component.PosterCard
 import net.filmix.core.designsystem.component.focusRing
+import net.filmix.core.designsystem.component.describeError
 import net.filmix.core.designsystem.component.rememberVoiceSearch
 import net.filmix.core.designsystem.theme.LocalIsTv
 import net.filmix.core.designsystem.theme.LocalDimensions
@@ -86,7 +88,9 @@ fun SearchScreen(
             // trailing mic is unreachable by remote. Leading it means the
             // D-pad meets it on the way in — and on TV voice is the primary
             // input anyway.
-            if (voice.available && isTv) MicButton(micFocus, voice::start)
+            if (voice.available && isTv) {
+                MicButton(micFocus, voice.listening, voice::start)
+            }
         OutlinedTextField(
             value = query,
             onValueChange = onQueryChange,
@@ -110,7 +114,9 @@ fun SearchScreen(
             shape = MaterialTheme.shapes.extraLarge,
             modifier = Modifier.weight(1f),
         )
-            if (voice.available && !isTv) MicButton(micFocus, voice::start)
+            if (voice.available && !isTv) {
+                MicButton(micFocus, voice.listening, voice::start)
+            }
         }
 
         // Suggestions replace the grid while typing; committing a query swaps
@@ -124,15 +130,36 @@ fun SearchScreen(
             return@Column
         }
 
+        voice.lastError?.let { code ->
+            Text(
+                describeError(code),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(horizontal = LocalDimensions.current.gutter),
+            )
+        }
+
         ResultsGrid(results, compact, onPostClick)
     }
 }
 
 @Composable
-private fun MicButton(focusRequester: FocusRequester, onClick: () -> Unit) {
+private fun MicButton(
+    focusRequester: FocusRequester,
+    listening: Boolean,
+    onClick: () -> Unit,
+) {
     val interaction = remember { MutableInteractionSource() }
     FilledTonalIconButton(
         onClick = onClick,
+        colors = if (listening) {
+            IconButtonDefaults.filledTonalIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            )
+        } else {
+            IconButtonDefaults.filledTonalIconButtonColors()
+        },
         interactionSource = interaction,
         modifier = Modifier
             .focusRequester(focusRequester)
