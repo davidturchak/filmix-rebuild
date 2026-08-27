@@ -61,6 +61,20 @@ below is what proved it was a dead end.
 Posters carry the vote count as a green/red badge, matching the original,
 rather than a quality label.
 
+## On Android TV
+
+Same code as the tablet — the rail, the grids, the player — with the difference
+that every interaction has to survive a D-pad. Nav rail tabs open as focus lands
+on them, since a remote has no cheap commit gesture; BACK walks back to Home
+rather than out of the app; lists come back to the card you opened, scroll
+position and cursor both; and every control carries a visible focus ring,
+because Material's own focus treatment is a 10% state layer that reads as
+nothing at three metres.
+
+Voice search drives `SpeechRecognizer` directly. The portable-looking
+`ACTION_RECOGNIZE_SPEECH` opens the system search overlay with a dead
+microphone.
+
 ## Install
 
 Grab the APK from [`BUILD/`](BUILD/) and sideload it. Thereafter the app
