@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -178,11 +179,17 @@ private fun Group(
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             visible.forEach { option ->
-                FocusChip(
-                    selected = option.id in selected,
-                    onClick = { onToggle(option.id) },
-                    label = option.label,
-                )
+                // Keyed, so a chip keeps its identity if the list ever does
+                // reorder: a FlowRow is not a lazy layout and its children are
+                // otherwise positional, which is what let focus end up on a
+                // different country than the one it was pointing at.
+                key(option.id) {
+                    FocusChip(
+                        selected = option.id in selected,
+                        onClick = { onToggle(option.id) },
+                        label = option.label,
+                    )
+                }
             }
         }
     }

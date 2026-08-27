@@ -154,8 +154,7 @@ fun PlayerScreen(
             .onPreviewKeyEvent { event ->
                 when {
                     event.type != KeyEventType.KeyDown -> false
-                    // Back exits playback; it must not flash the controls first.
-                    event.key == Key.Back -> false
+                    event.key !in SummonControlKeys -> false
                     playerView.isControllerFullyVisible -> false
                     else -> {
                         playerView.showController()
@@ -167,6 +166,27 @@ fun PlayerScreen(
         AndroidView(factory = { playerView }, modifier = Modifier.fillMaxSize())
     }
 }
+
+/**
+ * The only keys the summoning backstop above may claim.
+ *
+ * It used to claim everything except Back, which is a wider net than it looks:
+ * a key event reaches the view hierarchy *before* the window handles it, so
+ * consuming one here stops the window ever seeing it. That ate the volume keys —
+ * the first press only flashed the controls instead of changing the volume — and
+ * swallowed the first MEDIA_PLAY_PAUSE, which is precisely the key that should
+ * work without looking at the screen. Anything not listed here now passes
+ * through to the view, which shows the controls itself once it has acted on it.
+ */
+private val SummonControlKeys = setOf(
+    Key.DirectionUp,
+    Key.DirectionDown,
+    Key.DirectionLeft,
+    Key.DirectionRight,
+    Key.DirectionCenter,
+    Key.Enter,
+    Key.NumPadEnter,
+)
 
 private const val PROGRESS_INTERVAL_MS = 5_000L
 

@@ -46,7 +46,8 @@ class LibraryViewModel(
             _state.value = _state.value.copy(loading = true)
             val paired = runCatching { library.isSignedIn() }.getOrDefault(false)
             if (!paired) {
-                _state.value = _state.value.copy(loading = false, paired = false, failed = false)
+                _state.value =
+                    _state.value.copy(loading = false, paired = false, failed = emptySet())
                 return@launch
             }
             // Both lists load together so switching tabs is instant.
@@ -63,7 +64,10 @@ class LibraryViewModel(
                 watchLater = watchLater.getOrDefault(emptyList()),
                 loading = false,
                 paired = true,
-                failed = favourites.isFailure || watchLater.isFailure,
+                failed = buildSet {
+                    if (favourites.isFailure) add(LibraryTab.Favourites)
+                    if (watchLater.isFailure) add(LibraryTab.WatchLater)
+                },
             )
         }
     }

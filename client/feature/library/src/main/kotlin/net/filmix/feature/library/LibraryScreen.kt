@@ -39,10 +39,18 @@ data class LibraryUiState(
     val watchLater: List<Post> = emptyList(),
     val loading: Boolean = false,
     val paired: Boolean = true,
-    val failed: Boolean = false,
+    /**
+     * Which lists failed to load — per tab, not one flag for the screen. Both
+     * load together, and a single flag meant a dead "Смотреть позже" reported
+     * the favourites it had successfully fetched as unavailable.
+     */
+    val failed: Set<LibraryTab> = emptySet(),
 ) {
     val visible: List<Post>
         get() = if (tab == LibraryTab.Favourites) favourites else watchLater
+
+    val visibleFailed: Boolean
+        get() = tab in failed
 }
 
 @Composable
@@ -103,7 +111,7 @@ fun LibraryScreen(
                 // Checked before "empty": a failed request also has no items,
                 // and telling the user their favourites are empty when the call
                 // never landed sends them looking in the wrong place.
-                state.failed -> Retry("Не удалось загрузить списки", onRetry)
+                state.visibleFailed -> Retry("Не удалось загрузить списки", onRetry)
 
                 state.visible.isEmpty() -> Message(
                     if (state.tab == LibraryTab.Favourites) {

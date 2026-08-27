@@ -6,14 +6,20 @@ data class FilterOption(val id: Int, val label: String)
 /**
  * What a filter group shows while it is collapsed.
  *
- * Selected values always come first and always survive collapsing, so a choice
- * can be seen and undone without re-expanding the group.
+ * The order is **stable under selection**: choosing an option already on screen
+ * must not move it. The chips are laid out positionally, so a reorder leaves
+ * focus on the index rather than on the chip — selecting Франция moved it to the
+ * front and left the ring sitting on Корея, so a second press toggled the wrong
+ * country. Selections from outside the preview are appended instead, which keeps
+ * them visible, and undoable, without shifting anything already there.
  *
- * [pinned] names the rest of the preview outright, by id, for a group whose own
- * order is useless to a reader — countries arrive alphabetically, so the first
- * [limit] of 209 were Австралия, Австрия, Азербайджан, Албания. Ids in [pinned]
- * that the backend did not return are skipped rather than faked. With no
- * [pinned] the preview is simply the first [limit] options.
+ * [pinned] names the preview outright, by id, for a group whose own order is
+ * useless to a reader — countries arrive alphabetically, so the first [limit] of
+ * 209 were Австралия, Австрия, Азербайджан, Албания. Ids in [pinned] that the
+ * backend did not return are skipped rather than faked. With no [pinned] the
+ * preview is the first [limit] options. [limit] caps the preview, never the
+ * selections appended to it: a selected value that is invisible while collapsed
+ * cannot be undone.
  */
 fun previewOptions(
     options: List<FilterOption>,
@@ -21,14 +27,13 @@ fun previewOptions(
     pinned: List<Int> = emptyList(),
     limit: Int = Int.MAX_VALUE,
 ): List<FilterOption> {
-    val chosen = options.filter { it.id in selected }
-    return if (pinned.isEmpty()) {
-        (chosen + options.filterNot { it.id in selected }).take(limit)
+    val preview = if (pinned.isEmpty()) {
+        options.take(limit)
     } else {
-        chosen + pinned.mapNotNull { id ->
-            options.firstOrNull { it.id == id && it.id !in selected }
-        }
+        pinned.mapNotNull { id -> options.firstOrNull { it.id == id } }
     }
+    val shown = preview.mapTo(mutableSetOf()) { it.id }
+    return preview + options.filter { it.id in selected && it.id !in shown }
 }
 
 /**

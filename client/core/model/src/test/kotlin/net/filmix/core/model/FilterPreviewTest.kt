@@ -37,21 +37,51 @@ class FilterPreviewTest {
         assertEquals(listOf("Корея"), preview.map { it.label })
     }
 
+    /**
+     * The property the chips depend on. They are positional, so an option that
+     * moves when it is chosen takes the focus ring off itself and onto whatever
+     * lands at its index — one press selects Франция, the next toggles Корея.
+     */
     @Test
-    fun `a selected option leads the preview and appears once`() {
-        val preview = previewOptions(countries, selected = setOf(2), pinned = pinned)
-        assertEquals(
-            listOf("США", "Россия", "Израиль", "Корея", "Франция", "Германия"),
-            preview.map { it.label },
-        )
+    fun `selecting a visible option does not move it`() {
+        val before = previewOptions(countries, selected = emptySet(), pinned = pinned)
+        countries.filter { it.id in pinned }.forEach { option ->
+            val after = previewOptions(countries, selected = setOf(option.id), pinned = pinned)
+            assertEquals(
+                "selecting ${option.label} reordered the preview",
+                before.map { it.id },
+                after.map { it.id },
+            )
+        }
+    }
+
+    @Test
+    fun `selecting a visible option in an unpinned group does not move it`() {
+        val before = previewOptions(countries, selected = emptySet(), limit = 4)
+        val after = previewOptions(countries, selected = setOf(72), limit = 4)
+        assertEquals(before.map { it.id }, after.map { it.id })
     }
 
     /** A choice made while expanded has to stay visible after collapsing. */
     @Test
-    fun `a selected option outside the pinned set still shows`() {
+    fun `a selected option outside the preview is appended`() {
         val preview = previewOptions(countries, selected = setOf(72), pinned = pinned)
-        assertEquals("Австрия", preview.first().label)
         assertEquals(7, preview.size)
+        assertEquals("Австрия", preview.last().label)
+        assertEquals(
+            listOf("Россия", "Израиль", "США", "Корея", "Франция", "Германия"),
+            preview.dropLast(1).map { it.label },
+        )
+    }
+
+    /** The cap is on the preview, not on what the user has chosen. */
+    @Test
+    fun `limit never truncates a selection`() {
+        val preview = previewOptions(countries, selected = setOf(8, 2), limit = 3)
+        assertEquals(
+            listOf("Австралия", "Австрия", "Азербайджан", "США", "Франция"),
+            preview.map { it.label },
+        )
     }
 
     /** The backend drops countries from time to time; a stale id is not a crash. */
@@ -68,14 +98,15 @@ class FilterPreviewTest {
     }
 
     @Test
-    fun `an unpinned group pulls selected options into the limit`() {
-        val preview = previewOptions(countries, selected = setOf(8), limit = 3)
-        assertEquals(listOf("Франция", "Австралия", "Австрия"), preview.map { it.label })
+    fun `pinned ignores the limit, since the pinned set is the preview`() {
+        val preview = previewOptions(countries, selected = emptySet(), pinned = pinned, limit = 2)
+        assertEquals(6, preview.size)
     }
 
     @Test
-    fun `pinned ignores the limit, since the pinned set is the preview`() {
-        val preview = previewOptions(countries, selected = emptySet(), pinned = pinned, limit = 2)
+    fun `an option appears once even when it is both pinned and selected`() {
+        val preview = previewOptions(countries, selected = setOf(6), pinned = pinned)
+        assertEquals(1, preview.count { it.id == 6 })
         assertEquals(6, preview.size)
     }
 }
