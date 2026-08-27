@@ -116,7 +116,7 @@ fun LibraryScreen(
 }
 
 @Composable
-private fun BoxScope.Message(text: String) {
+internal fun BoxScope.Message(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium,

@@ -5,6 +5,7 @@
     <string name="nav_catalog">Каталог</string>
     <string name="nav_search">Поиск</string>
     <string name="nav_favourites">Избранное</string>
+    <string name="nav_history">История</string>
     <string name="nav_profile">Профиль</string>
     <string name="rail_continue">Продолжить просмотр</string>
     <string name="rail_new">Новинки</string>

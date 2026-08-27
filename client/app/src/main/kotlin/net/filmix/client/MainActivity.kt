@@ -26,6 +26,8 @@ import net.filmix.feature.detail.DetailScreen
 import net.filmix.feature.detail.DetailViewModel
 import net.filmix.feature.home.HomeScreen
 import net.filmix.feature.home.HomeViewModel
+import net.filmix.feature.library.HistoryScreen
+import net.filmix.feature.library.HistoryViewModel
 import net.filmix.feature.library.LibraryScreen
 import net.filmix.feature.library.LibraryViewModel
 import net.filmix.feature.profile.ProfileScreen
@@ -166,6 +168,19 @@ private fun FilmixApp(graph: AppGraph) {
                     modifier = modifier,
                     onTabChange = vm::selectTab,
                     onPostClick = { openPostId = it.id },
+                )
+            }
+
+            Destination.History -> {
+                val vm: HistoryViewModel = viewModel(factory = factory)
+                val historyState by vm.state.collectAsState()
+                HistoryScreen(
+                    state = historyState,
+                    compact = compact,
+                    modifier = modifier,
+                    onPostClick = { openPostId = it.id },
+                    onRemove = vm::remove,
+                    onClearAll = vm::clearAll,
                 )
             }
 

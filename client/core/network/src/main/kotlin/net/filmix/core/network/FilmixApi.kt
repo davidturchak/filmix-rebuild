@@ -79,6 +79,17 @@ interface FilmixApi {
         @Query("page") page: Int = 1,
     ): List<PostDto>
 
+    /**
+     * Clears the whole watch history. GET despite being destructive — the
+     * reference app routes it through its GET helper, unlike history/remove.
+     */
+    @GET("api/v2/history_clean")
+    suspend fun historyClean(): retrofit2.Response<Unit>
+
+    /** Removes one entry. POST, unlike history_clean. */
+    @POST("api/v2/history/remove")
+    suspend fun historyRemove(@Query("id") id: Int): retrofit2.Response<Unit>
+
     /** Available filter values: sections, categories, countries, years, vo. */
     @GET("api/v2/filter_list")
     suspend fun filterList(): FilterListDto

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
@@ -31,6 +32,7 @@ enum class Destination(@StringRes val label: Int, val icon: ImageVector) {
     Catalog(R.string.nav_catalog, Icons.Filled.GridView),
     Search(R.string.nav_search, Icons.Filled.Search),
     Favourites(R.string.nav_favourites, Icons.Filled.Favorite),
+    History(R.string.nav_history, Icons.Filled.History),
     Profile(R.string.nav_profile, Icons.Filled.Person),
 }
 

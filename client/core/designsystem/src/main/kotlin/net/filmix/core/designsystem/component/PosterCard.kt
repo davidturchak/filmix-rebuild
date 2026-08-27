@@ -1,7 +1,9 @@
 package net.filmix.core.designsystem.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.indication
 import androidx.compose.runtime.remember
@@ -38,6 +40,7 @@ import net.filmix.core.designsystem.theme.RatingPositive
  * badge overlaid. Replaces the original's text-dense list row where the poster
  * was a 95dp thumbnail beside four lines of metadata.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PosterCard(
     title: String,
@@ -48,6 +51,7 @@ fun PosterCard(
     width: Dp = Dimens.posterWidth,
     height: Dp = Dimens.posterHeight,
     onClick: () -> Unit = {},
+    onLongClick: (() -> Unit)? = null,
 ) {
     // One interaction source drives both the click and the focus ring, so a
     // D-pad landing on the card lights up the same element the remote will act on.
@@ -55,10 +59,21 @@ fun PosterCard(
     Column(
         modifier = modifier
             .width(width)
-            .clickable(
-                interactionSource = interaction,
-                indication = ripple(),
-                onClick = onClick,
+            .then(
+                if (onLongClick == null) {
+                    Modifier.clickable(
+                        interactionSource = interaction,
+                        indication = ripple(),
+                        onClick = onClick,
+                    )
+                } else {
+                    Modifier.combinedClickable(
+                        interactionSource = interaction,
+                        indication = ripple(),
+                        onClick = onClick,
+                        onLongClick = onLongClick,
+                    )
+                },
             ),
     ) {
         Box(

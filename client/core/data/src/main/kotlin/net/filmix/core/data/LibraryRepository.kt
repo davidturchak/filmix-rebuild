@@ -27,6 +27,17 @@ class LibraryRepository(
         api.deferred(page = page).map { it.toDomain() }
     }
 
+    suspend fun history(page: Int = 1): List<Post> = io {
+        api.history(page = page).map { it.toDomain() }
+    }
+
+    /** Clears every entry. Irreversible — callers should confirm first. */
+    suspend fun clearHistory(): Boolean = io { api.historyClean().isSuccessful }
+
+    suspend fun removeFromHistory(postId: Int): Boolean = io {
+        api.historyRemove(postId).isSuccessful
+    }
+
     /**
      * Both toggles are GET despite mutating server state — the reference app
      * routes them through its GET helper and POST is rejected.

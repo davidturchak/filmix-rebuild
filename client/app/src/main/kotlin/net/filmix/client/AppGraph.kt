@@ -19,6 +19,7 @@ import net.filmix.core.network.NetworkFactory
 import net.filmix.feature.catalog.CatalogViewModel
 import net.filmix.feature.detail.DetailViewModel
 import net.filmix.feature.home.HomeViewModel
+import net.filmix.feature.library.HistoryViewModel
 import net.filmix.feature.library.LibraryViewModel
 import net.filmix.feature.profile.ProfileViewModel
 import net.filmix.feature.search.SearchViewModel
@@ -91,6 +92,9 @@ class GraphViewModelFactory(private val graph: AppGraph) : ViewModelProvider.Fac
 
         modelClass.isAssignableFrom(HomeViewModel::class.java) ->
             HomeViewModel(graph.catalogRepository) as T
+
+        modelClass.isAssignableFrom(HistoryViewModel::class.java) ->
+            HistoryViewModel(graph.libraryRepository) as T
 
         modelClass.isAssignableFrom(LibraryViewModel::class.java) ->
             LibraryViewModel(graph.libraryRepository) as T
