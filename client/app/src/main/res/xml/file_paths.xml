@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Downloaded update APKs. Scoped to that one directory rather than the
+         whole cache, so nothing else is exposed to the installer. -->
+    <cache-path name="updates" path="updates/" />
+</paths>

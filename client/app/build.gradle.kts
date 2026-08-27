@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -24,9 +26,31 @@ val gitSha: String = git("rev-parse", "--short", "HEAD").ifEmpty { "unknown" }
 val gitDirty: Boolean = git("status", "--porcelain").isNotEmpty()
 val commitCount: Int = git("rev-list", "--count", "HEAD").toIntOrNull() ?: 1
 
+/**
+ * Release signing. Loaded from keystore/release.properties, which is not in
+ * version control; without it a release build falls back to the debug key and
+ * cannot be used to update an existing install.
+ */
+val releaseProps = Properties().apply {
+    val f = rootProject.file("keystore/release.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+val hasReleaseKey = releaseProps.getProperty("storeFile") != null
+
 android {
     namespace = "net.filmix.client"
     compileSdk = 35
+
+    signingConfigs {
+        if (hasReleaseKey) {
+            create("release") {
+                storeFile = rootProject.file(releaseProps.getProperty("storeFile"))
+                storePassword = releaseProps.getProperty("storePassword")
+                keyAlias = releaseProps.getProperty("keyAlias")
+                keyPassword = releaseProps.getProperty("keyPassword")
+            }
+        }
+    }
 
     defaultConfig {
         applicationId = "net.filmix.client"
@@ -50,7 +74,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName(if (hasReleaseKey) "release" else "debug")
         }
     }
 

@@ -25,3 +25,7 @@ client/.gradle/
 client/local.properties
 client/**/build/
 .kotlin/
+
+# Release signing material — losing it breaks in-place updates, but it must
+# not be published either. Back it up outside the repo.
+client/keystore/

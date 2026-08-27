@@ -12,6 +12,7 @@ import net.filmix.core.data.LibraryRepository
 import net.filmix.core.data.PlaybackRepository
 import net.filmix.core.data.ResumeStore
 import net.filmix.core.data.SettingsStore
+import net.filmix.core.data.UpdateRepository
 import net.filmix.core.data.TokenStore
 import net.filmix.core.network.DeviceParams
 import net.filmix.core.network.FilmixApi
@@ -77,6 +78,8 @@ class AppGraph(context: Context) {
 
     val libraryRepository = LibraryRepository(api, tokenStore)
 
+    val updateRepository = UpdateRepository(appContext, version)
+
     @SuppressLint("HardwareIds")
     private fun androidId(context: Context): String =
         Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID).orEmpty()
@@ -112,7 +115,12 @@ class GraphViewModelFactory(private val graph: AppGraph) : ViewModelProvider.Fac
             SearchViewModel(graph.catalogRepository) as T
 
         modelClass.isAssignableFrom(ProfileViewModel::class.java) ->
-            ProfileViewModel(graph.authRepository, graph.settingsStore, graph.version) as T
+            ProfileViewModel(
+                graph.authRepository,
+                graph.settingsStore,
+                graph.version,
+                graph.updateRepository,
+            ) as T
 
         else -> error("Unknown ViewModel ${modelClass.name}")
     }

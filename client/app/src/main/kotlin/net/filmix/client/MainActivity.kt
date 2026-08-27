@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.window.core.layout.WindowWidthSizeClass
@@ -203,6 +204,8 @@ private fun FilmixApp(graph: AppGraph) {
                 val vm: ProfileViewModel = viewModel(factory = factory)
                 val state by vm.state.collectAsState()
                 val quality by vm.preferredQuality.collectAsState()
+                val updateState by vm.updateState.collectAsState()
+                val context = LocalContext.current
                 ProfileScreen(
                     state = state,
                     modifier = modifier,
@@ -211,6 +214,16 @@ private fun FilmixApp(graph: AppGraph) {
                     preferredQuality = quality,
                     onQualityChange = vm::setPreferredQuality,
                     version = vm.version,
+                    updateState = updateState,
+                    canInstallUpdates = UpdateInstaller.canRequestInstalls(context),
+                    onCheckUpdate = vm::checkForUpdate,
+                    onDownloadUpdate = vm::downloadUpdate,
+                    onInstallUpdate = {
+                        vm.downloadedApk?.let { UpdateInstaller.install(context, it) }
+                    },
+                    onGrantInstallPermission = {
+                        UpdateInstaller.openInstallPermissionSettings(context)
+                    },
                 )
             }
 

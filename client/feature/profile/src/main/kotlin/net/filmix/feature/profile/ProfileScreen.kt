@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import net.filmix.core.data.PairingState
 import net.filmix.core.model.AppVersion
+import net.filmix.core.model.UpdateState
 
 sealed interface ProfileUiState {
     data object Idle : ProfileUiState
@@ -50,6 +51,12 @@ fun ProfileScreen(
     preferredQuality: Int? = null,
     onQualityChange: (Int?) -> Unit = {},
     version: AppVersion? = null,
+    updateState: UpdateState = UpdateState.Idle,
+    canInstallUpdates: Boolean = true,
+    onCheckUpdate: () -> Unit = {},
+    onDownloadUpdate: () -> Unit = {},
+    onInstallUpdate: () -> Unit = {},
+    onGrantInstallPermission: () -> Unit = {},
 ) {
     Box(
         modifier
@@ -149,6 +156,15 @@ fun ProfileScreen(
 
                 else -> Unit
             }
+
+            UpdateSection(
+                state = updateState,
+                canInstall = canInstallUpdates,
+                onCheck = onCheckUpdate,
+                onDownload = onDownloadUpdate,
+                onInstall = onInstallUpdate,
+                onGrantPermission = onGrantInstallPermission,
+            )
 
             if (version != null) {
                 VersionFooter(version)
