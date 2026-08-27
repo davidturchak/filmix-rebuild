@@ -7,6 +7,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import net.filmix.core.data.LibraryRepository
@@ -31,6 +32,12 @@ class LibraryViewModel(
             session.linked.filterNotNull().collect { linked ->
                 if (linked != _state.value.paired) refresh()
             }
+        }
+        // Favouriting happens on the detail screen, which has no idea this one
+        // exists. drop(1) because the current revision on subscribing is not a
+        // change — only what follows is.
+        viewModelScope.launch {
+            library.revision.drop(1).collect { refresh() }
         }
     }
 

@@ -2,6 +2,9 @@ package net.filmix.core.data
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import net.filmix.core.model.Post
@@ -18,6 +21,18 @@ class LibraryRepository(
     private val api: FilmixApi,
     private val tokenStore: TokenStore,
 ) {
+
+    private val _revision = MutableStateFlow(0)
+
+    /**
+     * Bumped whenever a call here changes what the user's lists contain.
+     *
+     * The toggles are reached from the detail screen, which knows nothing about
+     * the library screen — and the library screen is activity-scoped, so it
+     * kept whatever it had loaded: favouriting a film and going to Избранное
+     * showed a list without it. Watching this is how it finds out.
+     */
+    val revision: StateFlow<Int> = _revision.asStateFlow()
 
     suspend fun favourites(page: Int = 1): List<Post> = io {
         api.favourites(page = page).map { it.toDomain() }
@@ -46,11 +61,11 @@ class LibraryRepository(
      * not the resulting flag, so the caller flips its own copy.
      */
     suspend fun toggleFavourite(postId: Int): Boolean = io {
-        api.toggleFavourite(postId).isSuccessful
+        api.toggleFavourite(postId).isSuccessful.also { if (it) _revision.value++ }
     }
 
     suspend fun toggleWatchLater(postId: Int): Boolean = io {
-        api.toggleWatchLater(postId).isSuccessful
+        api.toggleWatchLater(postId).isSuccessful.also { if (it) _revision.value++ }
     }
 
     /**

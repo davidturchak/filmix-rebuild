@@ -186,7 +186,7 @@ private fun VersionFooter(version: AppVersion) {
         modifier = Modifier.padding(top = 32.dp),
     ) {
         Text(
-            "Filmix Client",
+            "Filmix-ng by Ku4eR",
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
