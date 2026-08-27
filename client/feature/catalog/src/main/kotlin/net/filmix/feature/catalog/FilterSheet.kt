@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -33,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import net.filmix.core.designsystem.component.FocusChip
 import net.filmix.core.designsystem.component.focusRing
+import net.filmix.core.designsystem.component.PrimaryButton
 import net.filmix.core.model.CatalogFilter
 import net.filmix.core.model.FilterOption
 import net.filmix.core.model.FilterOptions
@@ -85,20 +85,7 @@ fun FilterSheet(
                         modifier = Modifier.focusRing(interactionSource = clearInteraction),
                     ) { Text("Сбросить") }
                 }
-                val doneInteraction = remember { MutableInteractionSource() }
-                Button(
-                    onClick = onDismiss,
-                    shape = MaterialTheme.shapes.extraLarge,
-                    interactionSource = doneInteraction,
-                    // Orange on orange: the accent ring is invisible against a
-                    // primary-filled button, which left the only confirm
-                    // control in the sheet looking permanently unfocused.
-                    modifier = Modifier.focusRing(
-                        shape = MaterialTheme.shapes.extraLarge,
-                        interactionSource = doneInteraction,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                    ),
-                ) {
+                PrimaryButton(onClick = onDismiss) {
                     Text("Готово")
                 }
             }

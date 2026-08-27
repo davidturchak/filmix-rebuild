@@ -13,6 +13,19 @@ val FilmixOrange = Color(0xFFF26739)
 val FilmixOrangeDark = Color(0xFFF05521)
 val FilmixOrangeMuted = Color(0xFFE36236)
 
+/**
+ * Selected-state fill: chips, the nav rail's active pill, tonal icon buttons.
+ * Material's untouched default here is a lavender that belongs to no part of
+ * this palette. Deliberately a deep, low-chroma orange rather than the brand
+ * tone — the focus ring is [FilmixOrange] at full strength, and a selected chip
+ * filled with the same colour is exactly how focus became invisible on the
+ * primary buttons.
+ */
+val SelectedContainer = Color(0xFF54291A)
+val OnSelectedContainer = Color(0xFFFFD9C9)
+val LightSelectedContainer = Color(0xFFFFE1D4)
+val LightOnSelectedContainer = Color(0xFF41200F)
+
 // Ground and surfaces
 val Ink = Color(0xFF0E0F13)
 val Surface1 = Color(0xFF16181E)

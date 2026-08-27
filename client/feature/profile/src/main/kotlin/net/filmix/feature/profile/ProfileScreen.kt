@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.FilterChip
@@ -23,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import net.filmix.core.data.PairingState
 import net.filmix.core.designsystem.component.FocusChip
+import net.filmix.core.designsystem.component.PrimaryButton
 import net.filmix.core.model.AppVersion
 import net.filmix.core.model.UpdateState
 
@@ -83,7 +83,7 @@ fun ProfileScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                     )
-                    Button(onClick = onStartPairing, shape = MaterialTheme.shapes.extraLarge) {
+                    PrimaryButton(onClick = onStartPairing) {
                         Text("Получить код")
                     }
                 }
@@ -111,7 +111,7 @@ fun ProfileScreen(
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.bodyMedium,
                             )
-                            Button(onClick = onStartPairing) { Text("Новый код") }
+                            PrimaryButton(onClick = onStartPairing) { Text("Новый код") }
                         }
 
                         is PairingState.Linked -> Text("Устройство привязано")
@@ -152,7 +152,7 @@ fun ProfileScreen(
                         color = MaterialTheme.colorScheme.error,
                         textAlign = TextAlign.Center,
                     )
-                    Button(onClick = onStartPairing) { Text("Повторить") }
+                    PrimaryButton(onClick = onStartPairing) { Text("Повторить") }
                 }
 
                 else -> Unit

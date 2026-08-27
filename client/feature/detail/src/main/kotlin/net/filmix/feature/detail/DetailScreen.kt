@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.FilledTonalIconButton
@@ -49,6 +48,7 @@ import net.filmix.core.designsystem.component.AccentChip
 import net.filmix.core.designsystem.component.ChipRow
 import net.filmix.core.designsystem.component.MetaChip
 import net.filmix.core.designsystem.component.PosterCard
+import net.filmix.core.designsystem.component.PrimaryButton
 import net.filmix.core.designsystem.component.focusRing
 import net.filmix.core.designsystem.component.Rail
 import net.filmix.core.designsystem.theme.LocalDimensions
@@ -307,7 +307,6 @@ private fun Backdrop(
                 ) {
                     val best = post.sources.firstOrNull()
                     if (best != null || firstEpisode != null) {
-                        val playInteraction = remember { MutableInteractionSource() }
                         // On a remote the screen opens with focus on the back
                         // arrow, which overlays the list — focus search cannot
                         // descend from it into the LazyColumn, so the D-pad
@@ -320,21 +319,14 @@ private fun Backdrop(
                             withFrameNanos { }
                             runCatching { playFocus.requestFocus() }
                         }
-                        Button(
+                        PrimaryButton(
                             onClick = {
                                 when {
                                     best != null -> onPlay(best)
                                     firstEpisode != null -> onPlayEpisode(firstEpisode)
                                 }
                             },
-                            shape = MaterialTheme.shapes.extraLarge,
-                            interactionSource = playInteraction,
-                            modifier = Modifier
-                                .focusRequester(playFocus)
-                                .focusRing(
-                                    shape = MaterialTheme.shapes.extraLarge,
-                                    interactionSource = playInteraction,
-                                ),
+                            modifier = Modifier.focusRequester(playFocus),
                         ) {
                             Icon(Icons.Filled.PlayArrow, contentDescription = null)
                             Text(

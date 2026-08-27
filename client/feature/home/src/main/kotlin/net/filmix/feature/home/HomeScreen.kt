@@ -14,12 +14,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -31,8 +29,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import net.filmix.core.designsystem.component.PosterCard
+import net.filmix.core.designsystem.component.PrimaryButton
 import net.filmix.core.designsystem.component.rememberFocusReturn
-import net.filmix.core.designsystem.component.focusRing
 import net.filmix.core.designsystem.component.Rail
 import net.filmix.core.designsystem.theme.LocalDimensions
 import net.filmix.core.model.Post
@@ -78,9 +76,8 @@ fun HomeScreen(
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Button(
+                PrimaryButton(
                     onClick = onRetry,
-                    shape = MaterialTheme.shapes.extraLarge,
                     modifier = Modifier.padding(top = 16.dp),
                 ) { Text("Повторить") }
             }
@@ -210,19 +207,18 @@ private fun Hero(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
+                    // The hero's height is fixed, so a Column measures its
+                    // children in order and the last one gets whatever is left
+                    // — which for a two-line title plus three lines of synopsis
+                    // was nothing: the play button was squeezed to a 12dp strip
+                    // with its label clipped away. Weighting the synopsis makes
+                    // it the child that yields instead, since it is the one
+                    // already truncated by maxLines.
+                    modifier = Modifier.weight(1f, fill = false),
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                val playInteraction = remember { MutableInteractionSource() }
-                Button(
-                    onClick = onPlayClick,
-                    shape = MaterialTheme.shapes.extraLarge,
-                    interactionSource = playInteraction,
-                    modifier = Modifier.focusRing(
-                        shape = MaterialTheme.shapes.extraLarge,
-                        interactionSource = playInteraction,
-                    ),
-                ) {
+                PrimaryButton(onClick = onPlayClick) {
                     Icon(Icons.Filled.PlayArrow, contentDescription = null)
                     Text(
                         text = "Смотреть",

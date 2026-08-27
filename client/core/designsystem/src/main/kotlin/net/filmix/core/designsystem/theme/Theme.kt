@@ -19,6 +19,8 @@ private val DarkColors = darkColorScheme(
     onPrimaryContainer = Color.White,
     secondary = FilmixOrangeMuted,
     onSecondary = Color.White,
+    secondaryContainer = SelectedContainer,
+    onSecondaryContainer = OnSelectedContainer,
     background = Ink,
     onBackground = TextPrimary,
     surface = Surface1,
@@ -41,6 +43,8 @@ private val LightColors = lightColorScheme(
     onSurface = LightOnSurface,
     surfaceVariant = LightSurfaceVariant,
     onSurfaceVariant = LightOnSurfaceMuted,
+    secondaryContainer = LightSelectedContainer,
+    onSecondaryContainer = LightOnSelectedContainer,
     error = VoteDown,
 )
 

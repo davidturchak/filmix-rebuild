@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -16,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import net.filmix.core.designsystem.component.PrimaryButton
 import net.filmix.core.model.UpdateState
 
 /**
@@ -73,11 +73,11 @@ fun UpdateSection(
                         color = MaterialTheme.colorScheme.error,
                         textAlign = TextAlign.Center,
                     )
-                    Button(onClick = onGrantPermission, shape = MaterialTheme.shapes.extraLarge) {
+                    PrimaryButton(onClick = onGrantPermission) {
                         Text("Открыть настройки")
                     }
                 } else {
-                    Button(onClick = onDownload, shape = MaterialTheme.shapes.extraLarge) {
+                    PrimaryButton(onClick = onDownload) {
                         Text("Обновить · ${state.update.sizeLabel}")
                     }
                 }
@@ -101,7 +101,7 @@ fun UpdateSection(
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
-                Button(onClick = onInstall, shape = MaterialTheme.shapes.extraLarge) {
+                PrimaryButton(onClick = onInstall) {
                     Text("Установить")
                 }
             }
