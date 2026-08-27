@@ -27,7 +27,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -42,7 +46,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
@@ -57,6 +63,17 @@ import net.filmix.core.designsystem.component.rememberVoiceSearch
 import net.filmix.core.designsystem.theme.LocalIsTv
 import net.filmix.core.designsystem.theme.LocalDimensions
 import net.filmix.core.model.Post
+
+/**
+ * A collapsed caret sitting on the last character — the only state from which
+ * right should give up the field rather than move the caret. A selection is
+ * never "at the end": right collapses it first, as in any text field.
+ */
+private fun TextFieldValue.caretAtEnd(): Boolean =
+    selection.collapsed && selection.end == text.length
+
+private fun TextFieldValue.caretAtStart(): Boolean =
+    selection.collapsed && selection.start == 0
 
 @Composable
 fun SearchScreen(
@@ -74,10 +91,25 @@ fun SearchScreen(
     val keyboard = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
+    // The caret position is needed to know when a D-pad press should stop
+    // moving the caret and leave the field instead, and the String overload of
+    // OutlinedTextField does not report it. The query stays the source of
+    // truth: this only mirrors it, and follows it when it changes elsewhere —
+    // a voice result, or the clear button.
+    var field by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(query, TextRange(query.length)))
+    }
+    if (query != field.text) {
+        field = TextFieldValue(query, TextRange(query.length))
+    }
+
     // On a remote, typing means driving an on-screen grid key by key. Voice is
     // the faster path and is what the original app offered on TV.
     val voice = rememberVoiceSearch(prompt = "Что найти?", onResult = onVoiceResult)
     val micFocus = remember { FocusRequester() }
+    val fieldFocus = remember { FocusRequester() }
+
+
     val isTv = LocalIsTv.current
 
     Column(
@@ -92,26 +124,20 @@ fun SearchScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // A focused text field consumes LEFT/RIGHT for the caret, so a
-            // trailing mic is unreachable by remote. Leading it means the
-            // D-pad meets it on the way in — and on TV voice is the primary
-            // input anyway.
+            // Leading, so the D-pad meets it on the way in from the rail —
+            // and on TV voice is the primary input anyway.
             if (voice.available && isTv) {
                 MicButton(micFocus, voice.listening, voice::start)
             }
         OutlinedTextField(
-            value = query,
-            onValueChange = onQueryChange,
+            value = field,
+            onValueChange = {
+                field = it
+                if (it.text != query) onQueryChange(it.text)
+            },
             singleLine = true,
             placeholder = { Text("Фильмы, сериалы, актёры") },
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-            trailingIcon = {
-                if (query.isNotEmpty()) {
-                    IconButton(onClick = onClear) {
-                        Icon(Icons.Filled.Close, contentDescription = "Очистить")
-                    }
-                }
-            },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(
                 onSearch = {
@@ -122,6 +148,7 @@ fun SearchScreen(
             shape = MaterialTheme.shapes.extraLarge,
             modifier = Modifier
                 .weight(1f)
+                .focusRequester(fieldFocus)
                 // A focused text field swallows D-pad up/down as caret
                 // movement, and does so even when it is single-line and the
                 // caret has nowhere to go — so focus could never leave the
@@ -135,11 +162,61 @@ fun SearchScreen(
                         when (event.key) {
                             Key.DirectionDown -> focusManager.moveFocus(FocusDirection.Down)
                             Key.DirectionUp -> focusManager.moveFocus(FocusDirection.Up)
+                            // Sideways leaves the field. On a remote that is
+                            // simply what left and right mean: the row is mic,
+                            // field, clear button, and nobody edits a caret
+                            // with a D-pad — while the on-screen keyboard is up
+                            // it owns these keys anyway. Where a real keyboard
+                            // is plausible the caret keeps them until it
+                            // reaches the end of the text, so editing still
+                            // behaves, and only then do the ends stop being
+                            // dead ends.
+                            //
+                            // moveFocus, not requestFocus: it reports whether
+                            // focus actually moved, so a press that could not
+                            // go anywhere is left for the field instead of
+                            // being swallowed. requestFocus returns nothing and
+                            // fails silently.
+                            //
+                            // None of this reaches the app while the on-screen
+                            // keyboard is up — the keyboard window owns the
+                            // D-pad then, which is why the field can look
+                            // frozen after it regains focus and re-opens it.
+                            // Back closes the keyboard and navigation resumes,
+                            // as anywhere else in Android.
+                            Key.DirectionRight ->
+                                (isTv || field.caretAtEnd()) &&
+                                    focusManager.moveFocus(FocusDirection.Right)
+
+                            Key.DirectionLeft ->
+                                (isTv || field.caretAtStart()) &&
+                                    focusManager.moveFocus(FocusDirection.Left)
+
                             else -> false
                         }
                     }
                 },
         )
+            // A sibling of the field rather than its trailing icon. Inside the
+            // field it was unreachable by remote and unfixable from outside:
+            // right could not descend into it, the field's own key handler sat
+            // above it and stole presses aimed at it, and left from it walked
+            // straight past the field to the mic. Out here it is an ordinary
+            // neighbour that a directional search can find.
+            if (query.isNotEmpty()) {
+                IconButton(
+                    onClick = {
+                        onClear()
+                        // This button goes away with the text it clears, and
+                        // focus would go with it — to the navigation rail, of
+                        // all places, just as the user gets an empty field.
+                        fieldFocus.requestFocus()
+                    },
+                ) {
+                    Icon(Icons.Filled.Close, contentDescription = "Очистить")
+                }
+            }
+
             if (voice.available && !isTv) {
                 MicButton(micFocus, voice.listening, voice::start)
             }
