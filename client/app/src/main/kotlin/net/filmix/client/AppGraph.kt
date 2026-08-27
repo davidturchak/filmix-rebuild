@@ -8,6 +8,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import net.filmix.core.data.AuthRepository
 import net.filmix.core.data.CatalogRepository
+import net.filmix.core.data.PlaybackRepository
+import net.filmix.core.data.ResumeStore
+import net.filmix.core.data.SettingsStore
 import net.filmix.core.data.TokenStore
 import net.filmix.core.network.DeviceParams
 import net.filmix.core.network.FilmixApi
@@ -51,6 +54,12 @@ class AppGraph(context: Context) {
     val authRepository = AuthRepository(api, tokenStore)
 
     val catalogRepository = CatalogRepository(api)
+
+    val settingsStore = SettingsStore(appContext)
+
+    private val resumeStore = ResumeStore(appContext)
+
+    val playbackRepository = PlaybackRepository(api, resumeStore, settingsStore)
 
     @SuppressLint("HardwareIds")
     private fun androidId(context: Context): String =

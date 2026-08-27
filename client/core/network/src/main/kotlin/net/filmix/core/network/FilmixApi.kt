@@ -5,6 +5,7 @@ import net.filmix.core.network.dto.ServerListDto
 import net.filmix.core.network.dto.TokenRequestDto
 import net.filmix.core.network.dto.UserProfileDto
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.http.Url
@@ -53,6 +54,22 @@ interface FilmixApi {
         @Query("page") page: Int = 1,
         @Query("section") section: Int? = null,
     ): List<PostDto>
+
+    /**
+     * Reports playback progress; the backend keys history off this.
+     *
+     * POST, unlike the read endpoints — GET returns 404 here. Confirmed both
+     * against the live server and in the reference app, which routes this
+     * through its POST helper (`fq.w8UglNnmkNjtIbBL`).
+     */
+    @POST("api/v2/add_watched")
+    suspend fun addWatched(
+        @Query("id") id: Int,
+        @Query("translation") translation: String,
+        @Query("season") season: String = "",
+        @Query("episode") episode: String = "",
+        @Query("add_watched") addWatched: Boolean = true,
+    ): retrofit2.Response<Unit>
 
     @GET("api/v2/search")
     suspend fun search(

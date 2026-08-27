@@ -17,6 +17,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowWidthSizeClass
 import net.filmix.core.designsystem.theme.FilmixTheme
+import net.filmix.core.model.Post
+import net.filmix.core.model.VideoSource
 import net.filmix.feature.detail.DetailScreen
 import net.filmix.feature.detail.DetailViewModel
 import net.filmix.feature.home.HomeScreen
@@ -51,9 +53,24 @@ private fun FilmixApp(graph: AppGraph) {
     // Navigation-Compose takes this over when search and the player land.
     var openPostId by rememberSaveable { mutableStateOf<Int?>(null) }
 
+    // Playback sits above detail. Held as objects rather than ids because the
+    // source list only exists on the loaded post.
+    var playing by remember { mutableStateOf<Pair<Post, VideoSource>?>(null) }
+
     val widthClass = currentWindowAdaptiveInfo().windowSizeClass.windowWidthSizeClass
     val compact = widthClass == WindowWidthSizeClass.COMPACT
     val factory = remember(graph) { GraphViewModelFactory(graph) }
+
+    val active = playing
+    if (active != null) {
+        PlaybackHost(
+            post = active.first,
+            source = active.second,
+            repository = graph.playbackRepository,
+            onExit = { playing = null },
+        )
+        return
+    }
 
     val postId = openPostId
     if (postId != null) {
@@ -66,6 +83,9 @@ private fun FilmixApp(graph: AppGraph) {
             compact = compact,
             onBack = { openPostId = null },
             onRelatedClick = { openPostId = it.id },
+            onPlay = { source ->
+                detailState.post?.let { playing = it to source }
+            },
         )
         return
     }
