@@ -6,6 +6,7 @@ import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -58,15 +59,36 @@ private val FilmixTypography = Typography(
     labelSmall = TextStyle(fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium),
 )
 
+/**
+ * Type scaled up for television. Values are ~1.35x the touch ramp — enough to
+ * read at three metres without reflowing every layout.
+ */
+private val TvTypography = Typography(
+    displaySmall = TextStyle(fontSize = 44.sp, lineHeight = 52.sp, fontWeight = FontWeight.Bold),
+    headlineMedium = TextStyle(fontSize = 34.sp, lineHeight = 42.sp, fontWeight = FontWeight.Bold),
+    titleLarge = TextStyle(fontSize = 28.sp, lineHeight = 34.sp, fontWeight = FontWeight.SemiBold),
+    titleMedium = TextStyle(fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.SemiBold),
+    bodyLarge = TextStyle(fontSize = 20.sp, lineHeight = 28.sp),
+    bodyMedium = TextStyle(fontSize = 18.sp, lineHeight = 24.sp),
+    labelLarge = TextStyle(fontSize = 18.sp, lineHeight = 22.sp, fontWeight = FontWeight.SemiBold),
+    labelSmall = TextStyle(fontSize = 15.sp, lineHeight = 19.sp, fontWeight = FontWeight.Medium),
+)
+
 @Composable
 fun FilmixTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    isTv: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    MaterialTheme(
-        colorScheme = if (darkTheme) DarkColors else LightColors,
-        typography = FilmixTypography,
-        shapes = FilmixShapes,
-        content = content,
-    )
+    CompositionLocalProvider(
+        LocalDimensions provides if (isTv) TvDimensions else TouchDimensions,
+        LocalIsTv provides isTv,
+    ) {
+        MaterialTheme(
+            colorScheme = if (darkTheme) DarkColors else LightColors,
+            typography = if (isTv) TvTypography else FilmixTypography,
+            shapes = FilmixShapes,
+            content = content,
+        )
+    }
 }

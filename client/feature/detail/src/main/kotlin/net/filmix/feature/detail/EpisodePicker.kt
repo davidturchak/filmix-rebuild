@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import net.filmix.core.designsystem.component.FocusChip
 import net.filmix.core.model.Episode
 import net.filmix.core.model.Season
 import net.filmix.core.model.SeriesPlaylist
@@ -64,10 +65,10 @@ fun EpisodePicker(
         if (playlist.seasons.size > 1) {
             PickerRow(label = "Сезон") {
                 playlist.seasons.forEach { option ->
-                    FilterChip(
+                    FocusChip(
                         selected = option.number == season.number,
                         onClick = { onSelectSeason(option.number) },
-                        label = { Text(option.label) },
+                        label = option.label,
                     )
                 }
             }
@@ -76,10 +77,10 @@ fun EpisodePicker(
         if (season.translations.size > 1) {
             PickerRow(label = "Озвучка") {
                 season.translations.forEach { option ->
-                    FilterChip(
+                    FocusChip(
                         selected = option.name == translation.name,
                         onClick = { onSelectTranslation(option.name) },
-                        label = { Text(option.name) },
+                        label = option.name,
                     )
                 }
             }
@@ -96,10 +97,10 @@ fun EpisodePicker(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 translation.episodes.forEach { episode ->
-                    FilterChip(
+                    FocusChip(
                         selected = false,
                         onClick = { onPlayEpisode(episode) },
-                        label = { Text(episode.number) },
+                        label = episode.number,
                     )
                 }
             }

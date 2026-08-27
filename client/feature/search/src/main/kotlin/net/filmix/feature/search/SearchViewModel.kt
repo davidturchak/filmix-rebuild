@@ -64,6 +64,15 @@ class SearchViewModel(private val catalog: CatalogRepository) : ViewModel() {
         if (value.isBlank()) submitted.value = ""
     }
 
+    /** A spoken query is already complete, so search at once. */
+    fun submitVoiceResult(text: String) {
+        val term = text.trim()
+        if (term.length < MIN_QUERY) return
+        _query.value = term
+        submitted.value = term
+        _suggestions.value = emptyList()
+    }
+
     fun submit() {
         val term = _query.value.trim()
         if (term.length >= MIN_QUERY) {

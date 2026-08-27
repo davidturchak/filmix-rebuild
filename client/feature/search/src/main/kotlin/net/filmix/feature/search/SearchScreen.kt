@@ -17,6 +17,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -24,9 +25,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -37,7 +43,10 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import coil3.compose.AsyncImage
 import net.filmix.core.designsystem.component.PosterCard
-import net.filmix.core.designsystem.theme.Dimens
+import net.filmix.core.designsystem.component.focusRing
+import net.filmix.core.designsystem.component.rememberVoiceSearch
+import net.filmix.core.designsystem.theme.LocalIsTv
+import net.filmix.core.designsystem.theme.LocalDimensions
 import net.filmix.core.model.Post
 
 @Composable
@@ -51,14 +60,33 @@ fun SearchScreen(
     onSubmit: () -> Unit = {},
     onClear: () -> Unit = {},
     onPostClick: (Post) -> Unit = {},
+    onVoiceResult: (String) -> Unit = {},
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
+
+    // On a remote, typing means driving an on-screen grid key by key. Voice is
+    // the faster path and is what the original app offered on TV.
+    val voice = rememberVoiceSearch(prompt = "Что найти?", onResult = onVoiceResult)
+    val micFocus = remember { FocusRequester() }
+    val isTv = LocalIsTv.current
 
     Column(
         modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
     ) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = LocalDimensions.current.gutter, vertical = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // A focused text field consumes LEFT/RIGHT for the caret, so a
+            // trailing mic is unreachable by remote. Leading it means the
+            // D-pad meets it on the way in — and on TV voice is the primary
+            // input anyway.
+            if (voice.available && isTv) MicButton(micFocus, voice::start)
         OutlinedTextField(
             value = query,
             onValueChange = onQueryChange,
@@ -80,15 +108,15 @@ fun SearchScreen(
                 },
             ),
             shape = MaterialTheme.shapes.extraLarge,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Dimens.gutter, vertical = 16.dp),
+            modifier = Modifier.weight(1f),
         )
+            if (voice.available && !isTv) MicButton(micFocus, voice::start)
+        }
 
         // Suggestions replace the grid while typing; committing a query swaps
         // back to paged results.
         if (suggestions.isNotEmpty()) {
-            Column(Modifier.padding(horizontal = Dimens.gutter)) {
+            Column(Modifier.padding(horizontal = LocalDimensions.current.gutter)) {
                 suggestions.forEach { item ->
                     SuggestionRow(item, onClick = { onPostClick(item) })
                 }
@@ -97,6 +125,20 @@ fun SearchScreen(
         }
 
         ResultsGrid(results, compact, onPostClick)
+    }
+}
+
+@Composable
+private fun MicButton(focusRequester: FocusRequester, onClick: () -> Unit) {
+    val interaction = remember { MutableInteractionSource() }
+    FilledTonalIconButton(
+        onClick = onClick,
+        interactionSource = interaction,
+        modifier = Modifier
+            .focusRequester(focusRequester)
+            .focusRing(interactionSource = interaction),
+    ) {
+        Icon(Icons.Filled.Mic, contentDescription = "Голосовой поиск")
     }
 }
 
@@ -129,11 +171,11 @@ private fun ResultsGrid(
 
             else -> LazyVerticalGrid(
                 columns = GridCells.Adaptive(
-                    minSize = if (compact) Dimens.posterWidthCompact else Dimens.posterWidth,
+                    minSize = if (compact) LocalDimensions.current.posterWidthCompact else LocalDimensions.current.posterWidth,
                 ),
-                contentPadding = PaddingValues(Dimens.gutter),
-                horizontalArrangement = Arrangement.spacedBy(Dimens.railGap),
-                verticalArrangement = Arrangement.spacedBy(Dimens.sectionGap),
+                contentPadding = PaddingValues(LocalDimensions.current.gutter),
+                horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.railGap),
+                verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.sectionGap),
             ) {
                 items(count = results.itemCount) { index ->
                     val post = results[index] ?: return@items
@@ -143,8 +185,8 @@ private fun ResultsGrid(
                         rating = post.rating,
                         subtitle = post.lastEpisode?.label
                             ?: post.year.takeIf { it > 0 }?.toString(),
-                        width = if (compact) Dimens.posterWidthCompact else Dimens.posterWidth,
-                        height = if (compact) Dimens.posterHeightCompact else Dimens.posterHeight,
+                        width = if (compact) LocalDimensions.current.posterWidthCompact else LocalDimensions.current.posterWidth,
+                        height = if (compact) LocalDimensions.current.posterHeightCompact else LocalDimensions.current.posterHeight,
                         onClick = { onPostClick(post) },
                     )
                 }

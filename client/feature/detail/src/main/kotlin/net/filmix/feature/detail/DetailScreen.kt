@@ -31,7 +31,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.remember
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,7 +51,8 @@ import net.filmix.core.designsystem.component.MetaChip
 import net.filmix.core.designsystem.component.PosterCard
 import net.filmix.core.designsystem.component.focusRing
 import net.filmix.core.designsystem.component.Rail
-import net.filmix.core.designsystem.theme.Dimens
+import net.filmix.core.designsystem.theme.LocalDimensions
+import net.filmix.core.designsystem.theme.LocalIsTv
 import net.filmix.core.designsystem.theme.ImdbGold
 import net.filmix.core.designsystem.theme.KinopoiskOrange
 import net.filmix.core.model.ParsedTranslation
@@ -101,15 +106,20 @@ fun DetailScreen(
             )
         }
 
-        IconButton(
-            onClick = onBack,
-            modifier = Modifier.padding(12.dp),
-        ) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Назад",
-                tint = MaterialTheme.colorScheme.onBackground,
-            )
+        // Touch only. On a remote this arrow overlays the list, claims the
+        // window's initial focus, and blocks D-pad traversal into the content;
+        // BACK on the remote does the same job without the trap.
+        if (!LocalIsTv.current) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier.padding(12.dp),
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Назад",
+                    tint = MaterialTheme.colorScheme.onBackground,
+                )
+            }
         }
     }
 }
@@ -128,8 +138,8 @@ private fun Content(
     onPlayEpisode: (Episode) -> Unit,
 ) {
     LazyColumn(
-        contentPadding = PaddingValues(bottom = Dimens.sectionGap),
-        verticalArrangement = Arrangement.spacedBy(Dimens.sectionGap),
+        contentPadding = PaddingValues(bottom = LocalDimensions.current.sectionGap),
+        verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.sectionGap),
     ) {
         item("hero") {
             Backdrop(
@@ -207,8 +217,8 @@ private fun Content(
                         title = related.title,
                         posterUrl = related.posterUrl,
                         subtitle = related.year.takeIf { it > 0 }?.toString(),
-                        width = if (compact) Dimens.posterWidthCompact else Dimens.posterWidth,
-                        height = if (compact) Dimens.posterHeightCompact else Dimens.posterHeight,
+                        width = if (compact) LocalDimensions.current.posterWidthCompact else LocalDimensions.current.posterWidth,
+                        height = if (compact) LocalDimensions.current.posterHeightCompact else LocalDimensions.current.posterHeight,
                         onClick = { onRelatedClick(related) },
                     )
                 }
@@ -230,7 +240,7 @@ private fun Backdrop(
     Box(
         Modifier
             .fillMaxWidth()
-            .height(if (compact) Dimens.heroHeightCompact else Dimens.heroHeight),
+            .height(if (compact) LocalDimensions.current.heroHeightCompact else LocalDimensions.current.heroHeight),
     ) {
         AsyncImage(
             model = post.posterUrl,
@@ -250,7 +260,7 @@ private fun Backdrop(
         Row(
             Modifier
                 .align(Alignment.BottomStart)
-                .padding(Dimens.gutter)
+                .padding(LocalDimensions.current.gutter)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(20.dp),
         ) {
@@ -260,7 +270,7 @@ private fun Backdrop(
                     contentDescription = post.title,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(Dimens.posterWidth, Dimens.posterHeight)
+                        .size(LocalDimensions.current.posterWidth, LocalDimensions.current.posterHeight)
                         .clip(MaterialTheme.shapes.medium),
                 )
             }
@@ -298,6 +308,18 @@ private fun Backdrop(
                     val best = post.sources.firstOrNull()
                     if (best != null || firstEpisode != null) {
                         val playInteraction = remember { MutableInteractionSource() }
+                        // On a remote the screen opens with focus on the back
+                        // arrow, which overlays the list — focus search cannot
+                        // descend from it into the LazyColumn, so the D-pad
+                        // appears dead. Claim focus for the primary action
+                        // instead; BACK still exits via the hardware key.
+                        val playFocus = remember { FocusRequester() }
+                        LaunchedEffect(post.id) {
+                            // The requester must be attached before it can be
+                            // used; yielding a frame avoids a silent no-op.
+                            withFrameNanos { }
+                            runCatching { playFocus.requestFocus() }
+                        }
                         Button(
                             onClick = {
                                 when {
@@ -307,10 +329,12 @@ private fun Backdrop(
                             },
                             shape = MaterialTheme.shapes.extraLarge,
                             interactionSource = playInteraction,
-                            modifier = Modifier.focusRing(
-                                shape = MaterialTheme.shapes.extraLarge,
-                                interactionSource = playInteraction,
-                            ),
+                            modifier = Modifier
+                                .focusRequester(playFocus)
+                                .focusRing(
+                                    shape = MaterialTheme.shapes.extraLarge,
+                                    interactionSource = playInteraction,
+                                ),
                         ) {
                             Icon(Icons.Filled.PlayArrow, contentDescription = null)
                             Text(
@@ -383,7 +407,7 @@ private fun SourceRow(source: VideoSource, onClick: () -> Unit) {
 
 @Composable
 private fun Section(title: String, content: @Composable () -> Unit) {
-    Column(Modifier.padding(horizontal = Dimens.gutter)) {
+    Column(Modifier.padding(horizontal = LocalDimensions.current.gutter)) {
         Text(
             title,
             style = MaterialTheme.typography.titleLarge,

@@ -15,18 +15,3 @@ val FilmixShapes = Shapes(
     large = RoundedCornerShape(20.dp),
     extraLarge = RoundedCornerShape(28.dp),
 )
-
-object Dimens {
-    val gutter = 24.dp
-    val railGap = 12.dp
-    val sectionGap = 28.dp
-
-    /** 2:3 poster art. Sized for a ~1180dp-wide tablet showing roughly 7 per rail. */
-    val posterWidth = 140.dp
-    val posterHeight = 210.dp
-    val posterWidthCompact = 108.dp
-    val posterHeightCompact = 162.dp
-
-    val heroHeight = 420.dp
-    val heroHeightCompact = 280.dp
-}

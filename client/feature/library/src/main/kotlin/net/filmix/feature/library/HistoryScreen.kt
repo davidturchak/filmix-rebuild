@@ -29,7 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import net.filmix.core.designsystem.component.PosterCard
-import net.filmix.core.designsystem.theme.Dimens
+import net.filmix.core.designsystem.theme.LocalDimensions
 import net.filmix.core.model.Post
 
 data class HistoryUiState(
@@ -58,7 +58,7 @@ fun HistoryScreen(
         Row(
             Modifier
                 .fillMaxWidth()
-                .padding(horizontal = Dimens.gutter, vertical = 12.dp),
+                .padding(horizontal = LocalDimensions.current.gutter, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -89,11 +89,11 @@ fun HistoryScreen(
 
                 else -> LazyVerticalGrid(
                     columns = GridCells.Adaptive(
-                        minSize = if (compact) Dimens.posterWidthCompact else Dimens.posterWidth,
+                        minSize = if (compact) LocalDimensions.current.posterWidthCompact else LocalDimensions.current.posterWidth,
                     ),
-                    contentPadding = PaddingValues(Dimens.gutter),
-                    horizontalArrangement = Arrangement.spacedBy(Dimens.railGap),
-                    verticalArrangement = Arrangement.spacedBy(Dimens.sectionGap),
+                    contentPadding = PaddingValues(LocalDimensions.current.gutter),
+                    horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.railGap),
+                    verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.sectionGap),
                 ) {
                     items(count = state.items.size, key = { state.items[it].id }) { index ->
                         val post = state.items[index]
@@ -104,14 +104,14 @@ fun HistoryScreen(
                             subtitle = post.lastEpisode?.label
                                 ?: post.year.takeIf { it > 0 }?.toString(),
                             width = if (compact) {
-                                Dimens.posterWidthCompact
+                                LocalDimensions.current.posterWidthCompact
                             } else {
-                                Dimens.posterWidth
+                                LocalDimensions.current.posterWidth
                             },
                             height = if (compact) {
-                                Dimens.posterHeightCompact
+                                LocalDimensions.current.posterHeightCompact
                             } else {
-                                Dimens.posterHeight
+                                LocalDimensions.current.posterHeight
                             },
                             onClick = { onPostClick(post) },
                             // Long-press removes one entry, mirroring the

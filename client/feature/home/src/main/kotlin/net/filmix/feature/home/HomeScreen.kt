@@ -33,7 +33,7 @@ import coil3.compose.AsyncImage
 import net.filmix.core.designsystem.component.PosterCard
 import net.filmix.core.designsystem.component.focusRing
 import net.filmix.core.designsystem.component.Rail
-import net.filmix.core.designsystem.theme.Dimens
+import net.filmix.core.designsystem.theme.LocalDimensions
 import net.filmix.core.model.Post
 
 data class HomeRail(val title: String, val items: List<Post>)
@@ -91,8 +91,8 @@ fun HomeScreen(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
-        verticalArrangement = Arrangement.spacedBy(Dimens.sectionGap),
-        contentPadding = PaddingValues(bottom = Dimens.sectionGap),
+        verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.sectionGap),
+        contentPadding = PaddingValues(bottom = LocalDimensions.current.sectionGap),
     ) {
         state.featured?.let { featured ->
             item(key = "hero") {
@@ -120,8 +120,8 @@ fun HomeScreen(
                     rating = post.rating,
                     subtitle = post.lastEpisode?.label
                         ?: post.year.takeIf { it > 0 }?.toString(),
-                    width = if (compact) Dimens.posterWidthCompact else Dimens.posterWidth,
-                    height = if (compact) Dimens.posterHeightCompact else Dimens.posterHeight,
+                    width = if (compact) LocalDimensions.current.posterWidthCompact else LocalDimensions.current.posterWidth,
+                    height = if (compact) LocalDimensions.current.posterHeightCompact else LocalDimensions.current.posterHeight,
                     onClick = { onPostClick(post) },
                 )
             }
@@ -144,7 +144,7 @@ private fun Hero(
     Box(
         Modifier
             .fillMaxWidth()
-            .height(if (compact) Dimens.heroHeightCompact else Dimens.heroHeight),
+            .height(if (compact) LocalDimensions.current.heroHeightCompact else LocalDimensions.current.heroHeight),
     ) {
         AsyncImage(
             model = post.posterUrl,
@@ -167,7 +167,7 @@ private fun Hero(
         Column(
             Modifier
                 .align(Alignment.BottomStart)
-                .padding(Dimens.gutter)
+                .padding(LocalDimensions.current.gutter)
                 .fillMaxWidth(if (compact) 1f else 0.55f),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {

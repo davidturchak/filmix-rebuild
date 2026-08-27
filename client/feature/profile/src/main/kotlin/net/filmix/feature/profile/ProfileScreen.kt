@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import net.filmix.core.data.PairingState
+import net.filmix.core.designsystem.component.FocusChip
 import net.filmix.core.model.AppVersion
 import net.filmix.core.model.UpdateState
 
@@ -223,10 +224,10 @@ private fun QualityPreference(selected: Int?, onChange: (Int?) -> Unit) {
                 "1080p" to 1080,
                 "4K" to 2160,
             ).forEach { (label, value) ->
-                FilterChip(
+                FocusChip(
                     selected = selected == value,
                     onClick = { onChange(value) },
-                    label = { Text(label) },
+                    label = label,
                 )
             }
         }

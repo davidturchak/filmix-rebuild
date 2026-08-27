@@ -32,8 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
+import net.filmix.core.designsystem.component.FocusChip
 import net.filmix.core.designsystem.component.PosterCard
-import net.filmix.core.designsystem.theme.Dimens
+import net.filmix.core.designsystem.theme.LocalDimensions
 import net.filmix.core.model.Post
 import net.filmix.core.model.CatalogFilter
 import net.filmix.core.model.FilterOptions
@@ -104,11 +105,11 @@ fun CatalogScreen(
 
                 else -> LazyVerticalGrid(
                     columns = GridCells.Adaptive(
-                        minSize = if (compact) Dimens.posterWidthCompact else Dimens.posterWidth,
+                        minSize = if (compact) LocalDimensions.current.posterWidthCompact else LocalDimensions.current.posterWidth,
                     ),
-                    contentPadding = PaddingValues(Dimens.gutter),
-                    horizontalArrangement = Arrangement.spacedBy(Dimens.railGap),
-                    verticalArrangement = Arrangement.spacedBy(Dimens.sectionGap),
+                    contentPadding = PaddingValues(LocalDimensions.current.gutter),
+                    horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.railGap),
+                    verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.sectionGap),
                 ) {
                     items(count = items.itemCount) { index ->
                         val post = items[index] ?: return@items
@@ -119,14 +120,14 @@ fun CatalogScreen(
                             subtitle = post.lastEpisode?.label
                                 ?: post.year.takeIf { it > 0 }?.toString(),
                             width = if (compact) {
-                                Dimens.posterWidthCompact
+                                LocalDimensions.current.posterWidthCompact
                             } else {
-                                Dimens.posterWidth
+                                LocalDimensions.current.posterWidth
                             },
                             height = if (compact) {
-                                Dimens.posterHeightCompact
+                                LocalDimensions.current.posterHeightCompact
                             } else {
-                                Dimens.posterHeight
+                                LocalDimensions.current.posterHeight
                             },
                             onClick = { onPostClick(post) },
                         )
@@ -153,26 +154,24 @@ private fun SortBar(
 ) {
     Row(
         Modifier
-            .padding(horizontal = Dimens.gutter, vertical = 12.dp)
+            .padding(horizontal = LocalDimensions.current.gutter, vertical = 12.dp)
             .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (filtersEnabled) {
-            FilterChip(
+            FocusChip(
                 selected = activeFilters > 0,
                 onClick = onOpenFilters,
                 leadingIcon = { Icon(Icons.Filled.FilterList, contentDescription = null) },
-                label = {
-                    Text(if (activeFilters > 0) "Фильтры ($activeFilters)" else "Фильтры")
-                },
+                label = if (activeFilters > 0) "Фильтры ($activeFilters)" else "Фильтры",
             )
         }
         SortOrder.entries.forEach { option ->
-            FilterChip(
+            FocusChip(
                 selected = option == sort,
                 onClick = { onSortChange(option) },
-                label = { Text(option.label) },
+                label = option.label,
             )
         }
         TextButton(onClick = onDirectionToggle) {

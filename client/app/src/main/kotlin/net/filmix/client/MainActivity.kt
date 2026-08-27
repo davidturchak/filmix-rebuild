@@ -1,5 +1,7 @@
 package net.filmix.client
 
+import android.app.UiModeManager
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -47,9 +49,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         graph = AppGraph(this)
+        // UiModeManager is the authoritative signal — a TV reports 960x540dp,
+        // *less* height than the tablet, so a width breakpoint would classify
+        // it as an ordinary medium screen and apply arm's-length metrics.
+        val isTv = (getSystemService(UI_MODE_SERVICE) as? UiModeManager)
+            ?.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
         enableEdgeToEdge()
         setContent {
-            FilmixTheme(darkTheme = true) {
+            FilmixTheme(darkTheme = true, isTv = isTv) {
                 FilmixApp(graph)
             }
         }
@@ -172,6 +179,7 @@ private fun FilmixApp(graph: AppGraph) {
                     onSubmit = vm::submit,
                     onClear = vm::clear,
                     onPostClick = { openPostId = it.id },
+                    onVoiceResult = vm::submitVoiceResult,
                 )
             }
 

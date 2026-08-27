@@ -30,7 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import net.filmix.core.designsystem.theme.Dimens
+import net.filmix.core.designsystem.theme.LocalDimensions
 import net.filmix.core.designsystem.theme.RatingNegative
 import net.filmix.core.designsystem.theme.RatingNeutral
 import net.filmix.core.designsystem.theme.RatingPositive
@@ -48,8 +48,8 @@ fun PosterCard(
     modifier: Modifier = Modifier,
     rating: Int? = null,
     subtitle: String? = null,
-    width: Dp = Dimens.posterWidth,
-    height: Dp = Dimens.posterHeight,
+    width: Dp = LocalDimensions.current.posterWidth,
+    height: Dp = LocalDimensions.current.posterHeight,
     onClick: () -> Unit = {},
     onLongClick: (() -> Unit)? = null,
 ) {

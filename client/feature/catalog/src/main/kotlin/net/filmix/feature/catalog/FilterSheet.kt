@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import net.filmix.core.designsystem.component.FocusChip
 import net.filmix.core.model.CatalogFilter
 import net.filmix.core.model.FilterOption
 import net.filmix.core.model.FilterOptions
@@ -168,10 +169,10 @@ private fun Group(
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             visible.forEach { option ->
-                FilterChip(
+                FocusChip(
                     selected = option.id in selected,
                     onClick = { onToggle(option.id) },
-                    label = { Text(option.label) },
+                    label = option.label,
                 )
             }
         }
@@ -189,10 +190,10 @@ private fun QualityGroup(selected: Set<QualityFilter>, onToggle: (QualityFilter)
         )
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             QualityFilter.entries.forEach { quality ->
-                FilterChip(
+                FocusChip(
                     selected = quality in selected,
                     onClick = { onToggle(quality) },
-                    label = { Text(quality.label) },
+                    label = quality.label,
                 )
             }
         }

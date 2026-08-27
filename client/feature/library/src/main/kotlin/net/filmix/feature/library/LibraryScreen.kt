@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import net.filmix.core.designsystem.component.PosterCard
-import net.filmix.core.designsystem.theme.Dimens
+import net.filmix.core.designsystem.theme.LocalDimensions
 import net.filmix.core.model.Post
 
 enum class LibraryTab(val label: String) {
@@ -86,11 +86,11 @@ fun LibraryScreen(
 
                 else -> LazyVerticalGrid(
                     columns = GridCells.Adaptive(
-                        minSize = if (compact) Dimens.posterWidthCompact else Dimens.posterWidth,
+                        minSize = if (compact) LocalDimensions.current.posterWidthCompact else LocalDimensions.current.posterWidth,
                     ),
-                    contentPadding = PaddingValues(Dimens.gutter),
-                    horizontalArrangement = Arrangement.spacedBy(Dimens.railGap),
-                    verticalArrangement = Arrangement.spacedBy(Dimens.sectionGap),
+                    contentPadding = PaddingValues(LocalDimensions.current.gutter),
+                    horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.railGap),
+                    verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.sectionGap),
                 ) {
                     items(count = state.visible.size) { index ->
                         val post = state.visible[index]
@@ -100,11 +100,11 @@ fun LibraryScreen(
                             rating = post.rating,
                             subtitle = post.lastEpisode?.label
                                 ?: post.year.takeIf { it > 0 }?.toString(),
-                            width = if (compact) Dimens.posterWidthCompact else Dimens.posterWidth,
+                            width = if (compact) LocalDimensions.current.posterWidthCompact else LocalDimensions.current.posterWidth,
                             height = if (compact) {
-                                Dimens.posterHeightCompact
+                                LocalDimensions.current.posterHeightCompact
                             } else {
-                                Dimens.posterHeight
+                                LocalDimensions.current.posterHeight
                             },
                             onClick = { onPostClick(post) },
                         )

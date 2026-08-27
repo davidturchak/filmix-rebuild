@@ -11,7 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import net.filmix.core.designsystem.theme.Dimens
+import net.filmix.core.designsystem.theme.LocalDimensions
 
 /**
  * A titled horizontal strip of posters. The home screen is a vertical stack of
@@ -24,7 +24,7 @@ fun <T> Rail(
     items: List<T>,
     modifier: Modifier = Modifier,
     key: ((T) -> Any)? = null,
-    contentPadding: PaddingValues = PaddingValues(horizontal = Dimens.gutter),
+    contentPadding: PaddingValues = PaddingValues(horizontal = LocalDimensions.current.gutter),
     item: @Composable (T) -> Unit,
 ) {
     if (items.isEmpty()) return
@@ -33,10 +33,10 @@ fun <T> Rail(
             text = title,
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(start = Dimens.gutter, bottom = 12.dp),
+            modifier = Modifier.padding(start = LocalDimensions.current.gutter, bottom = 12.dp),
         )
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(Dimens.railGap),
+            horizontalArrangement = Arrangement.spacedBy(LocalDimensions.current.railGap),
             contentPadding = contentPadding,
         ) {
             items(
