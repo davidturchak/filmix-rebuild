@@ -7,10 +7,12 @@ import android.provider.Settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import net.filmix.core.data.AuthRepository
+import net.filmix.core.data.CatalogRepository
 import net.filmix.core.data.TokenStore
 import net.filmix.core.network.DeviceParams
 import net.filmix.core.network.FilmixApi
 import net.filmix.core.network.NetworkFactory
+import net.filmix.feature.home.HomeViewModel
 import net.filmix.feature.profile.ProfileViewModel
 import java.util.Locale
 
@@ -47,6 +49,8 @@ class AppGraph(context: Context) {
 
     val authRepository = AuthRepository(api, tokenStore)
 
+    val catalogRepository = CatalogRepository(api)
+
     @SuppressLint("HardwareIds")
     private fun androidId(context: Context): String =
         Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID).orEmpty()
@@ -63,6 +67,9 @@ class AppGraph(context: Context) {
 class GraphViewModelFactory(private val graph: AppGraph) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
+        modelClass.isAssignableFrom(HomeViewModel::class.java) ->
+            HomeViewModel(graph.catalogRepository) as T
+
         modelClass.isAssignableFrom(ProfileViewModel::class.java) ->
             ProfileViewModel(graph.authRepository) as T
 

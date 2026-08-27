@@ -15,9 +15,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowWidthSizeClass
 import net.filmix.core.designsystem.theme.FilmixTheme
-import net.filmix.feature.home.HomeRail
 import net.filmix.feature.home.HomeScreen
-import net.filmix.feature.home.HomeUiState
+import net.filmix.feature.home.HomeViewModel
 import net.filmix.feature.profile.ProfileScreen
 import net.filmix.feature.profile.ProfileViewModel
 
@@ -47,28 +46,22 @@ private fun FilmixApp(graph: AppGraph) {
     val compact = widthClass == WindowWidthSizeClass.COMPACT
     val factory = remember(graph) { GraphViewModelFactory(graph) }
 
-    val homeState = remember {
-        HomeUiState(
-            featured = MockData.featured,
-            rails = listOf(
-                HomeRail("Новинки", MockData.newest),
-                HomeRail("Популярное", MockData.popular),
-                HomeRail("Сериалы", MockData.series),
-            ),
-        )
-    }
-
     AppScaffold(
         current = destination,
         compact = compact,
         onSelect = { destination = it },
     ) { modifier ->
         when (destination) {
-            Destination.Home -> HomeScreen(
-                state = homeState,
-                compact = compact,
-                modifier = modifier,
-            )
+            Destination.Home -> {
+                val vm: HomeViewModel = viewModel(factory = factory)
+                val homeState by vm.state.collectAsState()
+                HomeScreen(
+                    state = homeState,
+                    compact = compact,
+                    modifier = modifier,
+                    onRetry = vm::refresh,
+                )
+            }
 
             Destination.Profile -> {
                 val vm: ProfileViewModel = viewModel(factory = factory)

@@ -32,6 +32,10 @@ interface FilmixApi {
         @Query("page") page: Int = 1,
     ): List<PostDto>
 
+    /** Full detail, including `short_story` and `player_links`. */
+    @GET("api/v2/post/{id}")
+    suspend fun post(@Path("id") id: Int): PostDto
+
     @GET("api/v2/top_views")
     suspend fun topViews(
         @Query("page") page: Int = 1,

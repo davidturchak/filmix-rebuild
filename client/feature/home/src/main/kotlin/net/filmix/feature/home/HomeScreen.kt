@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,6 +39,7 @@ data class HomeUiState(
     val featured: Post? = null,
     val rails: List<HomeRail> = emptyList(),
     val loading: Boolean = false,
+    val error: String? = null,
 )
 
 @Composable
@@ -47,7 +49,41 @@ fun HomeScreen(
     compact: Boolean = false,
     onPostClick: (Post) -> Unit = {},
     onPlayClick: (Post) -> Unit = {},
+    onRetry: () -> Unit = {},
 ) {
+    if (state.loading && state.rails.isEmpty()) {
+        Box(
+            modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.Center,
+        ) { CircularProgressIndicator() }
+        return
+    }
+
+    if (state.error != null && state.rails.isEmpty()) {
+        Box(
+            modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.Center,
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    state.error,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Button(
+                    onClick = onRetry,
+                    shape = MaterialTheme.shapes.extraLarge,
+                    modifier = Modifier.padding(top = 16.dp),
+                ) { Text("Повторить") }
+            }
+        }
+        return
+    }
+
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -79,7 +115,8 @@ fun HomeScreen(
                     title = post.title,
                     posterUrl = post.posterUrl,
                     quality = post.quality,
-                    subtitle = post.year.takeIf { it > 0 }?.toString(),
+                    subtitle = post.lastEpisode?.label
+                        ?: post.year.takeIf { it > 0 }?.toString(),
                     width = if (compact) Dimens.posterWidthCompact else Dimens.posterWidth,
                     height = if (compact) Dimens.posterHeightCompact else Dimens.posterHeight,
                     onClick = { onPostClick(post) },

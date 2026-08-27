@@ -70,10 +70,16 @@ data class PostDto(
     @SerialName("last_episode") val lastEpisode: LastEpisodeDto? = null,
 )
 
+/**
+ * Both fields arrive as strings, and `episode` may be a range covering several
+ * releases at once (`"1-4"`, `"13-14"`). Modelling them as Int fails the whole
+ * catalog page to parse.
+ */
 @Serializable
 data class LastEpisodeDto(
-    val season: Int = 0,
-    val episode: Int = 0,
+    val season: String = "",
+    val episode: String = "",
+    val translation: String = "",
 )
 
 fun PostDto.toDomain(): Post = Post(
@@ -97,6 +103,6 @@ fun PostDto.toDomain(): Post = Post(
     favorited = favorited,
     watchLater = watchLater,
     lastEpisode = lastEpisode
-        ?.takeIf { it.season > 0 || it.episode > 0 }
-        ?.let { LastEpisode(it.season, it.episode) },
+        ?.takeIf { it.season.isNotEmpty() || it.episode.isNotEmpty() }
+        ?.let { LastEpisode(season = it.season, episode = it.episode) },
 )

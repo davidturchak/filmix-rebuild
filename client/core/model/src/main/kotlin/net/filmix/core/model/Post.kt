@@ -35,7 +35,20 @@ data class Post(
     }
 }
 
-data class LastEpisode(val season: Int, val episode: Int)
+/**
+ * Season and episode as the API reports them — strings, because `episode` can
+ * name a range of releases ("1-4"), not just a single number.
+ */
+data class LastEpisode(val season: String, val episode: String) {
+    /** e.g. "S1 E1-4". */
+    val label: String get() = buildString {
+        if (season.isNotEmpty()) append("S").append(season)
+        if (episode.isNotEmpty()) {
+            if (isNotEmpty()) append(" ")
+            append("E").append(episode)
+        }
+    }
+}
 
 /** One selectable source, parsed out of the API's raw `translation` string. */
 data class VideoSource(
