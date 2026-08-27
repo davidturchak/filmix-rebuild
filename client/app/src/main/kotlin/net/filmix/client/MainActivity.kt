@@ -132,6 +132,14 @@ private fun FilmixApp(graph: AppGraph) {
         return
     }
 
+    // On a remote, BACK is the only way out of a tab, and it was leaving the
+    // app: one press from the catalog dropped the user on the Google TV
+    // launcher mid-browse. It now walks back to Home, and only leaves from
+    // there — where BACK meaning "exit" is what a user expects.
+    BackHandler(enabled = destination != Destination.Home) {
+        destination = Destination.Home
+    }
+
     AppScaffold(
         current = destination,
         compact = compact,
