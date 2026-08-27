@@ -5,6 +5,8 @@ import androidx.paging.PagingConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.filmix.core.model.Post
+import net.filmix.core.model.SortDirection
+import net.filmix.core.model.SortOrder
 import net.filmix.core.network.FilmixApi
 import net.filmix.core.network.dto.toDomain
 
@@ -40,6 +42,21 @@ class CatalogRepository(private val api: FilmixApi) {
     suspend fun suggest(word: String, limit: Int = 8): List<Post> = io {
         api.suggest(word).take(limit).map { it.toDomain() }
     }
+
+    suspend fun catalog(
+        sort: SortOrder = SortOrder.Default,
+        direction: SortDirection = SortDirection.Default,
+        page: Int = 1,
+    ): List<Post> = io {
+        api.catalog(orderBy = sort.apiValue, orderDir = direction.apiValue, page = page)
+            .map { it.toDomain() }
+    }
+
+    /** Paged, sorted catalog for the browse grid. */
+    fun catalogPager(sort: SortOrder, direction: SortDirection): Pager<Int, Post> = Pager(
+        config = PagingConfig(pageSize = PAGE_SIZE, initialLoadSize = PAGE_SIZE),
+        pagingSourceFactory = { CatalogPagingSource(this, sort, direction) },
+    )
 
     /** Paged search results, for the results grid. */
     fun searchPager(query: String): Pager<Int, Post> = Pager(

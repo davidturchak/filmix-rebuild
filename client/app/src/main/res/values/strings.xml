@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">Filmix</string>
     <string name="nav_home">Главная</string>
+    <string name="nav_catalog">Каталог</string>
     <string name="nav_search">Поиск</string>
     <string name="nav_favourites">Избранное</string>
     <string name="nav_profile">Профиль</string>

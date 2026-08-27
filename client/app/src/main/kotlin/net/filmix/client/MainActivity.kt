@@ -20,6 +20,8 @@ import androidx.window.core.layout.WindowWidthSizeClass
 import net.filmix.core.designsystem.theme.FilmixTheme
 import net.filmix.core.model.Post
 import net.filmix.core.model.VideoSource
+import net.filmix.feature.catalog.CatalogScreen
+import net.filmix.feature.catalog.CatalogViewModel
 import net.filmix.feature.detail.DetailScreen
 import net.filmix.feature.detail.DetailViewModel
 import net.filmix.feature.home.HomeScreen
@@ -113,6 +115,22 @@ private fun FilmixApp(graph: AppGraph) {
                     onRetry = vm::refresh,
                     onPostClick = { openPostId = it.id },
                     onPlayClick = { openPostId = it.id },
+                )
+            }
+
+            Destination.Catalog -> {
+                val vm: CatalogViewModel = viewModel(factory = factory)
+                val sort by vm.sort.collectAsState()
+                val items = vm.items.collectAsLazyPagingItems()
+                CatalogScreen(
+                    items = items,
+                    sort = sort.order,
+                    direction = sort.direction,
+                    compact = compact,
+                    modifier = modifier,
+                    onSortChange = vm::setSort,
+                    onDirectionToggle = vm::toggleDirection,
+                    onPostClick = { openPostId = it.id },
                 )
             }
 

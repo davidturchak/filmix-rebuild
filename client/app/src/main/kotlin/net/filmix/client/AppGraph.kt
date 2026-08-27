@@ -16,6 +16,7 @@ import net.filmix.core.data.TokenStore
 import net.filmix.core.network.DeviceParams
 import net.filmix.core.network.FilmixApi
 import net.filmix.core.network.NetworkFactory
+import net.filmix.feature.catalog.CatalogViewModel
 import net.filmix.feature.detail.DetailViewModel
 import net.filmix.feature.home.HomeViewModel
 import net.filmix.feature.library.LibraryViewModel
@@ -82,6 +83,9 @@ class AppGraph(context: Context) {
 class GraphViewModelFactory(private val graph: AppGraph) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
+        modelClass.isAssignableFrom(CatalogViewModel::class.java) ->
+            CatalogViewModel(graph.catalogRepository, graph.settingsStore) as T
+
         modelClass.isAssignableFrom(DetailViewModel::class.java) ->
             DetailViewModel(graph.catalogRepository, graph.libraryRepository) as T
 

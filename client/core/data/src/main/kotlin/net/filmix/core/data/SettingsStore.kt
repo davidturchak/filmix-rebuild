@@ -4,7 +4,9 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -30,7 +32,24 @@ class SettingsStore(private val context: Context) {
         }
     }
 
+    /** Catalog sort, stored as the raw API value so new options stay readable. */
+    suspend fun catalogSort(): String? =
+        context.settingsDataStore.data.first()[KEY_SORT]
+
+    suspend fun setCatalogSort(apiValue: String) {
+        context.settingsDataStore.edit { it[KEY_SORT] = apiValue }
+    }
+
+    suspend fun catalogAscending(): Boolean =
+        context.settingsDataStore.data.first()[KEY_SORT_ASC] ?: false
+
+    suspend fun setCatalogAscending(ascending: Boolean) {
+        context.settingsDataStore.edit { it[KEY_SORT_ASC] = ascending }
+    }
+
     private companion object {
         val KEY_QUALITY = intPreferencesKey("preferred_quality")
+        val KEY_SORT = stringPreferencesKey("catalog_sort")
+        val KEY_SORT_ASC = booleanPreferencesKey("catalog_sort_asc")
     }
 }

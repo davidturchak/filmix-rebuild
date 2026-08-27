@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
@@ -27,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 
 enum class Destination(@StringRes val label: Int, val icon: ImageVector) {
     Home(R.string.nav_home, Icons.Filled.Home),
+    Catalog(R.string.nav_catalog, Icons.Filled.GridView),
     Search(R.string.nav_search, Icons.Filled.Search),
     Favourites(R.string.nav_favourites, Icons.Filled.Favorite),
     Profile(R.string.nav_profile, Icons.Filled.Person),
