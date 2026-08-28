@@ -17,6 +17,8 @@ android {
 
 dependencies {
     testImplementation(libs.junit)
+    testImplementation(libs.okhttp.mockwebserver)
+    testImplementation(libs.kotlinx.coroutines.core)
     api(project(":core:model"))
     api(libs.kotlinx.serialization.json)
     api(libs.retrofit)

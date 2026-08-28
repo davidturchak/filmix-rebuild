@@ -6,6 +6,8 @@ import net.filmix.core.network.dto.PostDto
 import net.filmix.core.network.dto.ServerListDto
 import net.filmix.core.network.dto.TokenRequestDto
 import net.filmix.core.network.dto.UserProfileDto
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -60,17 +62,26 @@ interface FilmixApi {
     /**
      * Reports playback progress; the backend keys history off this.
      *
-     * POST, unlike the read endpoints — GET returns 404 here. Confirmed both
-     * against the live server and in the reference app, which routes this
-     * through its POST helper (`fq.w8UglNnmkNjtIbBL`).
+     * POST, unlike the read endpoints — GET returns 404 here. The fields must
+     * travel as a **form-encoded body**: the reference app routes this through
+     * its loopj POST helper (`fq.w8UglNnmkNjtIbBL`), whose params become a
+     * `UrlEncodedFormEntity`. Sent as query params the server answers 200 and
+     * silently records nothing, so history never fills — which is why this
+     * cannot be `@Query` like everything else.
+     *
+     * `time` is the playback position in **seconds** and `quality` the height,
+     * both mirrored from the reference app's reporter (`ag.LyO7ZE1i0MHQjQfQ`).
      */
+    @FormUrlEncoded
     @POST("api/v2/add_watched")
     suspend fun addWatched(
-        @Query("id") id: Int,
-        @Query("translation") translation: String,
-        @Query("season") season: String = "",
-        @Query("episode") episode: String = "",
-        @Query("add_watched") addWatched: Boolean = true,
+        @Field("id") id: Int,
+        @Field("translation") translation: String,
+        @Field("season") season: String = "0",
+        @Field("episode") episode: String = "0",
+        @Field("time") time: Long = 0,
+        @Field("quality") quality: Int = 0,
+        @Field("add_watched") addWatched: Boolean = true,
     ): retrofit2.Response<Unit>
 
     @GET("api/v2/search")
@@ -86,9 +97,10 @@ interface FilmixApi {
     @GET("api/v2/history_clean")
     suspend fun historyClean(): retrofit2.Response<Unit>
 
-    /** Removes one entry. POST, unlike history_clean. */
+    /** Removes one entry. POST, unlike history_clean — `id` in the form body. */
+    @FormUrlEncoded
     @POST("api/v2/history/remove")
-    suspend fun historyRemove(@Query("id") id: Int): retrofit2.Response<Unit>
+    suspend fun historyRemove(@Field("id") id: Int): retrofit2.Response<Unit>
 
     /** Available filter values: sections, categories, countries, years, vo. */
     @GET("api/v2/filter_list")

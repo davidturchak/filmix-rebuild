@@ -1,7 +1,6 @@
 package net.filmix.feature.profile
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,11 +18,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import net.filmix.core.data.PairingState
-import net.filmix.core.designsystem.component.FocusChip
 import net.filmix.core.designsystem.component.OutlinedButton
 import net.filmix.core.designsystem.component.PrimaryButton
-import net.filmix.core.model.AppVersion
-import net.filmix.core.model.UpdateState
 
 sealed interface ProfileUiState {
     data object Idle : ProfileUiState
@@ -48,15 +44,6 @@ fun ProfileScreen(
     modifier: Modifier = Modifier,
     onStartPairing: () -> Unit = {},
     onSignOut: () -> Unit = {},
-    preferredQuality: Int? = null,
-    onQualityChange: (Int?) -> Unit = {},
-    version: AppVersion? = null,
-    updateState: UpdateState = UpdateState.Idle,
-    canInstallUpdates: Boolean = true,
-    onCheckUpdate: () -> Unit = {},
-    onDownloadUpdate: () -> Unit = {},
-    onInstallUpdate: () -> Unit = {},
-    onGrantInstallPermission: () -> Unit = {},
 ) {
     Box(
         modifier
@@ -136,8 +123,6 @@ fun ProfileScreen(
                 else -> Unit
             }
 
-            QualityPreference(preferredQuality, onQualityChange)
-
             when (state) {
                 is ProfileUiState.Failed -> {
                     Text(
@@ -155,79 +140,6 @@ fun ProfileScreen(
                 }
 
                 else -> Unit
-            }
-
-            UpdateSection(
-                state = updateState,
-                canInstall = canInstallUpdates,
-                onCheck = onCheckUpdate,
-                onDownload = onDownloadUpdate,
-                onInstall = onInstallUpdate,
-                onGrantPermission = onGrantInstallPermission,
-            )
-
-            if (version != null) {
-                VersionFooter(version)
-            }
-        }
-    }
-}
-
-/**
- * Build identity. Shown in full rather than as a bare version name so a build
- * on a device can be matched to a commit — several builds share a version name
- * during development.
- */
-@Composable
-private fun VersionFooter(version: AppVersion) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-        modifier = Modifier.padding(top = 32.dp),
-    ) {
-        Text(
-            "Filmix-ng by Ku4eR",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            version.full,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.outline,
-            textAlign = TextAlign.Center,
-        )
-    }
-}
-
-/**
- * Preferred stream height. "Авто" means always take the best the source
- * offers, which is what StreamLink.selectQuality falls back to.
- */
-@Composable
-private fun QualityPreference(selected: Int?, onChange: (Int?) -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.padding(top = 24.dp),
-    ) {
-        Text(
-            "Качество по умолчанию",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf<Pair<String, Int?>>(
-                "Авто" to null,
-                "480p" to 480,
-                "720p" to 720,
-                "1080p" to 1080,
-                "4K" to 2160,
-            ).forEach { (label, value) ->
-                FocusChip(
-                    selected = selected == value,
-                    onClick = { onChange(value) },
-                    label = label,
-                )
             }
         }
     }

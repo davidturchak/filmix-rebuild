@@ -34,6 +34,16 @@ class LibraryRepository(
      */
     val revision: StateFlow<Int> = _revision.asStateFlow()
 
+    /**
+     * Watch reporting lives in PlaybackRepository, which this class knows
+     * nothing about; playback calls this after a successful add_watched so an
+     * already-loaded history screen reloads instead of showing the list from
+     * app start — the film just watched was missing from it otherwise.
+     */
+    fun noteHistoryChanged() {
+        _revision.value++
+    }
+
     suspend fun favourites(page: Int = 1): List<Post> = io {
         api.favourites(page = page).map { it.toDomain() }
     }

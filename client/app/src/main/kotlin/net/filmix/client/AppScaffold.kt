@@ -2,7 +2,6 @@ package net.filmix.client
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.focusGroup
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -17,6 +16,7 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -30,7 +30,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -58,6 +57,7 @@ enum class Destination(@StringRes val label: Int, val icon: ImageVector) {
     Favourites(R.string.nav_favourites, Icons.Filled.Favorite),
     History(R.string.nav_history, Icons.Filled.History),
     Profile(R.string.nav_profile, Icons.Filled.Person),
+    Config(R.string.nav_config, Icons.Filled.Settings),
 }
 
 /**
@@ -162,16 +162,5 @@ fun AppScaffold(
             }
             content(Modifier.fillMaxSize())
         }
-    }
-}
-
-@Composable
-fun Placeholder(destination: Destination, modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(
-            text = stringResource(destination.label),
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }

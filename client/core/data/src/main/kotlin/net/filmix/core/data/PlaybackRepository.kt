@@ -3,6 +3,7 @@ package net.filmix.core.data
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import net.filmix.core.model.ParsedTranslation
 import net.filmix.core.model.StreamLink
 import net.filmix.core.model.VideoSource
 import net.filmix.core.network.FilmixApi
@@ -48,19 +49,31 @@ class PlaybackRepository(
     /**
      * Best-effort history reporting. A failure here must never surface to the
      * user — playback has already happened either way.
+     *
+     * The reference app sends the bare voice-over name ("vo"), not the full
+     * bracketed label, and the position in seconds; both are mirrored here.
+     * `Response` does not throw on HTTP errors, so they are logged explicitly —
+     * this call failing looks like nothing at all from the UI.
+     *
+     * Returns whether the server accepted the report, so the caller can tell
+     * screens that already hold a history list to reload.
      */
-    suspend fun reportWatched(request: PlaybackRequest, season: String = "", episode: String = "") {
+    suspend fun reportWatched(request: PlaybackRequest, season: String = "0", episode: String = "0"): Boolean =
         withContext(Dispatchers.IO) {
             runCatching {
                 api.addWatched(
                     id = request.postId,
-                    translation = request.translation,
+                    translation = ParsedTranslation.from(request.translation).voice,
                     season = season,
                     episode = episode,
+                    time = request.startPositionMs / 1000,
+                    quality = request.quality,
                 )
-            }.onFailure { Log.w(TAG, "add_watched failed", it) }
+            }.fold(
+                onSuccess = { it.isSuccessful.also { ok -> if (!ok) Log.w(TAG, "add_watched HTTP ${it.code()}") } },
+                onFailure = { Log.w(TAG, "add_watched failed", it); false },
+            )
         }
-    }
 
     private companion object {
         const val TAG = "PlaybackRepository"

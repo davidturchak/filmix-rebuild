@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.withContext
 import net.filmix.core.data.AuthRepository
 import net.filmix.core.data.CatalogRepository
 import net.filmix.core.data.LibraryRepository
@@ -21,8 +22,10 @@ import net.filmix.core.data.TokenStore
 import net.filmix.core.network.DeviceParams
 import net.filmix.core.network.FilmixApi
 import net.filmix.core.model.AppVersion
+import net.filmix.core.model.ExternalPlayer
 import net.filmix.core.network.NetworkFactory
 import net.filmix.feature.catalog.CatalogViewModel
+import net.filmix.feature.config.ConfigViewModel
 import net.filmix.feature.detail.DetailViewModel
 import net.filmix.feature.home.HomeViewModel
 import net.filmix.feature.library.HistoryViewModel
@@ -94,6 +97,11 @@ class AppGraph private constructor(context: Context) {
 
     val updateRepository = UpdateRepository(appContext, version)
 
+    /** Handed to ConfigViewModel so :feature:config never sees PackageManager. */
+    val installedPlayersProvider: suspend () -> List<ExternalPlayer> = {
+        withContext(Dispatchers.IO) { ExternalPlayers.installed(appContext) }
+    }
+
     @SuppressLint("HardwareIds")
     private fun androidId(context: Context): String =
         Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID).orEmpty()
@@ -149,11 +157,14 @@ class GraphViewModelFactory(private val graph: AppGraph) : ViewModelProvider.Fac
             SearchViewModel(graph.catalogRepository) as T
 
         modelClass.isAssignableFrom(ProfileViewModel::class.java) ->
-            ProfileViewModel(
-                graph.authRepository,
+            ProfileViewModel(graph.authRepository) as T
+
+        modelClass.isAssignableFrom(ConfigViewModel::class.java) ->
+            ConfigViewModel(
                 graph.settingsStore,
                 graph.version,
                 graph.updateRepository,
+                graph.installedPlayersProvider,
             ) as T
 
         else -> error("Unknown ViewModel ${modelClass.name}")

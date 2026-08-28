@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import net.filmix.core.data.LibraryRepository
@@ -28,6 +29,11 @@ class HistoryViewModel(
             session.linked.filterNotNull().collect { linked ->
                 if (linked != _state.value.signedIn) refresh()
             }
+        }
+        // Watching a film bumps the revision; without this the tab kept the
+        // list from app start and the film just watched was missing from it.
+        viewModelScope.launch {
+            library.revision.drop(1).collect { refresh() }
         }
     }
 

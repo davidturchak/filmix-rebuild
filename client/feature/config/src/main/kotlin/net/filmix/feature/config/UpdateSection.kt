@@ -1,4 +1,4 @@
-package net.filmix.feature.profile
+package net.filmix.feature.config
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

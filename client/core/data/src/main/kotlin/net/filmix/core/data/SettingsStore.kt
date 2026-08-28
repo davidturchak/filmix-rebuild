@@ -32,6 +32,18 @@ class SettingsStore(private val context: Context) {
         }
     }
 
+    /** Package of the chosen external player, or null for the built-in one. */
+    val externalPlayerPackage: Flow<String?> = context.settingsDataStore.data
+        .map { it[KEY_EXTERNAL_PLAYER]?.takeIf(String::isNotBlank) }
+
+    suspend fun externalPlayerPackage(): String? = externalPlayerPackage.first()
+
+    suspend fun setExternalPlayerPackage(packageName: String?) {
+        context.settingsDataStore.edit { prefs ->
+            if (packageName == null) prefs.remove(KEY_EXTERNAL_PLAYER) else prefs[KEY_EXTERNAL_PLAYER] = packageName
+        }
+    }
+
     /** Catalog sort, stored as the raw API value so new options stay readable. */
     suspend fun catalogSort(): String? =
         context.settingsDataStore.data.first()[KEY_SORT]
@@ -49,6 +61,7 @@ class SettingsStore(private val context: Context) {
 
     private companion object {
         val KEY_QUALITY = intPreferencesKey("preferred_quality")
+        val KEY_EXTERNAL_PLAYER = stringPreferencesKey("external_player_package")
         val KEY_SORT = stringPreferencesKey("catalog_sort")
         val KEY_SORT_ASC = booleanPreferencesKey("catalog_sort_asc")
     }

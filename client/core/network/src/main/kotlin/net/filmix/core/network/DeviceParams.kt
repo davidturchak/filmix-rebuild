@@ -1,5 +1,6 @@
 package net.filmix.core.network
 
+import okhttp3.FormBody
 import okhttp3.Interceptor
 import okhttp3.Response
 
@@ -25,27 +26,49 @@ fun interface TokenProvider {
 }
 
 /**
- * Appends the device identity and session token to every request as query
- * parameters. All Filmix endpoints — including the auth ones, which were
- * verified against the live backend — are GET.
+ * Attaches the device identity and session token to every request, the way the
+ * reference app does: query parameters on a GET, but the **form body** on a
+ * POST. Its POST helper (`fq.w8UglNnmkNjtIbBL`) sends a bare URL and folds the
+ * identity into the same `UrlEncodedFormEntity` as the endpoint's own fields —
+ * and the backend reads them from there. With the token in the query instead,
+ * add_watched answered 200 while attributing the watch to nobody, so history
+ * stayed empty.
  */
 class DeviceParamsInterceptor(
     private val params: DeviceParams,
     private val tokenProvider: TokenProvider,
 ) : Interceptor {
 
+    private fun identity(): List<Pair<String, String>> = listOf(
+        "user_dev_id" to params.deviceId,
+        "user_dev_name" to params.deviceName,
+        "user_dev_token" to tokenProvider.token(),
+        "user_dev_vendor" to params.vendor,
+        "user_dev_os" to params.osVersion,
+        "user_dev_apk" to params.appVersion,
+        "app_lang" to params.language,
+    )
+
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
-        val url = request.url.newBuilder()
-            .addQueryParameter("user_dev_id", params.deviceId)
-            .addQueryParameter("user_dev_name", params.deviceName)
-            .addQueryParameter("user_dev_token", tokenProvider.token())
-            .addQueryParameter("user_dev_vendor", params.vendor)
-            .addQueryParameter("user_dev_os", params.osVersion)
-            .addQueryParameter("user_dev_apk", params.appVersion)
-            .addQueryParameter("app_lang", params.language)
-            .build()
-        return chain.proceed(request.newBuilder().url(url).build())
+        val body = request.body
+        val decorated = if (request.method == "POST" && (body is FormBody || body == null || body.contentLength() == 0L)) {
+            // Retrofit substitutes a zero-length body for a bodyless @POST;
+            // both that and a real form body become one merged form body.
+            val merged = FormBody.Builder().apply {
+                if (body is FormBody) {
+                    for (i in 0 until body.size) addEncoded(body.encodedName(i), body.encodedValue(i))
+                }
+                identity().forEach { (name, value) -> add(name, value) }
+            }.build()
+            request.newBuilder().method(request.method, merged).build()
+        } else {
+            val url = request.url.newBuilder().apply {
+                identity().forEach { (name, value) -> addQueryParameter(name, value) }
+            }.build()
+            request.newBuilder().url(url).build()
+        }
+        return chain.proceed(decorated)
     }
 }
 

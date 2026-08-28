@@ -34,6 +34,8 @@ import net.filmix.core.model.Post
 import net.filmix.core.model.VideoSource
 import net.filmix.feature.catalog.CatalogScreen
 import net.filmix.feature.catalog.CatalogViewModel
+import net.filmix.feature.config.ConfigScreen
+import net.filmix.feature.config.ConfigViewModel
 import net.filmix.feature.detail.DetailScreen
 import net.filmix.feature.detail.DetailViewModel
 import net.filmix.feature.home.HomeScreen
@@ -46,6 +48,17 @@ import net.filmix.feature.profile.ProfileScreen
 import net.filmix.feature.profile.ProfileViewModel
 import net.filmix.feature.search.SearchScreen
 import net.filmix.feature.search.SearchViewModel
+
+/**
+ * What is playing plus where it sits in a series. Season and episode exist only
+ * for history reporting — the reference app sends "0" for films.
+ */
+private data class ActivePlayback(
+    val post: Post,
+    val source: VideoSource,
+    val season: String = "0",
+    val episode: String = "0",
+)
 
 class MainActivity : ComponentActivity() {
 
@@ -81,7 +94,7 @@ private fun FilmixApp(graph: AppGraph) {
 
     // Playback sits above detail. Held as objects rather than ids because the
     // source list only exists on the loaded post.
-    var playing by remember { mutableStateOf<Pair<Post, VideoSource>?>(null) }
+    var playing by remember { mutableStateOf<ActivePlayback?>(null) }
 
     val widthClass = currentWindowAdaptiveInfo().windowSizeClass.windowWidthSizeClass
     val compact = widthClass == WindowWidthSizeClass.COMPACT
@@ -97,10 +110,14 @@ private fun FilmixApp(graph: AppGraph) {
     val active = playing
     if (active != null) {
         PlaybackHost(
-            post = active.first,
-            source = active.second,
+            post = active.post,
+            source = active.source,
             repository = graph.playbackRepository,
+            settings = graph.settingsStore,
             saveScope = graph.appScope,
+            season = active.season,
+            episode = active.episode,
+            onWatched = graph.libraryRepository::noteHistoryChanged,
             onExit = { playing = null },
         )
         return
@@ -123,7 +140,7 @@ private fun FilmixApp(graph: AppGraph) {
             onBack = { openPostId = null },
             onRelatedClick = { openPostId = it.id },
             onPlay = { source ->
-                detailState.post?.let { playing = it to source }
+                detailState.post?.let { playing = ActivePlayback(it, source) }
             },
             onToggleFavourite = detailVm::toggleFavourite,
             onToggleWatchLater = detailVm::toggleWatchLater,
@@ -131,7 +148,13 @@ private fun FilmixApp(graph: AppGraph) {
             onSelectSeason = detailVm::selectSeason,
             onSelectTranslation = detailVm::selectTranslation,
             onPlayEpisode = { episode ->
-                detailState.post?.let { playing = it to episode.source }
+                detailState.post?.let { post ->
+                    // The episode alone does not know its season; the picker's
+                    // current selection does — resolve() applies the same
+                    // fallbacks the picker itself displays with.
+                    val season = selection.resolve(post.playlist)?.first?.number ?: "0"
+                    playing = ActivePlayback(post, episode.source, season, episode.number)
+                }
             },
         )
         return
@@ -239,14 +262,27 @@ private fun FilmixApp(graph: AppGraph) {
                 Destination.Profile -> {
                     val vm: ProfileViewModel = viewModel(factory = factory)
                     val state by vm.state.collectAsState()
+                    ProfileScreen(
+                        state = state,
+                        modifier = modifier,
+                        onStartPairing = vm::startPairing,
+                        onSignOut = vm::signOut,
+                    )
+                }
+
+                Destination.Config -> {
+                    val vm: ConfigViewModel = viewModel(factory = factory)
                     val quality by vm.preferredQuality.collectAsState()
+                    val players by vm.players.collectAsState()
+                    val selectedPlayer by vm.selectedPlayer.collectAsState()
                     val updateState by vm.updateState.collectAsState()
                     val context = LocalContext.current
                     val lifecycleOwner = LocalLifecycleOwner.current
-                    // Granted in Settings, in another app, and the user comes
-                    // back — so it has to be re-read on resume. Sampled once at
-                    // composition, the "open settings" prompt stayed up after
-                    // they had already said yes.
+                    // Both change in other apps while ours is paused: install
+                    // permission is granted in Settings, players get installed
+                    // or removed in the Play Store — so re-read on resume.
+                    // Sampled once at composition, the "open settings" prompt
+                    // stayed up after the user had already said yes.
                     var canInstall by remember {
                         mutableStateOf(UpdateInstaller.canRequestInstalls(context))
                     }
@@ -254,20 +290,20 @@ private fun FilmixApp(graph: AppGraph) {
                         val observer = LifecycleEventObserver { _, event ->
                             if (event == Lifecycle.Event.ON_RESUME) {
                                 canInstall = UpdateInstaller.canRequestInstalls(context)
+                                vm.refreshPlayers()
                             }
                         }
                         lifecycleOwner.lifecycle.addObserver(observer)
                         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
                     }
-                    ProfileScreen(
-                        state = state,
-                        modifier = modifier,
-                        onStartPairing = vm::startPairing,
-                        onSignOut = vm::signOut,
+                    ConfigScreen(
                         preferredQuality = quality,
-                        onQualityChange = vm::setPreferredQuality,
-                        version = vm.version,
+                        players = players,
+                        selectedPlayerPackage = selectedPlayer,
                         updateState = updateState,
+                        modifier = modifier,
+                        onQualityChange = vm::setPreferredQuality,
+                        onPlayerChange = vm::setPlayer,
                         canInstallUpdates = canInstall,
                         onCheckUpdate = vm::checkForUpdate,
                         onDownloadUpdate = vm::downloadUpdate,
@@ -277,10 +313,9 @@ private fun FilmixApp(graph: AppGraph) {
                         onGrantInstallPermission = {
                             UpdateInstaller.openInstallPermissionSettings(context)
                         },
+                        version = vm.version,
                     )
                 }
-
-                else -> Placeholder(destination, modifier)
             }
         }
     }

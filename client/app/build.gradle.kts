@@ -13,7 +13,7 @@ plugins {
  * anyone having to remember to bump it; versionName stays hand-managed because
  * it is the number users read.
  */
-val appVersionName = "0.5.4"
+val appVersionName = "0.5.5"
 
 fun git(vararg args: String): String = runCatching {
     providers.exec {
@@ -104,6 +104,7 @@ dependencies {
     implementation(project(":feature:search"))
     implementation(project(":feature:library"))
     implementation(project(":feature:catalog"))
+    implementation(project(":feature:config"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -16,6 +16,19 @@
          requiring it would filter the app off the devices where voice matters. -->
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
 
+    <!-- On targetSdk 30+ other packages are invisible unless declared; without
+         this the external-player list in Config would always come back empty. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" android:mimeType="video/*" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" android:mimeType="video/*" />
+        </intent>
+    </queries>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
