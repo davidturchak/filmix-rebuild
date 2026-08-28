@@ -22,6 +22,11 @@ class DetailViewModel(
     private val _selection = MutableStateFlow(EpisodeSelection())
     val selection: StateFlow<EpisodeSelection> = _selection.asStateFlow()
 
+    // Separate from DetailUiState: the post fetch assigns a whole new state
+    // object, which would clobber a comments result that landed first.
+    private val _comments = MutableStateFlow<CommentsUiState>(CommentsUiState.Loading)
+    val comments: StateFlow<CommentsUiState> = _comments.asStateFlow()
+
     fun selectSeason(season: String) {
         // Translations are season-specific, so clear it and let resolve() pick
         // the first one available in the newly chosen season.
@@ -77,6 +82,15 @@ class DetailViewModel(
             _state.value = runCatching { catalog.post(id) }.fold(
                 onSuccess = { DetailUiState(post = it, loading = false) },
                 onFailure = { DetailUiState(loading = false, error = "Не удалось загрузить") },
+            )
+        }
+        // Independent of the post fetch: a dead comments endpoint must not
+        // cost the user the page, and vice versa.
+        _comments.value = CommentsUiState.Loading
+        viewModelScope.launch {
+            _comments.value = runCatching { catalog.comments(id) }.fold(
+                onSuccess = { CommentsUiState.Loaded(it) },
+                onFailure = { CommentsUiState.Failed },
             )
         }
     }

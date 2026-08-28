@@ -2,6 +2,8 @@ package net.filmix.feature.detail
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +23,7 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -31,6 +34,10 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.Alignment
@@ -49,12 +56,15 @@ import net.filmix.core.designsystem.component.PosterCard
 import net.filmix.core.designsystem.component.FilledTonalIconButton
 import net.filmix.core.designsystem.component.IconButton
 import net.filmix.core.designsystem.component.PrimaryButton
+import net.filmix.core.designsystem.component.TextButton
 import net.filmix.core.designsystem.component.focusRing
 import net.filmix.core.designsystem.component.Rail
 import net.filmix.core.designsystem.theme.LocalDimensions
 import net.filmix.core.designsystem.theme.LocalIsTv
 import net.filmix.core.designsystem.theme.ImdbGold
 import net.filmix.core.designsystem.theme.KinopoiskOrange
+import net.filmix.core.model.Comment
+import net.filmix.core.model.CommentThread
 import net.filmix.core.model.ParsedTranslation
 import net.filmix.core.model.Episode
 import net.filmix.core.model.Post
@@ -67,11 +77,22 @@ data class DetailUiState(
     val error: String? = null,
 )
 
+/**
+ * Failed and Loaded(empty) are distinct on purpose: a dead request and a
+ * title nobody has reviewed must not read the same.
+ */
+sealed interface CommentsUiState {
+    data object Loading : CommentsUiState
+    data object Failed : CommentsUiState
+    data class Loaded(val threads: List<CommentThread>) : CommentsUiState
+}
+
 @Composable
 fun DetailScreen(
     state: DetailUiState,
     modifier: Modifier = Modifier,
     compact: Boolean = false,
+    comments: CommentsUiState = CommentsUiState.Loading,
     onBack: () -> Unit = {},
     onPlay: (VideoSource) -> Unit = {},
     onRelatedClick: (Post) -> Unit = {},
@@ -95,6 +116,7 @@ fun DetailScreen(
             else -> Content(
                 state.post,
                 compact,
+                comments,
                 onPlay,
                 onRelatedClick,
                 onToggleFavourite,
@@ -128,6 +150,7 @@ fun DetailScreen(
 private fun Content(
     post: Post,
     compact: Boolean,
+    comments: CommentsUiState,
     onPlay: (VideoSource) -> Unit,
     onRelatedClick: (Post) -> Unit,
     onToggleFavourite: () -> Unit,
@@ -137,6 +160,8 @@ private fun Content(
     onSelectTranslation: (String) -> Unit,
     onPlayEpisode: (Episode) -> Unit,
 ) {
+    // Keyed on the post so opening a related title collapses the thread again.
+    var commentsExpanded by rememberSaveable(post.id) { mutableStateOf(false) }
     LazyColumn(
         contentPadding = PaddingValues(bottom = LocalDimensions.current.sectionGap),
         verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.sectionGap),
@@ -221,6 +246,56 @@ private fun Content(
                         height = if (compact) LocalDimensions.current.posterHeightCompact else LocalDimensions.current.posterHeight,
                         onClick = { onRelatedClick(related) },
                     )
+                }
+            }
+        }
+
+        when (comments) {
+            CommentsUiState.Loading -> item("comments") {
+                Section("Отзывы") { CommentsNote("Загрузка…") }
+            }
+
+            CommentsUiState.Failed -> item("comments") {
+                Section("Отзывы") { CommentsNote("Не удалось загрузить отзывы") }
+            }
+
+            is CommentsUiState.Loaded -> if (comments.threads.isEmpty()) {
+                item("comments") {
+                    Section("Отзывы") { CommentsNote("Никто еще не оставил отзывов.") }
+                }
+            } else {
+                val threads = comments.threads
+                // One lazy item per thread: replies stay tight under their
+                // parent while the page-level sectionGap separates threads.
+                threads.take(COMMENTS_PREVIEW).forEachIndexed { index, thread ->
+                    item("comment-thread-${thread.root.id}") {
+                        CommentThreadItem(thread, showTitle = index == 0)
+                    }
+                }
+                if (threads.size > COMMENTS_PREVIEW) {
+                    // The toggle keeps its key and position in both states, so
+                    // the focused node never leaves composition on expand and
+                    // one DOWN steps into the first revealed thread below it.
+                    item("comments-toggle") {
+                        Box(Modifier.padding(horizontal = LocalDimensions.current.gutter)) {
+                            TextButton(onClick = { commentsExpanded = !commentsExpanded }) {
+                                Text(
+                                    if (commentsExpanded) {
+                                        "Свернуть"
+                                    } else {
+                                        "Показать все (${threads.sumOf { it.size }})"
+                                    },
+                                )
+                            }
+                        }
+                    }
+                    if (commentsExpanded) {
+                        threads.drop(COMMENTS_PREVIEW).forEach { thread ->
+                            item("comment-thread-${thread.root.id}") {
+                                CommentThreadItem(thread)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -414,6 +489,111 @@ private fun Section(title: String, content: @Composable () -> Unit) {
         )
         Spacer(Modifier.height(12.dp))
         content()
+    }
+}
+
+private const val COMMENTS_PREVIEW = 3
+
+@Composable
+private fun CommentsNote(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+@Composable
+private fun CommentThreadItem(thread: CommentThread, showTitle: Boolean = false) {
+    Column(
+        Modifier.padding(horizontal = LocalDimensions.current.gutter),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        if (showTitle) {
+            Text(
+                "Отзывы",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+        }
+        CommentRow(thread.root)
+        thread.replies.forEach { reply ->
+            CommentRow(reply, Modifier.padding(start = 24.dp))
+        }
+    }
+}
+
+@Composable
+private fun CommentRow(comment: Comment, modifier: Modifier = Modifier) {
+    val interaction = remember { MutableInteractionSource() }
+    Row(
+        modifier
+            .fillMaxWidth()
+            // No lift: a full-width text block scaling up reads as a glitch,
+            // and the ring alone is cue enough on a row this large.
+            .focusRing(
+                shape = MaterialTheme.shapes.medium,
+                scaleWhenFocused = 1f,
+                interactionSource = interaction,
+            )
+            .clip(MaterialTheme.shapes.medium)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            // Focusable on TV only: the D-pad scrolls a LazyColumn by hopping
+            // between focusable nodes, so rows must be stepping stones or the
+            // section flies past in one jump. On touch they stay inert.
+            .then(
+                if (LocalIsTv.current) {
+                    Modifier.focusable(interactionSource = interaction)
+                } else {
+                    Modifier
+                },
+            )
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        if (comment.avatarUrl != null) {
+            AsyncImage(
+                model = comment.avatarUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(36.dp).clip(CircleShape),
+            )
+        } else {
+            Icon(
+                Icons.Filled.Person,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(6.dp),
+            )
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    comment.author,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    comment.date,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Text(
+                comment.text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 

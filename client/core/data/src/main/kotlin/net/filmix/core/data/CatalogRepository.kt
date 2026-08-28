@@ -6,6 +6,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.filmix.core.model.Post
 import net.filmix.core.model.CatalogFilter
+import net.filmix.core.model.CommentThread
+import net.filmix.core.model.threadComments
 import net.filmix.core.model.FilterOptions
 import net.filmix.core.model.SortDirection
 import net.filmix.core.model.SortOrder
@@ -89,6 +91,11 @@ class CatalogRepository(private val api: FilmixApi) {
      * the hero needs this call to show a synopsis.
      */
     suspend fun post(id: Int): Post = io { api.post(id).toDomain() }
+
+    /** The flattened comment payload rebuilt into display order; see [threadComments]. */
+    suspend fun comments(postId: Int): List<CommentThread> = io {
+        threadComments(api.comments(postId).map { it.toDomain() })
+    }
 
     private suspend fun <T> io(block: suspend () -> T): T = withContext(Dispatchers.IO) { block() }
 }

@@ -10,6 +10,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.JsonPrimitive
+import net.filmix.core.model.Comment
 import net.filmix.core.model.FilterOption
 import net.filmix.core.model.FilterOptions
 import net.filmix.core.model.Html
@@ -186,6 +187,34 @@ data class NotificationDto(
     val date: String = "",
     val poster: String? = null,
     val read: Boolean = false,
+)
+
+/**
+ * One entry of the `/api/v2/comments/{post_id}` array. Replies arrive twice:
+ * flattened into the top-level array and nested under their parent. The nested
+ * fields are deliberately undeclared — `childs` shifts type between an empty
+ * array and a date-keyed object, and `children` only exists when non-empty —
+ * so `ignoreUnknownKeys` skips both and threading is rebuilt from `parent_id`
+ * (see `threadComments`).
+ */
+@Serializable
+data class CommentDto(
+    val id: Int = 0,
+    @SerialName("parent_id") val parentId: Int = 0,
+    val date: String = "",
+    @SerialName("gast_name") val gastName: String = "",
+    val text: String = "",
+    /** Absolute URL for real avatars; a relative path for the default one. */
+    val avatar: String = "",
+)
+
+fun CommentDto.toDomain(): Comment = Comment(
+    id = id,
+    parentId = parentId,
+    date = date,
+    author = Html.toPlainText(gastName),
+    text = Html.toPlainText(text),
+    avatarUrl = avatar.takeIf { it.startsWith("http") },
 )
 
 /**

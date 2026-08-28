@@ -129,10 +129,12 @@ private fun FilmixApp(graph: AppGraph) {
         val detailVm: DetailViewModel = viewModel(factory = factory)
         val detailState by detailVm.state.collectAsState()
         val selection by detailVm.selection.collectAsState()
+        val detailComments by detailVm.comments.collectAsState()
         LaunchedEffect(postId) { detailVm.load(postId) }
         DetailScreen(
             state = detailState,
             compact = compact,
+            comments = detailComments,
             // Detail renders outside AppScaffold, so it needs its own insets —
             // without them the season chips sit under the status bar and the
             // top row of the picker swallows taps.

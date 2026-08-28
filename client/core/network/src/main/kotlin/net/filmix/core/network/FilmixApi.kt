@@ -1,5 +1,6 @@
 package net.filmix.core.network
 
+import net.filmix.core.network.dto.CommentDto
 import net.filmix.core.network.dto.FilterListDto
 import net.filmix.core.network.dto.NotificationDto
 import net.filmix.core.network.dto.PostDto
@@ -40,6 +41,13 @@ interface FilmixApi {
     /** Full detail, including `short_story` and `player_links`. */
     @GET("api/v2/post/{id}")
     suspend fun post(@Path("id") id: Int): PostDto
+
+    /**
+     * The whole comment thread in one response — no paging, works unpaired.
+     * Replies come flattened into the same array; see `threadComments`.
+     */
+    @GET("api/v2/comments/{post_id}")
+    suspend fun comments(@Path("post_id") id: Int): List<CommentDto>
 
     @GET("api/v2/top_views")
     suspend fun topViews(

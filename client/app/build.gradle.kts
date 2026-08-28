@@ -13,7 +13,7 @@ plugins {
  * anyone having to remember to bump it; versionName stays hand-managed because
  * it is the number users read.
  */
-val appVersionName = "0.5.5"
+val appVersionName = "0.5.6"
 
 fun git(vararg args: String): String = runCatching {
     providers.exec {

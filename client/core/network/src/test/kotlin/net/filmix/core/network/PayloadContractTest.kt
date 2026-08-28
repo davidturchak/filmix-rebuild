@@ -1,9 +1,12 @@
 package net.filmix.core.network
 
+import net.filmix.core.network.dto.CommentDto
 import net.filmix.core.network.dto.PostDto
 import net.filmix.core.network.dto.toDomain
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -74,6 +77,39 @@ class PayloadContractTest {
         """.trimIndent()
         val parsed = json.decodeFromString<PostDto>(objectShaped)
         assertNotNull(parsed.playerLinks?.playlist)
+    }
+
+    @Test
+    fun `comments payload parses including the object-shaped childs`() {
+        // From GET /api/v2/comments/130049. `childs` is [] when empty but a
+        // date-keyed OBJECT when populated, so declaring it as a list would
+        // throw on five of these eight comments; the DTO skips it entirely.
+        val comments = json.decodeFromString<List<CommentDto>>(fixture("comments.json"))
+        assertEquals(8, comments.size)
+        assertTrue(comments.any { it.id == 1613752 })
+        // Replies arrive flattened into the same array, tied by parent_id.
+        assertTrue(comments.any { it.parentId > 0 })
+    }
+
+    @Test
+    fun `comment avatars keep absolute urls and drop the relative placeholder`() {
+        val comments = json.decodeFromString<List<CommentDto>>(fixture("comments.json"))
+            .map { it.toDomain() }
+        assertNull(comments.first { it.id == 1613601 }.avatarUrl)
+        assertTrue(comments.first { it.id == 1613598 }.avatarUrl!!.startsWith("http"))
+    }
+
+    @Test
+    fun `comment text and author are unescaped`() {
+        // The captured payloads happen to be entity-free, so pin the mapping
+        // with a handcrafted body: text on this API can carry HTML.
+        val dto = json.decodeFromString<CommentDto>(
+            """{"id":1,"parent_id":0,"date":"x","gast_name":"a&amp;b","text":"first<br />second &#233;"}""",
+        )
+        val comment = dto.toDomain()
+        assertEquals("a&b", comment.author)
+        assertFalse(comment.text.contains("<br"))
+        assertTrue(comment.text.contains("é"))
     }
 
     @Test
