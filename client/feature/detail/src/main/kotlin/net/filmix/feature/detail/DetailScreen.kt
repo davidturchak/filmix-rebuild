@@ -277,16 +277,25 @@ private fun Content(
                     // the focused node never leaves composition on expand and
                     // one DOWN steps into the first revealed thread below it.
                     item("comments-toggle") {
-                        Box(Modifier.padding(horizontal = LocalDimensions.current.gutter)) {
-                            TextButton(onClick = { commentsExpanded = !commentsExpanded }) {
-                                Text(
-                                    if (commentsExpanded) {
-                                        "Свернуть"
-                                    } else {
-                                        "Показать все (${threads.sumOf { it.size }})"
-                                    },
-                                )
-                            }
+                        // Full width on purpose: D-pad focus search scores
+                        // candidates by 13·vertical² plus the horizontal
+                        // centre offset squared, so a narrow left-aligned
+                        // button sandwiched between full-width rows loses to
+                        // the next row in both directions once the list is
+                        // expanded — collapse became unreachable by remote.
+                        TextButton(
+                            onClick = { commentsExpanded = !commentsExpanded },
+                            modifier = Modifier
+                                .padding(horizontal = LocalDimensions.current.gutter)
+                                .fillMaxWidth(),
+                        ) {
+                            Text(
+                                if (commentsExpanded) {
+                                    "Свернуть"
+                                } else {
+                                    "Показать все (${threads.sumOf { it.size }})"
+                                },
+                            )
                         }
                     }
                     if (commentsExpanded) {
