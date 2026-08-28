@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
@@ -58,6 +59,7 @@ import net.filmix.core.designsystem.component.IconButton
 import net.filmix.core.designsystem.component.PrimaryButton
 import net.filmix.core.designsystem.component.TextButton
 import net.filmix.core.designsystem.component.focusRing
+import net.filmix.core.designsystem.component.rememberFocusInteraction
 import net.filmix.core.designsystem.component.Rail
 import net.filmix.core.designsystem.theme.LocalDimensions
 import net.filmix.core.designsystem.theme.LocalIsTv
@@ -251,18 +253,12 @@ private fun Content(
         }
 
         when (comments) {
-            CommentsUiState.Loading -> item("comments") {
-                Section("Отзывы") { CommentsNote("Загрузка…") }
-            }
+            CommentsUiState.Loading -> commentsNote("Загрузка…")
 
-            CommentsUiState.Failed -> item("comments") {
-                Section("Отзывы") { CommentsNote("Не удалось загрузить отзывы") }
-            }
+            CommentsUiState.Failed -> commentsNote("Не удалось загрузить отзывы")
 
             is CommentsUiState.Loaded -> if (comments.threads.isEmpty()) {
-                item("comments") {
-                    Section("Отзывы") { CommentsNote("Никто еще не оставил отзывов.") }
-                }
+                commentsNote("Никто еще не оставил отзывов.")
             } else {
                 val threads = comments.threads
                 // One lazy item per thread: replies stay tight under their
@@ -491,25 +487,34 @@ private fun SourceRow(source: VideoSource, onClick: () -> Unit) {
 @Composable
 private fun Section(title: String, content: @Composable () -> Unit) {
     Column(Modifier.padding(horizontal = LocalDimensions.current.gutter)) {
-        Text(
-            title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
+        SectionTitle(title)
         Spacer(Modifier.height(12.dp))
         content()
     }
 }
 
+@Composable
+private fun SectionTitle(title: String) {
+    Text(
+        title,
+        style = MaterialTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.onBackground,
+    )
+}
+
 private const val COMMENTS_PREVIEW = 3
 
-@Composable
-private fun CommentsNote(text: String) {
-    Text(
-        text,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+/** The Loading, Failed, and empty states share one note-under-title item. */
+private fun LazyListScope.commentsNote(text: String) {
+    item("comments") {
+        Section("Отзывы") {
+            Text(
+                text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
 }
 
 @Composable
@@ -518,12 +523,10 @@ private fun CommentThreadItem(thread: CommentThread, showTitle: Boolean = false)
         Modifier.padding(horizontal = LocalDimensions.current.gutter),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        // Not wrapped in Section: the threads after the first carry no title,
+        // so the first draws its own via the shared SectionTitle instead.
         if (showTitle) {
-            Text(
-                "Отзывы",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
+            SectionTitle("Отзывы")
         }
         CommentRow(thread.root)
         thread.replies.forEach { reply ->
@@ -534,7 +537,7 @@ private fun CommentThreadItem(thread: CommentThread, showTitle: Boolean = false)
 
 @Composable
 private fun CommentRow(comment: Comment, modifier: Modifier = Modifier) {
-    val interaction = remember { MutableInteractionSource() }
+    val interaction = rememberFocusInteraction()
     Row(
         modifier
             .fillMaxWidth()

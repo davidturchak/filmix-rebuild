@@ -29,23 +29,49 @@ data class CommentThread(
  * date-keyed object, so it cannot be trusted). Roots keep the array order
  * (newest-first as served); each root gathers its descendants from any
  * nesting depth into a single reply level, ascending by id — chronological,
- * matching the original app's one-indent rendering. A reply whose parent is
- * missing from the payload becomes a root rather than disappearing.
+ * matching the original app's one-indent rendering.
+ *
+ * Malformed payloads degrade instead of breaking the page: a duplicated id
+ * keeps only its first occurrence (the UI keys lazy rows by root id, so
+ * duplicates would crash the screen), a reply whose parent is missing
+ * becomes a root, and members of a detached `parent_id` cycle (a comment
+ * answering itself, or a loop no root reaches) surface as roots after the
+ * real ones rather than disappearing.
  */
 fun threadComments(comments: List<Comment>): List<CommentThread> {
-    val ids = comments.mapTo(HashSet()) { it.id }
-    val byParent = comments.filter { it.parentId != 0 }.groupBy { it.parentId }
+    val unique = comments.distinctBy { it.id }
+    val ids = unique.mapTo(HashSet()) { it.id }
+    val byParent = unique
+        .filter { it.parentId != 0 && it.parentId != it.id }
+        .groupBy { it.parentId }
 
-    // `seen` guards against a cyclic parent_id chain in a malformed payload.
-    fun descendants(id: Int, seen: MutableSet<Int>): List<Comment> =
-        (byParent[id] ?: emptyList())
-            .filter { seen.add(it.id) }
-            .flatMap { listOf(it) + descendants(it.id, seen) }
+    // Global across roots: each comment lands in exactly one thread, and a
+    // cyclic parent_id chain in a malformed payload cannot loop.
+    val seen = HashSet<Int>()
 
-    return comments
-        .filter { it.parentId == 0 || it.parentId !in ids }
-        .map { root ->
-            val seen = mutableSetOf(root.id)
-            CommentThread(root, descendants(root.id, seen).sortedBy { it.id })
+    fun thread(root: Comment): CommentThread {
+        seen.add(root.id)
+        val replies = mutableListOf<Comment>()
+        val frontier = ArrayDeque<Int>().apply { addLast(root.id) }
+        while (frontier.isNotEmpty()) {
+            for (child in byParent[frontier.removeLast()].orEmpty()) {
+                if (seen.add(child.id)) {
+                    replies += child
+                    frontier.addLast(child.id)
+                }
+            }
         }
+        return CommentThread(root, replies.sortedBy { it.id })
+    }
+
+    val threads = unique
+        .filter { it.parentId == 0 || it.parentId !in ids || it.parentId == it.id }
+        .mapTo(mutableListOf()) { thread(it) }
+    // Anything still unseen sits in a cycle no root reaches; promote it.
+    // Checked per iteration: promoting one member absorbs its cycle-mates
+    // as replies, and they must not surface as roots of their own.
+    for (comment in unique) {
+        if (comment.id !in seen) threads += thread(comment)
+    }
+    return threads
 }

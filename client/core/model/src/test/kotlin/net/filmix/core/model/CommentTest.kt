@@ -69,6 +69,33 @@ class CommentTest {
     }
 
     @Test
+    fun `a duplicated id keeps its first occurrence only`() {
+        // The UI keys lazy rows by root id; a duplicate must not crash it.
+        val threads = threadComments(
+            listOf(comment(5), comment(5), comment(3)),
+        )
+        assertEquals(listOf(5, 3), threads.map { it.root.id })
+    }
+
+    @Test
+    fun `a self-parented comment surfaces as a root`() {
+        val threads = threadComments(
+            listOf(comment(4, parentId = 4), comment(1)),
+        )
+        assertEquals(listOf(4, 1), threads.map { it.root.id })
+    }
+
+    @Test
+    fun `a detached parent cycle surfaces once instead of disappearing`() {
+        // 8 and 9 answer each other; no root reaches them.
+        val threads = threadComments(
+            listOf(comment(1), comment(8, parentId = 9), comment(9, parentId = 8)),
+        )
+        assertEquals(listOf(1, 8), threads.map { it.root.id })
+        assertEquals(listOf(9), threads.last().replies.map { it.id })
+    }
+
+    @Test
     fun `thread size counts the root and its replies`() {
         val threads = threadComments(
             listOf(comment(2, parentId = 1), comment(1)),

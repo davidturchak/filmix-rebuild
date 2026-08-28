@@ -74,6 +74,10 @@ class DetailViewModel(
 
     /** Idempotent: re-entering the same title does not refetch. */
     fun load(id: Int) {
+        // Independent of the post fetch: a dead comments endpoint must not
+        // cost the user the page, and vice versa — including retry: comments
+        // get another chance on re-entry even when the post is cached.
+        loadComments(id)
         if (loadedId == id && _state.value.post != null) return
         loadedId = id
         viewModelScope.launch {
@@ -84,14 +88,25 @@ class DetailViewModel(
                 onFailure = { DetailUiState(loading = false, error = "Не удалось загрузить") },
             )
         }
-        // Independent of the post fetch: a dead comments endpoint must not
-        // cost the user the page, and vice versa.
+    }
+
+    // Which post the comments flow currently belongs to. The ViewModel is
+    // activity-scoped and serves every title the user opens, so a slow
+    // response for a previous post must not land on the current one.
+    private var commentsId: Int? = null
+
+    private fun loadComments(id: Int) {
+        // Loaded and in-flight Loading results are kept; only Failed retries.
+        if (commentsId == id && _comments.value !is CommentsUiState.Failed) return
+        commentsId = id
         _comments.value = CommentsUiState.Loading
         viewModelScope.launch {
-            _comments.value = runCatching { catalog.comments(id) }.fold(
+            val result = runCatching { catalog.comments(id) }.fold(
                 onSuccess = { CommentsUiState.Loaded(it) },
                 onFailure = { CommentsUiState.Failed },
             )
+            // Dropped if another title was opened while this was in flight.
+            if (commentsId == id) _comments.value = result
         }
     }
 }
