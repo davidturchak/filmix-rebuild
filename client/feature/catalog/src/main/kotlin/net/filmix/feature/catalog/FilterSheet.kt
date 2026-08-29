@@ -3,10 +3,12 @@ package net.filmix.feature.catalog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -30,6 +32,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import net.filmix.core.designsystem.component.FocusChip
 import net.filmix.core.designsystem.component.TextButton
@@ -60,81 +67,114 @@ fun FilterSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+    // The modal's own nested-scroll connection turns any scroll the list fails
+    // to consume into a drag of the whole sheet — and on TV such scrolls come
+    // from D-pad focus (bringIntoView) rather than fingers, so the window
+    // slid down and PARKED mid-screen the first time a group was expanded.
+    // Swallow whatever the list leaves over before the sheet can see it; the
+    // drag handle still dismisses by touch because it bypasses nested scroll.
+    val sheetDragBlocker = remember {
+        object : NestedScrollConnection {
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource,
+            ) = available
+
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity) = available
+        }
+    }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface,
+        // The default insets reach the dialog only after it is attached, which
+        // would re-measure the sheet after its first frame. Zero them and pad
+        // the content ourselves: inner padding can change freely without
+        // moving the sheet's edges.
+        contentWindowInsets = { WindowInsets(0) },
     ) {
-        Row(
+        // fillMaxHeight pins the sheet at its full expanded size from the first
+        // frame, so expanding "Ещё N" or collapsing a group scrolls inside the
+        // list instead of resizing the window under the user's focus.
+        Column(
             Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+                .fillMaxHeight()
+                .statusBarsPadding(),
         ) {
-            Text(
-                "Фильтры",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                val doneFocus = remember { FocusRequester() }
-                if (!filter.isEmpty) {
-                    TextButton(
-                        onClick = {
-                            onClear()
-                            // Clearing removes this very button, and focus dies
-                            // with it. The sheet does not trap focus, so the
-                            // next press could land on the catalog grid behind
-                            // the scrim; hand it to Готово instead, which is
-                            // where a user who has just reset is heading.
-                            doneFocus.requestFocus()
-                        },
-                    ) { Text("Сбросить") }
-                }
-                PrimaryButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.focusRequester(doneFocus),
-                ) {
-                    Text("Готово")
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    "Фильтры",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val doneFocus = remember { FocusRequester() }
+                    if (!filter.isEmpty) {
+                        TextButton(
+                            onClick = {
+                                onClear()
+                                // Clearing removes this very button, and focus dies
+                                // with it. The sheet does not trap focus, so the
+                                // next press could land on the catalog grid behind
+                                // the scrim; hand it to Готово instead, which is
+                                // where a user who has just reset is heading.
+                                doneFocus.requestFocus()
+                            },
+                        ) { Text("Сбросить") }
+                    }
+                    PrimaryButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.focusRequester(doneFocus),
+                    ) {
+                        Text("Готово")
+                    }
                 }
             }
-        }
 
-        LazyColumn(
-            Modifier
-                .fillMaxWidth()
-                .heightIn(max = 560.dp)
-                .padding(horizontal = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            item("type") {
-                Group("Тип", options.sections, filter.sections) {
-                    onFilterChange(filter.toggleSection(it))
+            LazyColumn(
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .nestedScroll(sheetDragBlocker)
+                    .padding(horizontal = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                item("type") {
+                    Group("Тип", options.sections, filter.sections) {
+                        onFilterChange(filter.toggleSection(it))
+                    }
                 }
-            }
-            item("genre") {
-                Group("Жанр", options.genres, filter.genres) {
-                    onFilterChange(filter.toggleGenre(it))
+                item("genre") {
+                    Group("Жанр", options.genres, filter.genres) {
+                        onFilterChange(filter.toggleGenre(it))
+                    }
                 }
-            }
-            item("country") {
-                Group("Страна", options.countries, filter.countries, PinnedCountries) {
-                    onFilterChange(filter.toggleCountry(it))
+                item("country") {
+                    Group("Страна", options.countries, filter.countries, PinnedCountries) {
+                        onFilterChange(filter.toggleCountry(it))
+                    }
                 }
-            }
-            item("year") {
-                Group("Год", options.years, filter.years) {
-                    onFilterChange(filter.toggleYear(it))
+                item("year") {
+                    Group("Год", options.years, filter.years) {
+                        onFilterChange(filter.toggleYear(it))
+                    }
                 }
-            }
-            item("voice") {
-                Group("Озвучка", options.voices, filter.voices) {
-                    onFilterChange(filter.toggleVoice(it))
+                item("voice") {
+                    Group("Озвучка", options.voices, filter.voices) {
+                        onFilterChange(filter.toggleVoice(it))
+                    }
                 }
-            }
-            item("quality") {
-                QualityGroup(filter.qualities) { onFilterChange(filter.toggleQuality(it)) }
+                item("quality") {
+                    QualityGroup(filter.qualities) { onFilterChange(filter.toggleQuality(it)) }
+                }
             }
         }
     }
