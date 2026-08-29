@@ -10,8 +10,11 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import net.filmix.core.model.StreamLink
@@ -31,9 +34,11 @@ data class ResumePosition(
     val durationMs: Long,
     val updatedAt: Long,
 ) {
+    fun toWatchProgress() = WatchProgress(positionMs, durationMs, updatedAt)
+
     /** Treated as finished near the end, so it is not offered as "resume". */
     val isEffectivelyFinished: Boolean
-        get() = WatchProgress(positionMs, durationMs, updatedAt).isFinished
+        get() = toWatchProgress().isFinished
 }
 
 @Dao
@@ -44,6 +49,9 @@ interface ResumeDao {
     @Query("SELECT * FROM resume_positions WHERE postId = :postId")
     fun observeForPost(postId: Int): Flow<List<ResumePosition>>
 
+    @Query("SELECT * FROM resume_positions WHERE postId = :postId")
+    suspend fun forPost(postId: Int): List<ResumePosition>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(position: ResumePosition)
 
@@ -51,7 +59,7 @@ interface ResumeDao {
     suspend fun delete(key: String)
 }
 
-@Database(entities = [ResumePosition::class], version = 1, exportSchema = true)
+@Database(entities = [ResumePosition::class], version = 2, exportSchema = true)
 abstract class FilmixDatabase : RoomDatabase() {
     abstract fun resumeDao(): ResumeDao
 }
@@ -60,6 +68,7 @@ class ResumeStore(context: Context) {
 
     private val db = Room
         .databaseBuilder(context.applicationContext, FilmixDatabase::class.java, "filmix.db")
+        .addMigrations(REKEY_LEGACY_STREAM_KEYS)
         .fallbackToDestructiveMigration()
         .build()
 
@@ -70,12 +79,18 @@ class ResumeStore(context: Context) {
      * rows [resumeFor] deliberately hides, because "which episodes are done" is
      * exactly the question here. Room's invalidation tracker re-emits after the
      * player saves, so watched marks update on return with no explicit reload.
+     * Invalidation is table-level, so unchanged row sets are dropped before the
+     * map is rebuilt.
      */
     fun progressForPost(postId: Int): Flow<Map<String, WatchProgress>> =
-        dao.observeForPost(postId).map { rows ->
-            rows.associate {
-                it.streamKey to WatchProgress(it.positionMs, it.durationMs, it.updatedAt)
-            }
+        dao.observeForPost(postId)
+            .distinctUntilChanged()
+            .map { rows -> rows.associate { it.streamKey to it.toWatchProgress() } }
+
+    /** One-shot form of [progressForPost], for reads that must not observe. */
+    suspend fun progressSnapshotForPost(postId: Int): Map<String, WatchProgress> =
+        withContext(Dispatchers.IO) {
+            dao.forPost(postId).associate { it.streamKey to it.toWatchProgress() }
         }
 
     /** Null when nothing is stored, or when the stored position is at the end. */
@@ -108,5 +123,47 @@ class ResumeStore(context: Context) {
 
     private companion object {
         const val MIN_RESUME_MS = 15_000L
+
+        /**
+         * v1 keyed rows by the full stream URL, whose signed `/s/<token>/`
+         * segment rotates between fetches — which orphaned every row on the
+         * next refetch of its post. v2 keys on the stable tail, and the new
+         * key is computable from the old one, so rewrite instead of
+         * discarding. Only URL-shaped keys are legacy: rows written by the
+         * first stable-tail builds under schema v1 are already in the new
+         * form and must not be re-shortened.
+         */
+        val REKEY_LEGACY_STREAM_KEYS = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                val renames = mutableListOf<Pair<String, String>>()
+                db.query("SELECT streamKey FROM resume_positions").use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val old = cursor.getString(0)
+                        if (!old.contains("://")) continue
+                        val new = StreamLink.resumeKey(old)
+                        if (new != old) renames += old to new
+                    }
+                }
+                for ((old, new) in renames) {
+                    // When rows exist under both keys, keep the freshest:
+                    // drop the legacy row if the new-keyed one is newer,
+                    // otherwise drop the new-keyed row and take over its key.
+                    db.execSQL(
+                        "DELETE FROM resume_positions WHERE streamKey = ? AND updatedAt < " +
+                            "(SELECT updatedAt FROM resume_positions WHERE streamKey = ?)",
+                        arrayOf(old, new),
+                    )
+                    db.execSQL(
+                        "DELETE FROM resume_positions WHERE streamKey = ? AND EXISTS " +
+                            "(SELECT 1 FROM resume_positions WHERE streamKey = ?)",
+                        arrayOf(new, old),
+                    )
+                    db.execSQL(
+                        "UPDATE resume_positions SET streamKey = ? WHERE streamKey = ?",
+                        arrayOf(new, old),
+                    )
+                }
+            }
+        }
     }
 }

@@ -1,7 +1,6 @@
 package net.filmix.client
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -30,14 +29,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import net.filmix.core.designsystem.component.enterFocusAt
 import net.filmix.core.designsystem.component.focusRing
 import net.filmix.core.designsystem.component.isFocused
 import net.filmix.core.designsystem.component.rememberFocusInteraction
@@ -65,7 +63,6 @@ enum class Destination(@StringRes val label: Int, val icon: ImageVector) {
  * app did: a bottom bar on phones, a persistent rail from medium widths up —
  * which is what the 1181dp tablet gets.
  */
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun AppScaffold(
     current: Destination,
@@ -123,11 +120,7 @@ fun AppScaffold(
                     // whichever item is nearest vertically instead — LEFT from
                     // the third row of the catalog grid lands on Profile — and
                     // because focus selects on TV that silently switched tabs.
-                    // Order matters: focusProperties has to precede the
-                    // focusTarget that focusGroup adds, or it configures the
-                    // items instead of the group and does nothing.
-                    .focusProperties { enter = { requesters.getValue(current) } }
-                    .focusGroup(),
+                    .enterFocusAt { requesters.getValue(current) },
             ) {
                 Destination.entries.forEach { dest ->
                     val interaction = rememberFocusInteraction()

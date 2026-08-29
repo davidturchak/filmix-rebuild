@@ -166,6 +166,37 @@ class SeriesProgressTest {
         assertEquals(EpisodeWatchState.Finished, w.states["1"])
     }
 
+    @Test
+    fun `a foreign half-watch does not mark or continue in this translation`() {
+        // "Продолжить" must never promise a position the player cannot honour:
+        // this translation's file has no stored row, so it would start at 0:00.
+        val w = watch(t = dubl, progress = mapOf(key(1, 2, lost) to inProgress()))
+        assertNull(w.states["2"])
+        assertEquals("1", w.current?.number)
+        assertFalse(w.currentInProgress)
+    }
+
+    @Test
+    fun `checkmarks match across translations despite zero-padded numbers`() {
+        val padded = SeriesTranslation(
+            dubl,
+            (1..4).map {
+                Episode(
+                    number = "0$it",
+                    source = VideoSource(dubl, template(1, it, dubl), listOf(720)),
+                )
+            },
+        )
+        val s = Season("1", listOf(translation(1, lost, 4), padded))
+        val w = SeriesProgress.seasonWatch(
+            s,
+            padded,
+            mapOf(key(1, 1, lost) to finished()),
+        )
+        assertEquals(EpisodeWatchState.Finished, w.states["01"])
+        assertEquals("02", w.current?.number)
+    }
+
     // --- resumePoint ---
 
     private val playlist = SeriesPlaylist(
@@ -224,5 +255,20 @@ class SeriesProgressTest {
             mapOf(key(1, 2, lost) to finished()),
         )
         assertEquals(PlaylistPosition(season = "1", translation = lost), point)
+    }
+
+    @Test
+    fun `finishing a partial dub's last episode does not skip the season's remaining episodes`() {
+        // The dub covers only 2 of the season's 4 episodes; its last episode
+        // is not the season's end, so the user stays in season 1.
+        val partial = SeriesTranslation(dubl, (1..2).map { episode(1, it, dubl) })
+        val pl = SeriesPlaylist(
+            listOf(
+                Season("1", listOf(translation(1, lost, 4), partial)),
+                season(2, 4, lost, dubl),
+            ),
+        )
+        val point = SeriesProgress.resumePoint(pl, mapOf(key(1, 2, dubl) to finished()))
+        assertEquals(PlaylistPosition(season = "1", translation = dubl), point)
     }
 }

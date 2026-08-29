@@ -20,13 +20,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import net.filmix.core.designsystem.component.FocusChip
+import net.filmix.core.designsystem.component.enterFocusAt
 import net.filmix.core.model.Episode
 import net.filmix.core.model.EpisodeWatchState
 import net.filmix.core.model.Season
@@ -62,7 +61,7 @@ data class EpisodeSelection(
  * with five seasons and four competing translations is easier to navigate as
  * three rows of chips than as a nested tree.
  */
-@OptIn(ExperimentalLayoutApi::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EpisodePicker(
     playlist: SeriesPlaylist,
@@ -118,46 +117,39 @@ fun EpisodePicker(
                     Modifier
                 } else {
                     // D-pad entry into the grid lands on the current episode,
-                    // not whichever chip is geometrically nearest. Order
-                    // matters: focusProperties has to precede the focusTarget
-                    // that focusGroup adds, or it configures the chips instead
-                    // of the group and does nothing. Safe to hand out the
-                    // requester unconditionally — the FlowRow is not lazy, so
-                    // the current chip is always composed and attached.
-                    Modifier
-                        .focusProperties { enter = { currentFocus } }
-                        .focusGroup()
+                    // not whichever chip is geometrically nearest. Safe to
+                    // hand out the requester unconditionally — the FlowRow is
+                    // not lazy, so the current chip is always composed and
+                    // attached.
+                    Modifier.enterFocusAt { currentFocus }
                 },
             ) {
                 translation.episodes.forEach { episode ->
                     val state = watch?.states?.get(episode.number) ?: EpisodeWatchState.None
                     val isCurrent = episode.number == current?.number
+                    // The current chip already reads as selected, so it takes
+                    // no "started" arrow — only a finished check.
+                    val mark = when {
+                        state == EpisodeWatchState.Finished ->
+                            Icons.Filled.Check to "Просмотрена"
+
+                        state == EpisodeWatchState.InProgress && !isCurrent ->
+                            Icons.Filled.PlayArrow to "Начата"
+
+                        else -> null
+                    }
                     FocusChip(
                         selected = isCurrent,
                         onClick = { onPlayEpisode(episode) },
                         label = episode.number,
-                        leadingIcon = when {
-                            state == EpisodeWatchState.Finished -> {
-                                {
-                                    Icon(
-                                        Icons.Filled.Check,
-                                        contentDescription = "Просмотрена",
-                                        modifier = Modifier.size(FilterChipDefaults.IconSize),
-                                    )
-                                }
+                        leadingIcon = mark?.let { (icon, description) ->
+                            {
+                                Icon(
+                                    icon,
+                                    contentDescription = description,
+                                    modifier = Modifier.size(FilterChipDefaults.IconSize),
+                                )
                             }
-
-                            state == EpisodeWatchState.InProgress && !isCurrent -> {
-                                {
-                                    Icon(
-                                        Icons.Filled.PlayArrow,
-                                        contentDescription = "Начата",
-                                        modifier = Modifier.size(FilterChipDefaults.IconSize),
-                                    )
-                                }
-                            }
-
-                            else -> null
                         },
                         modifier = if (isCurrent) Modifier.focusRequester(currentFocus) else Modifier,
                     )

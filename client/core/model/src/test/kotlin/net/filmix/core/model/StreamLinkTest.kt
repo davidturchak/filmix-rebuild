@@ -83,6 +83,16 @@ class StreamLinkTest {
     }
 
     @Test
+    fun `resume key excludes the token even when the file sits directly under it`() {
+        // No folder level between the signed segment and the file: takeLast(2)
+        // alone would bake the rotating token into the key.
+        val a = StreamLink.resumeKey("https://nl205.cdnsqu.com/s/AAAtokenAAA.abc/Movie_720.mp4")
+        val b = StreamLink.resumeKey("https://nl209.cdnsqu.com/s/BBBtokenBBB.xyz/Movie_1080.mp4")
+        assertEquals(a, b)
+        assertEquals("Movie_%s.mp4", a)
+    }
+
+    @Test
     fun `translation splits into voice and tags`() {
         val parsed = ParsedTranslation.from("Дубляж [4K, SDR, ru, HDRezka]")
         assertEquals("Дубляж", parsed.voice)

@@ -17,6 +17,9 @@ object StreamLink {
 
     private val QUALITY_BRACKET = Regex("""\[[0-9,p]+]""")
 
+    // Precompiled: resumeKey runs per episode inside the watched-state scans.
+    private val QUALITY_SUFFIX = Regex("""_\d+\.mp4""")
+
     /** Returns null when the link carries no quality bracket. */
     fun parse(rawTranslation: String, link: String): VideoSource? {
         val match = QUALITY_BRACKET.find(link) ?: return null
@@ -80,10 +83,15 @@ object StreamLink {
     fun resumeKey(url: String): String {
         val normalized = url
             .substringBefore('?')
-            .replace(Regex("""_\d+\.mp4"""), "_%s.mp4")
+            .replace(QUALITY_SUFFIX, "_%s.mp4")
         val path = normalized.substringAfter("://", normalized).substringAfter('/', "")
         val segments = path.split('/').filter { it.isNotEmpty() }
-        return if (segments.isEmpty()) normalized else segments.takeLast(2).joinToString("/")
+        // Strip the signed `/s/<token>/` prefix outright: takeLast(2) alone
+        // would bake the rotating token into the key of a file sitting
+        // directly under it (`/s/<token>/file.mp4`), quietly reintroducing
+        // the per-refetch orphaning for that shape.
+        val stable = if (segments.size > 2 && segments[0] == "s") segments.drop(2) else segments
+        return if (stable.isEmpty()) normalized else stable.takeLast(2).joinToString("/")
     }
 }
 

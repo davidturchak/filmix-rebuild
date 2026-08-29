@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
@@ -108,14 +107,22 @@ class DetailViewModel(
         viewModelScope.launch {
             _state.value = DetailUiState(loading = true)
             _selection.value = EpisodeSelection()
-            _state.value = runCatching { catalog.post(id) }.fold(
+            val result = runCatching { catalog.post(id) }
+            // The ViewModel serves every title the user opens, so a slow
+            // response for a post the user has already left must not clobber
+            // the current one — the same guard loadComments carries.
+            if (loadedId != id) return@launch
+            _state.value = result.fold(
                 onSuccess = { post ->
                     // Land on the season and translation the user last played,
                     // before the post is shown, so the picker never flashes
                     // season 1 first. Once only — a return from the player hits
                     // the loadedId guard, so a manual pick is never clobbered.
                     if (!post.playlist.isEmpty) {
-                        val snapshot = resumeStore.progressForPost(id).first()
+                        // Progress is cosmetic; a failed read must not cost
+                        // the user the page.
+                        val snapshot = runCatching { resumeStore.progressSnapshotForPost(id) }
+                            .getOrDefault(emptyMap())
                         SeriesProgress.resumePoint(post.playlist, snapshot)?.let {
                             _selection.value = EpisodeSelection(it.season, it.translation)
                         }

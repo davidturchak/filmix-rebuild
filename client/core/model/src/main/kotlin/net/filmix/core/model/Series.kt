@@ -44,9 +44,10 @@ data class Episode(
     /**
      * Episode links arrive already templated with `%s`, so the quality-agnostic
      * resume key is computable from the template alone — the watched state of
-     * an episode never needs to know which quality was played.
+     * an episode never needs to know which quality was played. Computed once:
+     * the watched-state scans read it per episode on every recomposition.
      */
-    val resumeKey: String get() = StreamLink.resumeKey(source.templateUrl)
+    val resumeKey: String = StreamLink.resumeKey(source.templateUrl)
 }
 
 /**

@@ -47,8 +47,12 @@ object SeriesProgress {
      *
      * A finished mark is a statement about the content, so it is matched across
      * the season's other translations by episode number — a checkmark earned in
-     * one voice-over survives switching to another. An exact-key row still wins
-     * over any cross-translation match: a position in *this* file is the truth.
+     * one voice-over survives switching to another. Only finished rows carry
+     * across: an in-progress row belongs to the file it was saved for, and
+     * surfacing it here would promise a "continue" the player cannot honour
+     * (this translation's file has no stored position, so it starts at 0:00).
+     * An exact-key row still wins over any cross-translation match: a position
+     * in *this* file is the truth.
      */
     fun seasonWatch(
         season: Season,
@@ -58,21 +62,29 @@ object SeriesProgress {
         val episodes = translation.episodes
         if (episodes.isEmpty()) return SeasonWatch(emptyMap(), null, false)
 
+        // One pass over the season's other voice-overs, freshest finished row
+        // per episode number — instead of rescanning them all per episode.
+        val foreignFinished = HashMap<String, WatchProgress>()
+        for (other in season.translations) {
+            if (other.name == translation.name) continue
+            for (foreign in other.episodes) {
+                val progress = progressByKey[foreign.resumeKey] ?: continue
+                if (!progress.isFinished) continue
+                val key = episodeNumberKey(foreign.number)
+                val best = foreignFinished[key]
+                if (best == null || progress.updatedAt > best.updatedAt) {
+                    foreignFinished[key] = progress
+                }
+            }
+        }
+
         val states = HashMap<String, EpisodeWatchState>()
         var freshest: Episode? = null
         var freshestAt = Long.MIN_VALUE
 
         for (episode in episodes) {
-            val exact = progressByKey[episode.resumeKey]
-            val matched = exact
-                ?: season.translations.asSequence()
-                    .filter { it.name != translation.name }
-                    .flatMap { it.episodes }
-                    .filter { it.number == episode.number }
-                    .mapNotNull { progressByKey[it.resumeKey] }
-                    // Prefer a finished row, then the freshest, so a stale
-                    // half-watch in a third voice-over cannot hide a checkmark.
-                    .maxWithOrNull(compareBy({ it.isFinished }, { it.updatedAt }))
+            val matched = progressByKey[episode.resumeKey]
+                ?: foreignFinished[episodeNumberKey(episode.number)]
                 ?: continue
 
             states[episode.number] =
@@ -107,28 +119,26 @@ object SeriesProgress {
         playlist: SeriesPlaylist,
         progressByKey: Map<String, WatchProgress>,
     ): PlaylistPosition? {
-        var atSeason: Season? = null
-        var atTranslation: SeriesTranslation? = null
-        var atEpisode: Episode? = null
-        var atProgress: WatchProgress? = null
-
-        for (season in playlist.seasons) {
-            for (translation in season.translations) {
-                for (episode in translation.episodes) {
-                    val progress = progressByKey[episode.resumeKey] ?: continue
-                    if (atProgress == null || progress.updatedAt > atProgress.updatedAt) {
-                        atSeason = season
-                        atTranslation = translation
-                        atEpisode = episode
-                        atProgress = progress
+        val (season, translation, episode, progress) = playlist.seasons
+            .asSequence()
+            .flatMap { season ->
+                season.translations.asSequence().flatMap { translation ->
+                    translation.episodes.asSequence().mapNotNull { episode ->
+                        progressByKey[episode.resumeKey]?.let {
+                            PlayedEpisode(season, translation, episode, it)
+                        }
                     }
                 }
             }
-        }
-        val season = atSeason ?: return null
-        val translation = atTranslation ?: return null
+            .maxByOrNull { it.progress.updatedAt } ?: return null
 
-        if (atProgress?.isFinished == true && atEpisode == translation.episodes.lastOrNull()) {
+        // Advance only when the finished episode really ends the season: the
+        // freshest translation may be a partial dub, and its last episode says
+        // nothing about the episodes other voice-overs still have.
+        if (progress.isFinished &&
+            episode == translation.episodes.lastOrNull() &&
+            isSeasonEnd(season, episode)
+        ) {
             val next = playlist.seasons.getOrNull(playlist.seasons.indexOf(season) + 1)
             if (next != null) {
                 val carried = next.translations.firstOrNull { it.name == translation.name }
@@ -138,4 +148,33 @@ object SeriesProgress {
         }
         return PlaylistPosition(season.number, translation.name)
     }
+
+    private data class PlayedEpisode(
+        val season: Season,
+        val translation: SeriesTranslation,
+        val episode: Episode,
+        val progress: WatchProgress,
+    )
+
+    /** True when no translation of the season has an episode past [episode]. */
+    private fun isSeasonEnd(season: Season, episode: Episode): Boolean {
+        val order = episodeOrder(episode.number)
+        return season.translations.none { translation ->
+            translation.episodes.any { episodeOrder(it.number) > order }
+        }
+    }
+
+    /**
+     * Episode numbers are raw JSON keys from each translation's own subtree, so
+     * "01" in one voice-over and "1" in another are the same episode. Compare
+     * numerically when possible, the same accommodation the season/episode
+     * sorting already makes.
+     */
+    private fun episodeNumberKey(number: String): String {
+        val trimmed = number.trim()
+        return trimmed.toIntOrNull()?.toString() ?: trimmed
+    }
+
+    private fun episodeOrder(number: String): Int =
+        number.trim().toIntOrNull() ?: Int.MAX_VALUE
 }

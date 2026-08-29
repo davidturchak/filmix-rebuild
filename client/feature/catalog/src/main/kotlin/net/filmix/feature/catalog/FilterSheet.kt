@@ -7,7 +7,11 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -145,6 +149,13 @@ fun FilterSheet(
                     .weight(1f)
                     .nestedScroll(sheetDragBlocker)
                     .padding(horizontal = 24.dp),
+                // Zeroing the sheet's own insets above dropped the bottom one
+                // too; without this the last group's chips sit under the
+                // tablet's navigation bar. As content padding it scrolls away
+                // instead of shrinking the list.
+                contentPadding = WindowInsets.navigationBars
+                    .only(WindowInsetsSides.Bottom)
+                    .asPaddingValues(),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 item("type") {
