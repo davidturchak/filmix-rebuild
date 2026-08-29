@@ -1,9 +1,9 @@
 {
-  "versionCode": 63,
-  "versionName": "0.5.8",
-  "commit": "26aa506",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.5.8.apk",
+  "versionCode": 65,
+  "versionName": "0.5.9",
+  "commit": "b41b6da",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.5.9.apk",
   "sizeBytes": 2961605,
-  "sha256": "7843bff13fafaa2677e5a8ccc07179c74e1bc70f77956d371eb28e7c2411140e",
-  "notes": "\u0421\u0442\u0430\u0431\u0438\u043b\u044c\u043d\u043e\u0441\u0442\u044c \u043e\u0442\u0437\u044b\u0432\u043e\u0432: \u0443\u0441\u0442\u0440\u0430\u043d\u0435\u043d\u044b \u0433\u043e\u043d\u043a\u0438 \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0438 \u0438 \u043f\u0430\u0434\u0435\u043d\u0438\u044f \u043d\u0430 \u043d\u0435\u043a\u043e\u0440\u0440\u0435\u043a\u0442\u043d\u044b\u0445 \u0434\u0430\u043d\u043d\u044b\u0445"
+  "sha256": "9f09c56fe30bbbf8a9c288330496e6cea7e874673641b0095aff0d49e93ff3f5",
+  "notes": "\u041e\u043a\u043d\u043e \u0444\u0438\u043b\u044c\u0442\u0440\u043e\u0432 \u0432 \u043a\u0430\u0442\u0430\u043b\u043e\u0433\u0435 \u0431\u043e\u043b\u044c\u0448\u0435 \u043d\u0435 \u0434\u0432\u0438\u0433\u0430\u0435\u0442\u0441\u044f \u0438 \u043d\u0435 \u043c\u0435\u043d\u044f\u0435\u0442 \u0440\u0430\u0437\u043c\u0435\u0440: \u043f\u0440\u043e\u043a\u0440\u0443\u0447\u0438\u0432\u0430\u0435\u0442\u0441\u044f \u0442\u043e\u043b\u044c\u043a\u043e \u0441\u043e\u0434\u0435\u0440\u0436\u0438\u043c\u043e\u0435"
 }
