@@ -66,9 +66,25 @@ object StreamLink {
 
     /**
      * Normalises a played URL into a stable key for resume positions, so the
-     * saved position survives a change of quality. Mirrors `FullMovie.java:787`.
+     * saved position survives a change of quality — and a refetch of the post.
+     *
+     * Stream URLs are signed: `https://nl205.cdnsqu.com/s/<token>/<folder>/<file>`,
+     * and the token rotates within minutes (two fetches of the same post ten
+     * minutes apart returned different tokens). Keying by the full URL therefore
+     * orphaned every stored position as soon as the post was fetched again —
+     * which is also why resume only appeared to work within a single session.
+     * Only the trailing `<folder>/<file>` is stable, so that is the key; it also
+     * survives a change of CDN host. The quality substitution mirrors the
+     * reference app's `FullMovie.java:787`.
      */
-    fun resumeKey(url: String): String = url.replace(Regex("""_\d+\.mp4"""), "_%s.mp4")
+    fun resumeKey(url: String): String {
+        val normalized = url
+            .substringBefore('?')
+            .replace(Regex("""_\d+\.mp4"""), "_%s.mp4")
+        val path = normalized.substringAfter("://", normalized).substringAfter('/', "")
+        val segments = path.split('/').filter { it.isNotEmpty() }
+        return if (segments.isEmpty()) normalized else segments.takeLast(2).joinToString("/")
+    }
 }
 
 /**

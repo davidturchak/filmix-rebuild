@@ -40,6 +40,13 @@ data class Episode(
     val source: VideoSource,
 ) {
     val label: String get() = "$number серия"
+
+    /**
+     * Episode links arrive already templated with `%s`, so the quality-agnostic
+     * resume key is computable from the template alone — the watched state of
+     * an episode never needs to know which quality was played.
+     */
+    val resumeKey: String get() = StreamLink.resumeKey(source.templateUrl)
 }
 
 /**

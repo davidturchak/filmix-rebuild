@@ -70,8 +70,10 @@ import net.filmix.core.model.CommentThread
 import net.filmix.core.model.ParsedTranslation
 import net.filmix.core.model.Episode
 import net.filmix.core.model.Post
+import net.filmix.core.model.SeriesProgress
 import net.filmix.core.model.StreamLink
 import net.filmix.core.model.VideoSource
+import net.filmix.core.model.WatchProgress
 
 data class DetailUiState(
     val post: Post? = null,
@@ -101,6 +103,7 @@ fun DetailScreen(
     onToggleFavourite: () -> Unit = {},
     onToggleWatchLater: () -> Unit = {},
     selection: EpisodeSelection = EpisodeSelection(),
+    progress: Map<String, WatchProgress> = emptyMap(),
     onSelectSeason: (String) -> Unit = {},
     onSelectTranslation: (String) -> Unit = {},
     onPlayEpisode: (Episode) -> Unit = {},
@@ -124,6 +127,7 @@ fun DetailScreen(
                 onToggleFavourite,
                 onToggleWatchLater,
                 selection,
+                progress,
                 onSelectSeason,
                 onSelectTranslation,
                 onPlayEpisode,
@@ -158,12 +162,18 @@ private fun Content(
     onToggleFavourite: () -> Unit,
     onToggleWatchLater: () -> Unit,
     selection: EpisodeSelection,
+    progress: Map<String, WatchProgress>,
     onSelectSeason: (String) -> Unit,
     onSelectTranslation: (String) -> Unit,
     onPlayEpisode: (Episode) -> Unit,
 ) {
     // Keyed on the post so opening a related title collapses the thread again.
     var commentsExpanded by rememberSaveable(post.id) { mutableStateOf(false) }
+    val watch = remember(post.playlist, selection, progress) {
+        selection.resolve(post.playlist)?.let { (season, translation) ->
+            SeriesProgress.seasonWatch(season, translation, progress)
+        }
+    }
     LazyColumn(
         contentPadding = PaddingValues(bottom = LocalDimensions.current.sectionGap),
         verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.sectionGap),
@@ -175,9 +185,10 @@ private fun Content(
                 onPlay = onPlay,
                 onToggleFavourite = onToggleFavourite,
                 onToggleWatchLater = onToggleWatchLater,
-                // A series has no single "play" source; the CTA starts the
-                // first episode of the selected season and translation.
-                firstEpisode = selection.resolve(post.playlist)?.second?.episodes?.firstOrNull(),
+                // A series has no single "play" source; the CTA continues the
+                // episode the user is on — or starts the next, or the first.
+                currentEpisode = watch?.current,
+                continueWatching = watch?.currentInProgress == true,
                 onPlayEpisode = onPlayEpisode,
             )
         }
@@ -188,6 +199,7 @@ private fun Content(
                     EpisodePicker(
                         playlist = post.playlist,
                         selection = selection,
+                        watch = watch,
                         onSelectSeason = onSelectSeason,
                         onSelectTranslation = onSelectTranslation,
                         onPlayEpisode = onPlayEpisode,
@@ -314,7 +326,8 @@ private fun Backdrop(
     onPlay: (VideoSource) -> Unit,
     onToggleFavourite: () -> Unit,
     onToggleWatchLater: () -> Unit,
-    firstEpisode: Episode?,
+    currentEpisode: Episode?,
+    continueWatching: Boolean,
     onPlayEpisode: (Episode) -> Unit,
 ) {
     Box(
@@ -393,7 +406,7 @@ private fun Backdrop(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     val best = post.sources.firstOrNull()
-                    if (best != null || firstEpisode != null) {
+                    if (best != null || currentEpisode != null) {
                         // On a remote the screen opens with focus on the back
                         // arrow, which overlays the list — focus search cannot
                         // descend from it into the LazyColumn, so the D-pad
@@ -410,17 +423,17 @@ private fun Backdrop(
                             onClick = {
                                 when {
                                     best != null -> onPlay(best)
-                                    firstEpisode != null -> onPlayEpisode(firstEpisode)
+                                    currentEpisode != null -> onPlayEpisode(currentEpisode)
                                 }
                             },
                             modifier = Modifier.focusRequester(playFocus),
                         ) {
                             Icon(Icons.Filled.PlayArrow, contentDescription = null)
                             Text(
-                                if (best == null && firstEpisode != null) {
-                                    "Смотреть · ${firstEpisode.label}"
-                                } else {
-                                    "Смотреть"
+                                when {
+                                    best != null || currentEpisode == null -> "Смотреть"
+                                    continueWatching -> "Продолжить · ${currentEpisode.label}"
+                                    else -> "Смотреть · ${currentEpisode.label}"
                                 },
                                 Modifier.padding(start = 8.dp),
                             )

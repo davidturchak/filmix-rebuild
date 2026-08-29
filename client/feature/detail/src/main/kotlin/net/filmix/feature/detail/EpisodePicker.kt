@@ -5,18 +5,32 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import net.filmix.core.designsystem.component.FocusChip
 import net.filmix.core.model.Episode
+import net.filmix.core.model.EpisodeWatchState
 import net.filmix.core.model.Season
+import net.filmix.core.model.SeasonWatch
 import net.filmix.core.model.SeriesPlaylist
 import net.filmix.core.model.SeriesTranslation
 
@@ -48,12 +62,13 @@ data class EpisodeSelection(
  * with five seasons and four competing translations is easier to navigate as
  * three rows of chips than as a nested tree.
  */
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun EpisodePicker(
     playlist: SeriesPlaylist,
     selection: EpisodeSelection,
     modifier: Modifier = Modifier,
+    watch: SeasonWatch? = null,
     onSelectSeason: (String) -> Unit = {},
     onSelectTranslation: (String) -> Unit = {},
     onPlayEpisode: (Episode) -> Unit = {},
@@ -92,15 +107,59 @@ fun EpisodePicker(
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            val current = watch?.current
+            // Keyed on the number: a new chip is the target when the current
+            // episode moves — e.g. after finishing one and returning here.
+            val currentFocus = remember(current?.number) { FocusRequester() }
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = if (current == null) {
+                    Modifier
+                } else {
+                    // D-pad entry into the grid lands on the current episode,
+                    // not whichever chip is geometrically nearest. Order
+                    // matters: focusProperties has to precede the focusTarget
+                    // that focusGroup adds, or it configures the chips instead
+                    // of the group and does nothing. Safe to hand out the
+                    // requester unconditionally — the FlowRow is not lazy, so
+                    // the current chip is always composed and attached.
+                    Modifier
+                        .focusProperties { enter = { currentFocus } }
+                        .focusGroup()
+                },
             ) {
                 translation.episodes.forEach { episode ->
+                    val state = watch?.states?.get(episode.number) ?: EpisodeWatchState.None
+                    val isCurrent = episode.number == current?.number
                     FocusChip(
-                        selected = false,
+                        selected = isCurrent,
                         onClick = { onPlayEpisode(episode) },
                         label = episode.number,
+                        leadingIcon = when {
+                            state == EpisodeWatchState.Finished -> {
+                                {
+                                    Icon(
+                                        Icons.Filled.Check,
+                                        contentDescription = "Просмотрена",
+                                        modifier = Modifier.size(FilterChipDefaults.IconSize),
+                                    )
+                                }
+                            }
+
+                            state == EpisodeWatchState.InProgress && !isCurrent -> {
+                                {
+                                    Icon(
+                                        Icons.Filled.PlayArrow,
+                                        contentDescription = "Начата",
+                                        modifier = Modifier.size(FilterChipDefaults.IconSize),
+                                    )
+                                }
+                            }
+
+                            else -> null
+                        },
+                        modifier = if (isCurrent) Modifier.focusRequester(currentFocus) else Modifier,
                     )
                 }
             }

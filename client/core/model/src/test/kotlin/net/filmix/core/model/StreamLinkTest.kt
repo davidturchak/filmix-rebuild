@@ -58,7 +58,28 @@ class StreamLinkTest {
         val a = StreamLink.resumeKey("https://h/s01e02_720.mp4")
         val b = StreamLink.resumeKey("https://h/s01e02_2160.mp4")
         assertEquals(a, b)
-        assertEquals("https://h/s01e02_%s.mp4", a)
+        assertEquals("s01e02_%s.mp4", a)
+    }
+
+    @Test
+    fun `resume key survives the rotating CDN token and host`() {
+        // Real shape: /s/<token>/ is a signed segment that rotates within
+        // minutes between fetches of the same post; the host node can move too.
+        val a = StreamLink.resumeKey(
+            "https://nl205.cdnsqu.com/s/FHAwtAio9sbLVVh5.abc/Outer-Banks-USA-20-RHS/s04e01_720.mp4",
+        )
+        val b = StreamLink.resumeKey(
+            "https://nl209.cdnsqu.com/s/FHdMXyNkPbZ5BQcE.xyz/Outer-Banks-USA-20-RHS/s04e01_1080.mp4",
+        )
+        assertEquals(a, b)
+        assertEquals("Outer-Banks-USA-20-RHS/s04e01_%s.mp4", a)
+    }
+
+    @Test
+    fun `resume keys of different episodes stay distinct`() {
+        val e1 = StreamLink.resumeKey("https://h/s/tok/Folder/s04e01_720.mp4")
+        val e2 = StreamLink.resumeKey("https://h/s/tok/Folder/s04e02_720.mp4")
+        assertEquals(false, e1 == e2)
     }
 
     @Test

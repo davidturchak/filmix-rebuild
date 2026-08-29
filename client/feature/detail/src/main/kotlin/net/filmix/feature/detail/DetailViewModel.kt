@@ -2,16 +2,26 @@ package net.filmix.feature.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.filmix.core.data.CatalogRepository
 import net.filmix.core.data.LibraryRepository
+import net.filmix.core.data.ResumeStore
+import net.filmix.core.model.SeriesProgress
+import net.filmix.core.model.WatchProgress
 
 class DetailViewModel(
     private val catalog: CatalogRepository,
     private val library: LibraryRepository,
+    private val resumeStore: ResumeStore,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DetailUiState())
@@ -21,6 +31,20 @@ class DetailViewModel(
 
     private val _selection = MutableStateFlow(EpisodeSelection())
     val selection: StateFlow<EpisodeSelection> = _selection.asStateFlow()
+
+    private val progressPostId = MutableStateFlow<Int?>(null)
+
+    /**
+     * Local watch progress for the open post, keyed by stream key. Room re-emits
+     * after every player save, which is what moves the checkmarks and the
+     * "current episode" on return from playback — load() never refetches.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val progress: StateFlow<Map<String, WatchProgress>> = progressPostId
+        .flatMapLatest { id ->
+            if (id == null) flowOf(emptyMap()) else resumeStore.progressForPost(id)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
 
     // Separate from DetailUiState: the post fetch assigns a whole new state
     // object, which would clobber a comments result that landed first.
@@ -78,13 +102,26 @@ class DetailViewModel(
         // cost the user the page, and vice versa — including retry: comments
         // get another chance on re-entry even when the post is cached.
         loadComments(id)
+        progressPostId.value = id
         if (loadedId == id && _state.value.post != null) return
         loadedId = id
         viewModelScope.launch {
             _state.value = DetailUiState(loading = true)
             _selection.value = EpisodeSelection()
             _state.value = runCatching { catalog.post(id) }.fold(
-                onSuccess = { DetailUiState(post = it, loading = false) },
+                onSuccess = { post ->
+                    // Land on the season and translation the user last played,
+                    // before the post is shown, so the picker never flashes
+                    // season 1 first. Once only — a return from the player hits
+                    // the loadedId guard, so a manual pick is never clobbered.
+                    if (!post.playlist.isEmpty) {
+                        val snapshot = resumeStore.progressForPost(id).first()
+                        SeriesProgress.resumePoint(post.playlist, snapshot)?.let {
+                            _selection.value = EpisodeSelection(it.season, it.translation)
+                        }
+                    }
+                    DetailUiState(post = post, loading = false)
+                },
                 onFailure = { DetailUiState(loading = false, error = "Не удалось загрузить") },
             )
         }

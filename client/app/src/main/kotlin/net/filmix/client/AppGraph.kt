@@ -89,7 +89,7 @@ class AppGraph private constructor(context: Context) {
 
     val settingsStore = SettingsStore(appContext)
 
-    private val resumeStore = ResumeStore(appContext)
+    val resumeStore = ResumeStore(appContext)
 
     val playbackRepository = PlaybackRepository(api, resumeStore, settingsStore)
 
@@ -142,7 +142,7 @@ class GraphViewModelFactory(private val graph: AppGraph) : ViewModelProvider.Fac
             CatalogViewModel(graph.catalogRepository, graph.settingsStore) as T
 
         modelClass.isAssignableFrom(DetailViewModel::class.java) ->
-            DetailViewModel(graph.catalogRepository, graph.libraryRepository) as T
+            DetailViewModel(graph.catalogRepository, graph.libraryRepository, graph.resumeStore) as T
 
         modelClass.isAssignableFrom(HomeViewModel::class.java) ->
             HomeViewModel(graph.catalogRepository) as T

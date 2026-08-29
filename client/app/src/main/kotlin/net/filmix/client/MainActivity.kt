@@ -130,6 +130,7 @@ private fun FilmixApp(graph: AppGraph) {
         val detailState by detailVm.state.collectAsState()
         val selection by detailVm.selection.collectAsState()
         val detailComments by detailVm.comments.collectAsState()
+        val detailProgress by detailVm.progress.collectAsState()
         LaunchedEffect(postId) { detailVm.load(postId) }
         DetailScreen(
             state = detailState,
@@ -147,6 +148,7 @@ private fun FilmixApp(graph: AppGraph) {
             onToggleFavourite = detailVm::toggleFavourite,
             onToggleWatchLater = detailVm::toggleWatchLater,
             selection = selection,
+            progress = detailProgress,
             onSelectSeason = detailVm::selectSeason,
             onSelectTranslation = detailVm::selectTranslation,
             onPlayEpisode = { episode ->

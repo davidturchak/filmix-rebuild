@@ -133,6 +133,14 @@ Unpaired clients get an **11-second teaser** for every premium title, plus a
 subscription popup. That is the server's PRO gate working correctly — not a
 playback bug. Three unrelated titles returning an identical ETag confirmed it.
 
+Stream URLs are **signed and expiring**: `https://nl205.cdnsqu.com/s/<token>/
+<Folder>/<file>` — the `/s/<token>/` segment rotates between fetches of the
+same post (within ~10 minutes, and regardless of device identity), and the
+host node can move too. Only the trailing `<folder>/<file>` is stable. Never
+persist or compare full stream URLs; `StreamLink.resumeKey` keys on the stable
+tail, and keying on anything more once silently orphaned every stored resume
+position on the next refetch of the post.
+
 ## Android TV
 
 TV is detected via `UiModeManager.currentModeType`, which flows into
@@ -252,6 +260,31 @@ adb -s "$TV" shell cat /sdcard/f.xml | tr '<' '\n' | grep 'focused="true"'
 
 The user may be using the TV while you test. If the screen shows something you
 did not do, stop driving it.
+
+### The TV plays through MX Player Pro, not our player
+
+The user's Настройки set the video player to **MX Player Pro**, so every
+playback launches MX via the external-player intent — the fullscreen player
+you land in is MX (the `HW` badge top-right is MX's decoder toggle), not
+`PlayerScreen`, which never runs. A whole debugging session was lost to
+misreading MX as our player. Consequences:
+
+- **Resume positions save only when MX exits cleanly** and its activity result
+  reaches a *live* PlaybackHost composition. If our activity is recreated
+  while MX is foregrounded — TCL's FreezeManager freezes and evicts the
+  backgrounded app within minutes — the result is dropped and that session's
+  position is silently lost. This is the documented external-player tradeoff,
+  not a bug in the resume store.
+- **Media keys (`input keyevent 90`, the remote's ⏪⏩) route to the media
+  button session owner** — MX if it is running, even in the background. Keys
+  you inject can seek an invisible MX session while you watch our app do
+  nothing. `dumpsys media_session` shows who owns the media-button session;
+  `am force-stop com.mxtech.videoplayer.pro` clears it.
+- To exercise the internal player deliberately, switch Настройки → Видеоплеер
+  to «Встроенный», test, and **switch it back to MX Player Pro after** — it is
+  the user's preference. With the internal player, seeks land only while the
+  controller is up, and the 5s progress ticks plus the dispose save all work
+  (verified on hardware).
 
 ## Cross-screen state
 

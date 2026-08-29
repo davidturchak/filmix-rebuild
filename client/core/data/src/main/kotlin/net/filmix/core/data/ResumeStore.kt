@@ -11,8 +11,11 @@ import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import net.filmix.core.model.StreamLink
+import net.filmix.core.model.WatchProgress
 
 /**
  * Resume positions, keyed by the quality-independent form of the stream URL so
@@ -30,17 +33,16 @@ data class ResumePosition(
 ) {
     /** Treated as finished near the end, so it is not offered as "resume". */
     val isEffectivelyFinished: Boolean
-        get() = durationMs > 0 && positionMs > durationMs - FINISHED_TAIL_MS
-
-    private companion object {
-        const val FINISHED_TAIL_MS = 60_000L
-    }
+        get() = WatchProgress(positionMs, durationMs, updatedAt).isFinished
 }
 
 @Dao
 interface ResumeDao {
     @Query("SELECT * FROM resume_positions WHERE streamKey = :key LIMIT 1")
     suspend fun find(key: String): ResumePosition?
+
+    @Query("SELECT * FROM resume_positions WHERE postId = :postId")
+    fun observeForPost(postId: Int): Flow<List<ResumePosition>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(position: ResumePosition)
@@ -62,6 +64,19 @@ class ResumeStore(context: Context) {
         .build()
 
     private val dao = db.resumeDao()
+
+    /**
+     * Every stored row for a post, keyed by stream key — including the finished
+     * rows [resumeFor] deliberately hides, because "which episodes are done" is
+     * exactly the question here. Room's invalidation tracker re-emits after the
+     * player saves, so watched marks update on return with no explicit reload.
+     */
+    fun progressForPost(postId: Int): Flow<Map<String, WatchProgress>> =
+        dao.observeForPost(postId).map { rows ->
+            rows.associate {
+                it.streamKey to WatchProgress(it.positionMs, it.durationMs, it.updatedAt)
+            }
+        }
 
     /** Null when nothing is stored, or when the stored position is at the end. */
     suspend fun resumeFor(streamUrl: String): Long? = withContext(Dispatchers.IO) {
