@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
@@ -19,9 +20,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -91,7 +98,29 @@ fun HomeScreen(
     // it, into whichever rail Compose reached first. An index would not do
     // either: a rail's contents shift under it on a refresh.
     val focusReturn = rememberFocusReturn()
+    val listState = rememberLazyListState()
+
+    /**
+     * The hero is the top item and its only focusable is the play button on
+     * its bottom edge. Compose brings that button into view by scrolling the
+     * list ~62dp, which crops the title off the top of the screen — and once
+     * there, nothing above it is focusable, so the D-pad cannot scroll back:
+     * the top of the home screen becomes unreachable for the rest of the
+     * session. Pin the list at the top for as long as the hero holds focus,
+     * rather than scrolling once — the focus event arrives before the scroll
+     * it triggers, so a single correction would simply be undone.
+     */
+    var heroFocused by remember { mutableStateOf(false) }
+    LaunchedEffect(heroFocused) {
+        if (!heroFocused) return@LaunchedEffect
+        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
+            .collect { (index, offset) ->
+                if (index > 0 || offset > 0) listState.scrollToItem(0)
+            }
+    }
+
     LazyColumn(
+        state = listState,
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
@@ -101,6 +130,7 @@ fun HomeScreen(
         state.featured?.let { featured ->
             item(key = "hero") {
                 Hero(
+                    modifier = Modifier.onFocusEvent { heroFocused = it.hasFocus },
                     post = featured,
                     compact = compact,
                     onPlayClick = { onPlayClick(featured) },
@@ -113,7 +143,7 @@ fun HomeScreen(
             key = { index -> state.rails[index].title },
         ) { index ->
             val rail = state.rails[index]
-            val cardKey = { post: Post -> "${'$'}{rail.title}/${'$'}{post.id}" }
+            val cardKey = { post: Post -> "${rail.title}/${post.id}" }
             Rail(
                 title = rail.title,
                 items = rail.items,
@@ -149,9 +179,10 @@ private fun Hero(
     compact: Boolean,
     onPlayClick: () -> Unit,
     onDetailsClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Box(
-        Modifier
+        modifier
             .fillMaxWidth()
             .height(if (compact) LocalDimensions.current.heroHeightCompact else LocalDimensions.current.heroHeight),
     ) {
