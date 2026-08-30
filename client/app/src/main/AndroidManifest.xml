@@ -42,9 +42,15 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/Theme.FilmixClient">
 
+        <!-- Declared on the activity as well as the application. The two are
+             meant to be equivalent — ComponentInfo.loadBanner() falls back from
+             one to the other — but a launcher that reads the activity's banner
+             field directly sees 0 and draws a blank tile, which is what a TCL
+             Leanback launcher did with the application-level banner alone. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:banner="@drawable/banner"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
             android:theme="@style/Theme.FilmixClient">
             <intent-filter>
