@@ -59,10 +59,22 @@ class SettingsStore(private val context: Context) {
         context.settingsDataStore.edit { it[KEY_SORT_ASC] = ascending }
     }
 
+    /**
+     * The versionCode the user last answered "Позже" to, so the launch prompt
+     * asks once per release rather than on every start.
+     */
+    suspend fun dismissedUpdate(): Int =
+        context.settingsDataStore.data.first()[KEY_DISMISSED_UPDATE] ?: 0
+
+    suspend fun setDismissedUpdate(versionCode: Int) {
+        context.settingsDataStore.edit { it[KEY_DISMISSED_UPDATE] = versionCode }
+    }
+
     private companion object {
         val KEY_QUALITY = intPreferencesKey("preferred_quality")
         val KEY_EXTERNAL_PLAYER = stringPreferencesKey("external_player_package")
         val KEY_SORT = stringPreferencesKey("catalog_sort")
         val KEY_SORT_ASC = booleanPreferencesKey("catalog_sort_asc")
+        val KEY_DISMISSED_UPDATE = intPreferencesKey("dismissed_update_code")
     }
 }

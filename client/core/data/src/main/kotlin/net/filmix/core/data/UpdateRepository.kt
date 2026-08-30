@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import net.filmix.core.model.AppUpdate
 import net.filmix.core.model.AppVersion
@@ -13,6 +14,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.security.MessageDigest
+import java.util.concurrent.TimeUnit
 
 /**
  * Self-update against the manifest published at BUILD/latest.json.
@@ -36,14 +38,39 @@ class UpdateRepository(
 
     private val json = Json { ignoreUnknownKeys = true }
 
+    /**
+     * callTimeout, not connect/read: it bounds the whole call, so a server that
+     * dribbles bytes cannot outlast it the way per-stage timeouts allow.
+     */
+    private val quickHttp by lazy {
+        http.newBuilder().callTimeout(LAUNCH_CHECK_TIMEOUT_SECONDS, TimeUnit.SECONDS).build()
+    }
+
     /** Null when already current; the update otherwise. */
-    suspend fun check(): AppUpdate? = withIo {
-        val body = http.newCall(Request.Builder().url(manifestUrl).build()).execute().use { response ->
+    suspend fun check(quick: Boolean = false): AppUpdate? = withIo {
+        val client = if (quick) quickHttp else http
+        val body = client.newCall(Request.Builder().url(manifestUrl).build()).execute().use { response ->
             if (!response.isSuccessful) error("manifest HTTP ${response.code}")
             response.body?.string().orEmpty()
         }
         val manifest = json.decodeFromString<ManifestDto>(body)
         manifest.toDomain().takeIf { it.isNewerThan(currentVersion) }
+    }
+
+    /**
+     * The launch check. Answers null for "nothing to offer" and for every
+     * failure alike — no repo, no network, a captive portal, malformed JSON.
+     *
+     * Deliberately silent: an update check the user did not ask for must never
+     * put an error in front of them, and must never hold up the app. The short
+     * call timeout is what keeps that promise on a TV that boots before its
+     * network is up — OkHttp's default 10s read timeout would otherwise leave
+     * the request hanging long after the user had started browsing.
+     */
+    suspend fun checkQuietly(): AppUpdate? = withContext(Dispatchers.IO) {
+        runCatching { check(quick = true) }
+            .onFailure { Log.d(TAG, "launch update check skipped: ${it.message}") }
+            .getOrNull()
     }
 
     /**
@@ -98,6 +125,9 @@ class UpdateRepository(
         const val MANIFEST_URL =
             "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/latest.json"
         private const val TAG = "UpdateRepository"
+
+        /** Short enough that a dead network never delays anything visible. */
+        private const val LAUNCH_CHECK_TIMEOUT_SECONDS = 4L
     }
 }
 

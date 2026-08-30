@@ -31,6 +31,20 @@ class UpdateStateTest {
     }
 
     @Test
+    fun `declining a release suppresses only that release`() {
+        assertFalse(update.shouldPrompt(dismissedVersionCode = 77))
+        assertFalse(update.shouldPrompt(dismissedVersionCode = 99))
+        // The next release must still get through, or "Позже" once would mean
+        // the device never hears about an update again.
+        assertTrue(update.shouldPrompt(dismissedVersionCode = 76))
+    }
+
+    @Test
+    fun `a fresh install has declined nothing`() {
+        assertTrue(update.shouldPrompt(dismissedVersionCode = 0))
+    }
+
+    @Test
     fun `states with their own buttons do not add another`() {
         assertFalse(UpdateState.Available(update).offersCheck)
         assertFalse(UpdateState.Downloading(update, 40).offersCheck)

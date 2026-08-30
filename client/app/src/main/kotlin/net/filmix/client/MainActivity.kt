@@ -36,6 +36,7 @@ import net.filmix.feature.catalog.CatalogScreen
 import net.filmix.feature.catalog.CatalogViewModel
 import net.filmix.feature.config.ConfigScreen
 import net.filmix.feature.config.ConfigViewModel
+import net.filmix.feature.config.UpdatePrompt
 import net.filmix.feature.detail.DetailScreen
 import net.filmix.feature.detail.DetailViewModel
 import net.filmix.feature.home.HomeScreen
@@ -176,6 +177,29 @@ private fun FilmixApp(graph: AppGraph) {
         railFocusTick++
     }
 
+    // Built here rather than inside the Настройки branch: its init runs the
+    // silent launch check, and a ViewModel constructed only when that screen
+    // first composes would never check on a device nobody opens it on — which
+    // is the whole reason the launch check exists. The store owner is the
+    // activity either way, so Настройки gets this same instance.
+    val configVm: ConfigViewModel = viewModel(factory = factory)
+    val launchUpdate by configVm.launchUpdate.collectAsState()
+
+    launchUpdate?.let { update ->
+        UpdatePrompt(
+            update = update,
+            onAccept = {
+                configVm.acceptLaunchUpdate()
+                // The download, the install-permission prompt and the installer
+                // handoff all already live on the Настройки screen; sending the
+                // user there reuses that path instead of duplicating it.
+                destination = Destination.Config
+                railFocusTick++
+            },
+            onDismiss = configVm::dismissLaunchUpdate,
+        )
+    }
+
     AppScaffold(
         current = destination,
         compact = compact,
@@ -276,7 +300,9 @@ private fun FilmixApp(graph: AppGraph) {
                 }
 
                 Destination.Config -> {
-                    val vm: ConfigViewModel = viewModel(factory = factory)
+                    // The hoisted instance, so the launch check's result is
+                    // already sitting in updateState when the user arrives.
+                    val vm = configVm
                     val quality by vm.preferredQuality.collectAsState()
                     val players by vm.players.collectAsState()
                     val selectedPlayer by vm.selectedPlayer.collectAsState()

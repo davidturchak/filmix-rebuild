@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import net.filmix.core.data.DownloadProgress
 import net.filmix.core.data.SettingsStore
 import net.filmix.core.data.UpdateRepository
+import net.filmix.core.model.AppUpdate
 import net.filmix.core.model.AppVersion
 import net.filmix.core.model.ExternalPlayer
 import net.filmix.core.model.UpdateState
@@ -53,8 +54,48 @@ class ConfigViewModel(
     var downloadedApk: File? = null
         private set
 
+    /**
+     * The update found by the launch check, until the user answers. Kept apart
+     * from [updateState] so pressing "Проверить обновления" inside Настройки
+     * never raises a dialog over the screen the user is already looking at.
+     */
+    private val _launchUpdate = MutableStateFlow<AppUpdate?>(null)
+    val launchUpdate: StateFlow<AppUpdate?> = _launchUpdate.asStateFlow()
+
     init {
         refreshPlayers()
+        checkOnLaunch()
+    }
+
+    /**
+     * Silent by construction. On any failure — and on no network at all — this
+     * leaves the state at Idle, so nothing appears on screen and the manual
+     * button in Настройки still behaves exactly as before.
+     */
+    private fun checkOnLaunch() {
+        viewModelScope.launch {
+            val found = updates.checkQuietly() ?: return@launch
+            // Asked once per release: "Позже" on 0.6.7 must not re-ask every
+            // launch, but a later 0.6.8 must still get through.
+            if (!found.shouldPrompt(settings.dismissedUpdate())) return@launch
+            _updateState.value = UpdateState.Available(found)
+            _launchUpdate.value = found
+        }
+    }
+
+    /** "Позже" — remembered, so the prompt does not return for this release. */
+    fun dismissLaunchUpdate() {
+        val code = _launchUpdate.value?.versionCode ?: return
+        _launchUpdate.value = null
+        viewModelScope.launch { settings.setDismissedUpdate(code) }
+    }
+
+    /**
+     * "Обновить" — closes the prompt without recording a dismissal, because the
+     * user is being sent to Настройки to finish the job, not declining it.
+     */
+    fun acceptLaunchUpdate() {
+        _launchUpdate.value = null
     }
 
     fun checkForUpdate() {

@@ -16,6 +16,16 @@ data class AppUpdate(
      */
     fun isNewerThan(current: AppVersion): Boolean = versionCode > current.code
 
+    /**
+     * Whether the launch prompt should be raised, given the versionCode the
+     * user last answered "Позже" to (0 on a fresh install).
+     *
+     * Strictly greater, so declining a release suppresses that release only —
+     * the next one still gets through. Compared by code for the same reason
+     * [isNewerThan] is.
+     */
+    fun shouldPrompt(dismissedVersionCode: Int): Boolean = versionCode > dismissedVersionCode
+
     val sizeLabel: String
         get() = if (sizeBytes <= 0) "" else "%.1f МБ".format(sizeBytes / 1048576.0)
 }
