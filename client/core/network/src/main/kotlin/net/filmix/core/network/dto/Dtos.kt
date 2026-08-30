@@ -97,6 +97,21 @@ data class PostDto(
     @SerialName("player_links") val playerLinks: PlayerLinksDto? = null,
 )
 
+/**
+ * The reply to a cast vote: the new totals for the title.
+ *
+ * Both fields are nullable on purpose. A rejected vote comes back without
+ * them — the reference app guards with `has("rate_p") && has("rate_n")` before
+ * touching its labels — and `NetworkFactory.json` coerces input values, so
+ * non-nullable `Int = 0` fields would turn a refusal into a believable
+ * "0 up, 0 down" and wipe the tally on screen.
+ */
+@Serializable
+data class RateDto(
+    @SerialName("rate_p") val ratePositive: Int? = null,
+    @SerialName("rate_n") val rateNegative: Int? = null,
+)
+
 @Serializable
 data class PersonRefDto(
     val id: Int = 0,

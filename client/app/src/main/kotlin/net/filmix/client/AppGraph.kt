@@ -14,11 +14,13 @@ import net.filmix.core.data.AuthRepository
 import net.filmix.core.data.CatalogRepository
 import net.filmix.core.data.LibraryRepository
 import net.filmix.core.data.PlaybackRepository
+import net.filmix.core.data.RatingRepository
 import net.filmix.core.data.ResumeStore
 import net.filmix.core.data.SessionState
 import net.filmix.core.data.SettingsStore
 import net.filmix.core.data.UpdateRepository
 import net.filmix.core.data.TokenStore
+import net.filmix.core.data.VoteStore
 import net.filmix.core.network.DeviceParams
 import net.filmix.core.network.FilmixApi
 import net.filmix.core.model.AppVersion
@@ -95,6 +97,8 @@ class AppGraph private constructor(context: Context) {
 
     val libraryRepository = LibraryRepository(api, tokenStore)
 
+    val ratingRepository = RatingRepository(api, VoteStore(appContext))
+
     val updateRepository = UpdateRepository(appContext, version)
 
     /** Handed to ConfigViewModel so :feature:config never sees PackageManager. */
@@ -142,7 +146,12 @@ class GraphViewModelFactory(private val graph: AppGraph) : ViewModelProvider.Fac
             CatalogViewModel(graph.catalogRepository, graph.settingsStore) as T
 
         modelClass.isAssignableFrom(DetailViewModel::class.java) ->
-            DetailViewModel(graph.catalogRepository, graph.libraryRepository, graph.resumeStore) as T
+            DetailViewModel(
+                graph.catalogRepository,
+                graph.libraryRepository,
+                graph.ratingRepository,
+                graph.resumeStore,
+            ) as T
 
         modelClass.isAssignableFrom(HomeViewModel::class.java) ->
             HomeViewModel(graph.catalogRepository) as T

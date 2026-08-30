@@ -147,6 +147,7 @@ private fun FilmixApp(graph: AppGraph) {
             },
             onToggleFavourite = detailVm::toggleFavourite,
             onToggleWatchLater = detailVm::toggleWatchLater,
+            onVote = detailVm::vote,
             selection = selection,
             progress = detailProgress,
             onSelectSeason = detailVm::selectSeason,

@@ -7,6 +7,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,8 +28,13 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.ThumbDown
+import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.outlined.ThumbDown
+import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -65,6 +72,8 @@ import net.filmix.core.designsystem.theme.LocalDimensions
 import net.filmix.core.designsystem.theme.LocalIsTv
 import net.filmix.core.designsystem.theme.ImdbGold
 import net.filmix.core.designsystem.theme.KinopoiskOrange
+import net.filmix.core.designsystem.theme.VoteDown
+import net.filmix.core.designsystem.theme.VoteUp
 import net.filmix.core.model.Comment
 import net.filmix.core.model.CommentThread
 import net.filmix.core.model.ParsedTranslation
@@ -73,13 +82,23 @@ import net.filmix.core.model.Post
 import net.filmix.core.model.SeriesProgress
 import net.filmix.core.model.StreamLink
 import net.filmix.core.model.VideoSource
+import net.filmix.core.model.Vote
+import net.filmix.core.model.VoteTally
 import net.filmix.core.model.WatchProgress
 
 data class DetailUiState(
     val post: Post? = null,
     val loading: Boolean = true,
     val error: String? = null,
-)
+    /**
+     * How this device voted. Never comes from the API — no endpoint reports
+     * it — so it is read from the local store when the post loads.
+     */
+    val ownVote: Vote? = null,
+) {
+    val tally: VoteTally?
+        get() = post?.let { VoteTally(it.ratePositive, it.rateNegative, ownVote) }
+}
 
 /**
  * Failed and Loaded(empty) are distinct on purpose: a dead request and a
@@ -102,6 +121,7 @@ fun DetailScreen(
     onRelatedClick: (Post) -> Unit = {},
     onToggleFavourite: () -> Unit = {},
     onToggleWatchLater: () -> Unit = {},
+    onVote: (Vote) -> Unit = {},
     selection: EpisodeSelection = EpisodeSelection(),
     progress: Map<String, WatchProgress> = emptyMap(),
     onSelectSeason: (String) -> Unit = {},
@@ -126,6 +146,8 @@ fun DetailScreen(
                 onRelatedClick,
                 onToggleFavourite,
                 onToggleWatchLater,
+                state.ownVote,
+                onVote,
                 selection,
                 progress,
                 onSelectSeason,
@@ -161,6 +183,8 @@ private fun Content(
     onRelatedClick: (Post) -> Unit,
     onToggleFavourite: () -> Unit,
     onToggleWatchLater: () -> Unit,
+    ownVote: Vote?,
+    onVote: (Vote) -> Unit,
     selection: EpisodeSelection,
     progress: Map<String, WatchProgress>,
     onSelectSeason: (String) -> Unit,
@@ -185,6 +209,8 @@ private fun Content(
                 onPlay = onPlay,
                 onToggleFavourite = onToggleFavourite,
                 onToggleWatchLater = onToggleWatchLater,
+                tally = VoteTally(post.ratePositive, post.rateNegative, ownVote),
+                onVote = onVote,
                 // A series has no single "play" source; the CTA continues the
                 // episode the user is on — or starts the next, or the first.
                 currentEpisode = watch?.current,
@@ -322,6 +348,7 @@ private fun Content(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Backdrop(
     post: Post,
@@ -329,6 +356,8 @@ private fun Backdrop(
     onPlay: (VideoSource) -> Unit,
     onToggleFavourite: () -> Unit,
     onToggleWatchLater: () -> Unit,
+    tally: VoteTally,
+    onVote: (Vote) -> Unit,
     currentEpisode: Episode?,
     continueWatching: Boolean,
     onPlayEpisode: (Episode) -> Unit,
@@ -404,10 +433,20 @@ private fun Backdrop(
                     post.imdbRating?.takeIf { it.isNotEmpty() && it != "0" }
                         ?.let { MetaChip("IMDb $it", accent = ImdbGold) }
                 }
-                Row(
+                // Wraps rather than a Row: play + favourite + watch-later + two
+                // thumbs and their counts measure past 400dp, and a Row hands
+                // whatever overruns its width a zero-width constraint — on a
+                // compact phone the dislike button vanished and could not be
+                // tapped. The Column above measures this one at its natural
+                // height (the weighted ChipRow takes what is left), so a second
+                // line costs chips, not the actions.
+                // No itemVerticalAlignment on this Compose version, so each
+                // child centres itself against the taller play button.
+                FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
+                    val centred = Modifier.align(Alignment.CenterVertically)
                     val best = post.sources.firstOrNull()
                     if (best != null || currentEpisode != null) {
                         // On a remote the screen opens with focus on the back
@@ -429,7 +468,7 @@ private fun Backdrop(
                                     currentEpisode != null -> onPlayEpisode(currentEpisode)
                                 }
                             },
-                            modifier = Modifier.focusRequester(playFocus),
+                            modifier = centred.focusRequester(playFocus),
                         ) {
                             Icon(Icons.Filled.PlayArrow, contentDescription = null)
                             Text(
@@ -442,21 +481,77 @@ private fun Backdrop(
                             )
                         }
                     }
-                    FilledTonalIconButton(onClick = onToggleFavourite) {
+                    FilledTonalIconButton(onClick = onToggleFavourite, modifier = centred) {
                         Icon(
                             if (post.favorited) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                             contentDescription = "В избранное",
                         )
                     }
-                    FilledTonalIconButton(onClick = onToggleWatchLater) {
+                    FilledTonalIconButton(onClick = onToggleWatchLater, modifier = centred) {
                         Icon(
                             if (post.watchLater) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
                             contentDescription = "Смотреть позже",
                         )
                     }
+                    VoteButton(Vote.Up, tally, onVote, centred)
+                    VoteButton(Vote.Down, tally, onVote, centred)
                 }
             }
         }
+    }
+}
+
+/**
+ * One thumb and its count.
+ *
+ * The count sits beside the button rather than inside it so the thumbs stay
+ * the same round shape as favourite and watch-later, and so the row keeps four
+ * plain D-pad stops — the labels are not focusable.
+ *
+ * Once this device has voted that way the container fills with the original
+ * app's like/dislike colour, which swallows the accent focus ring; `ringColor`
+ * is what puts a visible ring back on it at three metres.
+ */
+@Composable
+private fun VoteButton(
+    vote: Vote,
+    tally: VoteTally,
+    onVote: (Vote) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val chosen = tally.own == vote
+    val accent = if (vote == Vote.Up) VoteUp else VoteDown
+    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        FilledTonalIconButton(
+            onClick = { onVote(vote) },
+            // null keeps the wrapper's own tonal default, which is what an
+            // unchosen thumb wants.
+            colors = if (!chosen) {
+                null
+            } else {
+                IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = accent,
+                    contentColor = Color.White,
+                )
+            },
+            ringColor = if (chosen) Color.White else null,
+        ) {
+            Icon(
+                when {
+                    vote == Vote.Up && chosen -> Icons.Filled.ThumbUp
+                    vote == Vote.Up -> Icons.Outlined.ThumbUp
+                    chosen -> Icons.Filled.ThumbDown
+                    else -> Icons.Outlined.ThumbDown
+                },
+                contentDescription = if (vote == Vote.Up) "Нравится" else "Не нравится",
+            )
+        }
+        Text(
+            text = (if (vote == Vote.Up) tally.positive else tally.negative).toString(),
+            style = MaterialTheme.typography.labelLarge,
+            color = if (chosen) accent else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 6.dp),
+        )
     }
 }
 
@@ -516,7 +611,10 @@ private fun Section(
         Box(Modifier.padding(horizontal = gutter)) { SectionTitle(title) }
         Spacer(Modifier.height(12.dp))
         if (padContent) {
-            Box(Modifier.padding(horizontal = gutter)) { content() }
+            // A Column, not a Box: content that emits siblings must keep
+            // stacking the way it did when this padding lived on the outer
+            // Column, rather than piling up on top of each other.
+            Column(Modifier.padding(horizontal = gutter)) { content() }
         } else {
             content()
         }

@@ -4,6 +4,7 @@ import net.filmix.core.network.dto.CommentDto
 import net.filmix.core.network.dto.FilterListDto
 import net.filmix.core.network.dto.NotificationDto
 import net.filmix.core.network.dto.PostDto
+import net.filmix.core.network.dto.RateDto
 import net.filmix.core.network.dto.ServerListDto
 import net.filmix.core.network.dto.TokenRequestDto
 import net.filmix.core.network.dto.UserProfileDto
@@ -91,6 +92,25 @@ interface FilmixApi {
         @Field("quality") quality: Int = 0,
         @Field("add_watched") addWatched: Boolean = true,
     ): retrofit2.Response<Unit>
+
+    /**
+     * Casts an up (`+`) or down (`-`) vote on a title and answers with the new
+     * totals — unlike the toggles, which report success and nothing else, so
+     * the caller should adopt these counts rather than guess.
+     *
+     * Form-encoded POST, like `add_watched`: the reference app routes it
+     * through the same POST helper (`fq.w8UglNnmkNjtIbBL`). The `+` must reach
+     * the server percent-encoded; a raw plus in a form body decodes as a space
+     * and the vote reads as neither direction.
+     *
+     * A refused vote answers without `rate_p`/`rate_n` — see [RateDto].
+     */
+    @FormUrlEncoded
+    @POST("api/v2/post/rate")
+    suspend fun ratePost(
+        @Field("id") id: Int,
+        @Field("vote") vote: String,
+    ): RateDto
 
     @GET("api/v2/search")
     suspend fun search(
