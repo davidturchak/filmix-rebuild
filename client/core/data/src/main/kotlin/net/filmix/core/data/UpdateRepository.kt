@@ -67,11 +67,10 @@ class UpdateRepository(
      * network is up — OkHttp's default 10s read timeout would otherwise leave
      * the request hanging long after the user had started browsing.
      */
-    suspend fun checkQuietly(): AppUpdate? = withContext(Dispatchers.IO) {
+    suspend fun checkQuietly(): AppUpdate? =
         runCatching { check(quick = true) }
             .onFailure { Log.d(TAG, "launch update check skipped: ${it.message}") }
             .getOrNull()
-    }
 
     /**
      * Downloads the APK, emitting progress. The file is verified against the
@@ -117,7 +116,7 @@ class UpdateRepository(
     }.flowOn(Dispatchers.IO)
 
     private suspend fun <T> withIo(block: () -> T): T =
-        kotlinx.coroutines.withContext(Dispatchers.IO) {
+        withContext(Dispatchers.IO) {
             runCatching(block).onFailure { Log.w(TAG, "update check failed", it) }.getOrThrow()
         }
 

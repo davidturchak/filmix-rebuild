@@ -108,6 +108,18 @@ private fun FilmixApp(graph: AppGraph) {
     // so does switching tabs.
     val tabState = rememberSaveableStateHolder()
 
+    // Built here rather than inside the Настройки branch: its init runs the
+    // silent launch check, and a ViewModel constructed only when that screen
+    // first composes would never check on a device nobody opens it on — which
+    // is the whole reason the launch check exists. The store owner is the
+    // activity either way, so Настройки gets this same instance.
+    //
+    // Above the detail and player branches, too: those return early, and a
+    // process killed on a detail screen restores straight back into one — the
+    // session that most needs the check would otherwise never run it. Only the
+    // prompt waits below, so nothing is raised over playback.
+    val configVm: ConfigViewModel = viewModel(factory = factory)
+
     val active = playing
     if (active != null) {
         PlaybackHost(
@@ -177,12 +189,6 @@ private fun FilmixApp(graph: AppGraph) {
         railFocusTick++
     }
 
-    // Built here rather than inside the Настройки branch: its init runs the
-    // silent launch check, and a ViewModel constructed only when that screen
-    // first composes would never check on a device nobody opens it on — which
-    // is the whole reason the launch check exists. The store owner is the
-    // activity either way, so Настройки gets this same instance.
-    val configVm: ConfigViewModel = viewModel(factory = factory)
     val launchUpdate by configVm.launchUpdate.collectAsState()
 
     launchUpdate?.let { update ->

@@ -8,10 +8,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import net.filmix.core.designsystem.component.PrimaryButton
 import net.filmix.core.designsystem.component.TextButton
 import net.filmix.core.model.AppUpdate
@@ -33,11 +35,28 @@ fun UpdatePrompt(
     val accept = remember { FocusRequester() }
     // A dialog arrives with nothing focused, and on a remote that reads as a
     // frozen screen: no cursor, and BACK the only key that does anything.
-    LaunchedEffect(update.versionCode) { accept.requestFocus() }
+    //
+    // The button lives in the dialog's own window, which is composed and laid
+    // out after this effect first runs, so a single unguarded requestFocus is
+    // the two failure modes this exists to avoid: it throws "FocusRequester is
+    // not initialized" — on the launch path, so the app dies on start for
+    // everyone a release is offered to — or it no-ops and leaves the dialog
+    // with no cursor. Retry per frame and never crash over it, the same way
+    // the detail screen claims focus for its play button.
+    LaunchedEffect(update.versionCode) {
+        repeat(FocusAttempts) {
+            withFrameNanos { }
+            if (runCatching { accept.requestFocus() }.isSuccess) return@LaunchedEffect
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         modifier = modifier,
+        // BACK still closes it — on a remote that is how "not now" is said —
+        // but a stray tap on the scrim must not count as "Позже", because that
+        // answer is remembered and would silently bury the release for good.
+        properties = DialogProperties(dismissOnClickOutside = false),
         title = { Text("Доступна версия ${update.versionName}") },
         text = {
             Column {
@@ -64,3 +83,6 @@ fun UpdatePrompt(
         },
     )
 }
+
+/** Frames to keep trying for, before leaving the dialog unfocused. */
+private const val FocusAttempts = 8

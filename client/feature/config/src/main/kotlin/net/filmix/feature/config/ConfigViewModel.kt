@@ -78,6 +78,12 @@ class ConfigViewModel(
             // Asked once per release: "Позже" on 0.6.7 must not re-ask every
             // launch, but a later 0.6.8 must still get through.
             if (!found.shouldPrompt(settings.dismissedUpdate())) return@launch
+            // Only while the user has started nothing of their own. This lands
+            // up to several seconds after launch, by which time someone can
+            // already be on Настройки with a check of their own — replacing
+            // their Failed/Checking/Downloading state, and raising a modal over
+            // the screen they are looking at, is not this check's business.
+            if (_updateState.value != UpdateState.Idle) return@launch
             _updateState.value = UpdateState.Available(found)
             _launchUpdate.value = found
         }
