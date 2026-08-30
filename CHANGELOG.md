@@ -7,6 +7,9 @@ the version and build number once the build tells it what they are.
 The app shows every entry newer than the installed version when it offers an
 update, so write for the person watching, not for the commit log.
 
+## Unreleased
+- Технический выпуск: нужен, чтобы проверить обновление на телевизоре. Функциональных изменений нет.
+
 ## 0.6.9 (87)
 - Кнопки обновления больше не теряют фокус: после нажатия курсор остаётся на них, а не уходит на боковое меню.
 
