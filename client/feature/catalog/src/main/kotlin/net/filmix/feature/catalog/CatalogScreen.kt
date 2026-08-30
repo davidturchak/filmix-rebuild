@@ -170,9 +170,13 @@ private fun SortBar(
     onOpenFilters: () -> Unit,
 ) {
     Row(
+        // The gutter goes *inside* the scrollable (like Rail's contentPadding):
+        // a scroll container clips at its own bounds, so padding outside it
+        // would slice the first chip's focus ring off at the left edge.
         Modifier
-            .padding(horizontal = LocalDimensions.current.gutter, vertical = 12.dp)
-            .horizontalScroll(rememberScrollState()),
+            .padding(vertical = 12.dp)
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = LocalDimensions.current.gutter),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

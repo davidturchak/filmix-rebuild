@@ -195,11 +195,14 @@ private fun Content(
 
         if (!post.playlist.isEmpty) {
             item("episodes") {
-                Section("Серии") {
+                Section("Серии", padContent = false) {
                     EpisodePicker(
                         playlist = post.playlist,
                         selection = selection,
                         watch = watch,
+                        contentPadding = PaddingValues(
+                            horizontal = LocalDimensions.current.gutter,
+                        ),
                         onSelectSeason = onSelectSeason,
                         onSelectTranslation = onSelectTranslation,
                         onPlayEpisode = onPlayEpisode,
@@ -498,11 +501,25 @@ private fun SourceRow(source: VideoSource, onClick: () -> Unit) {
 }
 
 @Composable
-private fun Section(title: String, content: @Composable () -> Unit) {
-    Column(Modifier.padding(horizontal = LocalDimensions.current.gutter)) {
-        SectionTitle(title)
+private fun Section(
+    title: String,
+    /**
+     * The episodes section opts out: its chip rows scroll, and a scroll
+     * container clips the focus ring at its own bounds — so they span
+     * full-bleed and re-apply the gutter as content padding themselves.
+     */
+    padContent: Boolean = true,
+    content: @Composable () -> Unit,
+) {
+    val gutter = LocalDimensions.current.gutter
+    Column {
+        Box(Modifier.padding(horizontal = gutter)) { SectionTitle(title) }
         Spacer(Modifier.height(12.dp))
-        content()
+        if (padContent) {
+            Box(Modifier.padding(horizontal = gutter)) { content() }
+        } else {
+            content()
+        }
     }
 }
 

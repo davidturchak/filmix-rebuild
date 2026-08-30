@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -68,6 +69,12 @@ fun EpisodePicker(
     selection: EpisodeSelection,
     modifier: Modifier = Modifier,
     watch: SeasonWatch? = null,
+    /**
+     * Screen gutter, applied per row rather than around the whole picker: the
+     * chip rows scroll, and a scroll container clips the focus ring at its own
+     * bounds, so they must span full-bleed and carry the gutter inside.
+     */
+    contentPadding: PaddingValues = PaddingValues(0.dp),
     onSelectSeason: (String) -> Unit = {},
     onSelectTranslation: (String) -> Unit = {},
     onPlayEpisode: (Episode) -> Unit = {},
@@ -77,7 +84,7 @@ fun EpisodePicker(
 
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         if (playlist.seasons.size > 1) {
-            PickerRow(label = "Сезон") {
+            PickerRow(label = "Сезон", contentPadding = contentPadding) {
                 playlist.seasons.forEach { option ->
                     FocusChip(
                         selected = option.number == season.number,
@@ -89,7 +96,7 @@ fun EpisodePicker(
         }
 
         if (season.translations.size > 1) {
-            PickerRow(label = "Озвучка") {
+            PickerRow(label = "Озвучка", contentPadding = contentPadding) {
                 season.translations.forEach { option ->
                     FocusChip(
                         selected = option.name == translation.name,
@@ -100,7 +107,11 @@ fun EpisodePicker(
             }
         }
 
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            // Not a scroll container, so the gutter can wrap it whole.
+            modifier = Modifier.padding(contentPadding),
+        ) {
             Text(
                 "${translation.episodes.size} серий",
                 style = MaterialTheme.typography.labelSmall,
@@ -160,14 +171,22 @@ fun EpisodePicker(
 }
 
 @Composable
-private fun PickerRow(label: String, content: @Composable () -> Unit) {
+private fun PickerRow(
+    label: String,
+    contentPadding: PaddingValues,
+    content: @Composable () -> Unit,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
             label,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(contentPadding),
         )
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = contentPadding,
+        ) {
             item { Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { content() } }
         }
     }
