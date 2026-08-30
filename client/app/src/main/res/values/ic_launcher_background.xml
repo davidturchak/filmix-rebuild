@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- The original app's launcher orange, so the icon reads as the same family. -->
-    <color name="ic_launcher_background">#FFF26739</color>
+    <!-- The adaptive icon draws its background from @mipmap/ic_launcher_background,
+         a bitmap, because the ground is a gradient the wordmark sits on rather than
+         a flat fill. This colour is the same dark base, kept for anything that needs
+         a single value to fall back to. -->
+    <color name="ic_launcher_background">#FF14151A</color>
 </resources>
