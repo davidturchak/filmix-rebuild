@@ -10,6 +10,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import net.filmix.core.model.AppUpdate
 import net.filmix.core.model.AppVersion
+import net.filmix.core.model.ReleaseNote
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
@@ -136,6 +137,25 @@ sealed interface DownloadProgress {
 }
 
 @kotlinx.serialization.Serializable
+private data class ReleaseNoteDto(
+    val versionCode: Int = 0,
+    val versionName: String = "",
+    val notes: List<String> = emptyList(),
+) {
+    fun toDomain() = ReleaseNote(
+        versionCode = versionCode,
+        versionName = versionName,
+        notes = notes,
+    )
+}
+
+/**
+ * Every field defaults, and the parser ignores unknown keys, so the manifest can
+ * gain fields without stranding installs that predate them. The reverse must
+ * hold too: never change an existing key's type — turning [notes] into an array
+ * would fail to parse on every client already in the field.
+ */
+@kotlinx.serialization.Serializable
 private data class ManifestDto(
     val versionCode: Int = 0,
     val versionName: String = "",
@@ -144,6 +164,7 @@ private data class ManifestDto(
     val sizeBytes: Long = 0,
     val sha256: String = "",
     val notes: String = "",
+    val changelog: List<ReleaseNoteDto> = emptyList(),
 ) {
     fun toDomain() = AppUpdate(
         versionCode = versionCode,
@@ -153,5 +174,6 @@ private data class ManifestDto(
         sizeBytes = sizeBytes,
         sha256 = sha256,
         notes = notes,
+        changelog = changelog.map { it.toDomain() },
     )
 }

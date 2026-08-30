@@ -1,5 +1,12 @@
 package net.filmix.core.model
 
+/** One release's notes, as authored in CHANGELOG.md. */
+data class ReleaseNote(
+    val versionCode: Int,
+    val versionName: String,
+    val notes: List<String>,
+)
+
 /** A published release, as described by BUILD/latest.json. */
 data class AppUpdate(
     val versionCode: Int,
@@ -9,6 +16,11 @@ data class AppUpdate(
     val sizeBytes: Long,
     val sha256: String,
     val notes: String,
+    /**
+     * Every release the manifest still carries, not only this one. Defaulted so
+     * a manifest written before this existed still parses.
+     */
+    val changelog: List<ReleaseNote> = emptyList(),
 ) {
     /**
      * Compared by versionCode, never by name: names repeat during development
@@ -25,6 +37,35 @@ data class AppUpdate(
      * [isNewerThan] is.
      */
     fun shouldPrompt(dismissedVersionCode: Int): Boolean = versionCode > dismissedVersionCode
+
+    /**
+     * What the user has missed: every release newer than the one installed,
+     * newest first.
+     *
+     * A device can sit several versions behind — the whole reason the launch
+     * check exists — and showing only the newest release's notes hides what the
+     * ones in between fixed.
+     *
+     * Falls back to a single entry built from [notes] when the manifest carries
+     * no changelog, so a new client reading an old manifest still says
+     * something rather than nothing. Filtered by code, never by name, for the
+     * reason [isNewerThan] gives.
+     */
+    fun changesSince(current: AppVersion): List<ReleaseNote> = changesSince(current.code)
+
+    /** As above, for the call sites that hold only the code. */
+    fun changesSince(currentCode: Int): List<ReleaseNote> {
+        if (changelog.isEmpty()) {
+            return if (notes.isBlank()) {
+                emptyList()
+            } else {
+                listOf(ReleaseNote(versionCode, versionName, listOf(notes)))
+            }
+        }
+        return changelog
+            .filter { it.versionCode > currentCode }
+            .sortedByDescending { it.versionCode }
+    }
 
     val sizeLabel: String
         get() = if (sizeBytes <= 0) "" else "%.1f МБ".format(sizeBytes / 1048576.0)

@@ -1,6 +1,7 @@
 package net.filmix.feature.config
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -8,6 +9,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -17,6 +20,7 @@ import androidx.compose.ui.window.DialogProperties
 import net.filmix.core.designsystem.component.PrimaryButton
 import net.filmix.core.designsystem.component.TextButton
 import net.filmix.core.model.AppUpdate
+import net.filmix.core.model.AppVersion
 
 /**
  * Raised over whatever is on screen when the launch check finds a release.
@@ -28,6 +32,7 @@ import net.filmix.core.model.AppUpdate
 @Composable
 fun UpdatePrompt(
     update: AppUpdate,
+    installed: AppVersion,
     onAccept: () -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
@@ -60,17 +65,24 @@ fun UpdatePrompt(
         title = { Text("Доступна версия ${update.versionName}") },
         text = {
             Column {
-                if (update.notes.isNotBlank()) {
-                    Text(update.notes, style = MaterialTheme.typography.bodyMedium)
-                }
-                if (update.sizeLabel.isNotEmpty()) {
-                    Text(
-                        update.sizeLabel,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 8.dp),
-                    )
-                }
+                Text(
+                    listOfNotNull(
+                        "У вас ${installed.name}",
+                        update.sizeLabel.takeIf { it.isNotEmpty() },
+                    ).joinToString(" · "),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                // Bounded and scrollable: a device several versions behind gets
+                // several entries, and the dialog must not push its own buttons
+                // off the screen.
+                ChangelogList(
+                    entries = update.changesSince(installed),
+                    modifier = Modifier
+                        .heightIn(max = 220.dp)
+                        .verticalScroll(rememberScrollState())
+                        .padding(top = 12.dp),
+                )
             }
         },
         confirmButton = {

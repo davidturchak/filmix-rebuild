@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import net.filmix.core.designsystem.component.PrimaryButton
 import net.filmix.core.designsystem.component.TextButton
+import net.filmix.core.model.AppVersion
 import net.filmix.core.model.UpdateState
 
 /**
@@ -25,6 +26,7 @@ import net.filmix.core.model.UpdateState
 @Composable
 fun UpdateSection(
     state: UpdateState,
+    installed: AppVersion?,
     modifier: Modifier = Modifier,
     onCheck: () -> Unit = {},
     onDownload: () -> Unit = {},
@@ -68,14 +70,10 @@ fun UpdateSection(
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
-                if (state.update.notes.isNotEmpty()) {
-                    Text(
-                        state.update.notes,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                    )
-                }
+                // Left-aligned, unlike the rest of the card: centred text reads
+                // badly as a bulleted list. ConfigScreen already scrolls, so a
+                // tall card here needs no bound of its own.
+                ChangelogList(entries = state.update.changesSince(installed?.code ?: 0))
                 if (!canInstall) {
                     Text(
                         "Разрешите установку приложений из этого источника.",

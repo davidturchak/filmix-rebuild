@@ -194,6 +194,7 @@ private fun FilmixApp(graph: AppGraph) {
     launchUpdate?.let { update ->
         UpdatePrompt(
             update = update,
+            installed = configVm.version,
             onAccept = {
                 configVm.acceptLaunchUpdate()
                 // The download, the install-permission prompt and the installer

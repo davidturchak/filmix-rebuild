@@ -94,18 +94,36 @@ be backed up and restored. **Ask before uninstalling.**
 
 ## Releasing
 
+Release notes live in `CHANGELOG.md`, not on the command line. Write the
+bullets under `## Unreleased` and commit them first; `release.sh` refuses to
+build without them, and `scripts/changelog.py` stamps the heading with the
+version and build number once the build reports what they are.
+
 ```bash
-client/scripts/release.sh -n "what changed"
+# 1. bump appVersionName in client/app/build.gradle.kts
+# 2. write bullets under "## Unreleased" in CHANGELOG.md
+# 3. commit both
+client/scripts/release.sh
+# 4. commit CHANGELOG.md (now stamped) together with BUILD/
 ```
 
 Builds a signed release, copies it to `BUILD/`, and writes `latest.json`
-(versionCode, versionName, commit, apkUrl, sha256, notes). It refuses to run on
-a dirty tree, because a release must be reproducible from a commit. Bump
-`appVersionName` in `client/app/build.gradle.kts` first; versionCode comes from
-the git commit count automatically.
+(versionCode, versionName, commit, apkUrl, sha256, notes, changelog). It
+refuses to run on a dirty tree, because a release must be reproducible from a
+commit. versionCode comes from the git commit count automatically.
+
+`latest.json` is read by **every version ever released**, and a client that
+cannot parse it can never update itself again. So add keys, never change one:
+`notes` in particular must stay a string, because turning it into an array
+throws on every install in the field. `ManifestContractTest` in `:core:data`
+pins this against a copy of the old DTO — it fails loudly if you try.
 
 Then commit `BUILD/` and push — the updater fetches `latest.json` from
-raw.githubusercontent.com, so **a release is not live until pushed**.
+raw.githubusercontent.com, so **a release is not live until pushed**. Pushed is
+not the same as served: that URL is cached `max-age=300`, so for up to five
+minutes the app still sees the previous release and honestly reports
+«Установлена последняя версия». Check `curl -sSI … | grep source-age` before
+suspecting the app.
 
 **`client/keystore/` is gitignored and irreplaceable.** Lose it and no existing
 install can ever be updated in place again; every user has to uninstall and
@@ -307,7 +325,12 @@ are indistinguishable unless the state says which.
 
 ## Conventions
 
-Russian is the base locale (`values/`), Ukrainian is a full translation
-(`values-uk`). Never introduce an English default. Keep both in step.
+All UI text is Russian. **Never introduce an English default.**
+
+It lives as inline literals in the Kotlin, not in `strings.xml` — the only
+`strings.xml` holds the 14 nav labels, and no feature module has a `res/`
+directory. (`values-uk` belongs to the *original* decompiled APK, not this
+client; there is nothing to keep in step.) Follow the neighbouring call sites
+rather than introducing resources for one screen.
 
 DI is a hand-rolled `AppGraph`, not Hilt. Dark theme only.

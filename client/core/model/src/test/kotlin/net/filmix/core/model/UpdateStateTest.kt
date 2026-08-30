@@ -1,5 +1,6 @@
 package net.filmix.core.model
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -42,6 +43,56 @@ class UpdateStateTest {
     @Test
     fun `a fresh install has declined nothing`() {
         assertTrue(update.shouldPrompt(dismissedVersionCode = 0))
+    }
+
+    private fun installed(code: Int) = AppVersion(
+        name = "0.6.4", code = code, gitSha = "abc", gitDirty = false, debug = false,
+    )
+
+    private val withHistory = update.copy(
+        changelog = listOf(
+            ReleaseNote(77, "0.6.5", listOf("Значок в лаунчере")),
+            ReleaseNote(83, "0.6.7", listOf("Проверка при запуске", "И ещё")),
+            ReleaseNote(79, "0.6.6", listOf("Кнопка проверки")),
+        ),
+    )
+
+    @Test
+    fun `a device several versions behind sees every release it missed`() {
+        // The case the launch check exists for: 0.6.4 offered 0.6.7 must hear
+        // about 0.6.5 and 0.6.6 too, newest first.
+        val shown = withHistory.changesSince(installed(75))
+        assertEquals(listOf("0.6.7", "0.6.6", "0.6.5"), shown.map { it.versionName })
+        assertEquals(listOf("Проверка при запуске", "И ещё"), shown.first().notes)
+    }
+
+    @Test
+    fun `one version behind sees one release`() {
+        assertEquals(listOf("0.6.7"), withHistory.changesSince(installed(79)).map { it.versionName })
+    }
+
+    @Test
+    fun `nothing newer shows nothing`() {
+        assertEquals(emptyList<ReleaseNote>(), withHistory.changesSince(installed(83)))
+    }
+
+    @Test
+    fun `an old manifest without a changelog falls back to its notes`() {
+        // A new client can be pointed at a manifest published before the
+        // changelog existed; it must still say something rather than nothing.
+        val old = update.copy(notes = "Одна строка", changelog = emptyList())
+        val shown = old.changesSince(installed(75))
+        assertEquals(1, shown.size)
+        assertEquals(listOf("Одна строка"), shown.single().notes)
+        assertEquals("0.6.5", shown.single().versionName)
+    }
+
+    @Test
+    fun `an empty manifest shows nothing rather than a blank entry`() {
+        assertEquals(
+            emptyList<ReleaseNote>(),
+            update.copy(notes = "", changelog = emptyList()).changesSince(installed(75)),
+        )
     }
 
     @Test

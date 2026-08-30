@@ -56,6 +56,7 @@ fun ConfigScreen(
 
             UpdateSection(
                 state = updateState,
+                installed = version,
                 canInstall = canInstallUpdates,
                 onCheck = onCheckUpdate,
                 onDownload = onDownloadUpdate,
