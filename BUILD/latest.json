@@ -1,9 +1,151 @@
 {
-  "versionCode": 83,
-  "versionName": "0.6.7",
-  "commit": "4cf7798",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.7.apk",
+  "versionCode": 85,
+  "versionName": "0.6.8",
+  "commit": "49ef296",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.8.apk",
   "sizeBytes": 2987257,
-  "sha256": "df0f5684ab08f2ba2e25f0f7350c2f2adfecc90beea95568291da96ce2be3e50",
-  "notes": "\u041f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u0435 \u0441\u0430\u043c\u043e \u043f\u0440\u043e\u0432\u0435\u0440\u044f\u0435\u0442 \u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u044f \u043f\u0440\u0438 \u0437\u0430\u043f\u0443\u0441\u043a\u0435 \u0438 \u043f\u0440\u0435\u0434\u043b\u0430\u0433\u0430\u0435\u0442 \u0443\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u0442\u044c \u043d\u043e\u0432\u0443\u044e \u0432\u0435\u0440\u0441\u0438\u044e."
+  "sha256": "eee822bf2a727636088a30e819a40ffbab5588a5488b4c2ef4a52e863cb71159",
+  "notes": "Обновление показывает, что нового во всех версиях с момента вашей.",
+  "changelog": [
+    {
+      "versionCode": 85,
+      "versionName": "0.6.8",
+      "notes": [
+        "Обновление показывает, что нового во всех версиях с момента вашей."
+      ]
+    },
+    {
+      "versionCode": 83,
+      "versionName": "0.6.7",
+      "notes": [
+        "Приложение само проверяет обновления при запуске и предлагает установить новую версию."
+      ]
+    },
+    {
+      "versionCode": 79,
+      "versionName": "0.6.6",
+      "notes": [
+        "Кнопку «Проверить обновления» снова можно нажать после проверки."
+      ]
+    },
+    {
+      "versionCode": 77,
+      "versionName": "0.6.5",
+      "notes": [
+        "Плитка приложения теперь видна в лаунчере Android TV."
+      ]
+    },
+    {
+      "versionCode": 75,
+      "versionName": "0.6.4",
+      "notes": [
+        "Главный экран: возврат из фильма ставит фокус на ту же карточку, а верх экрана снова доступен."
+      ]
+    },
+    {
+      "versionCode": 73,
+      "versionName": "0.6.3",
+      "notes": [
+        "Лайк и дизлайк на странице фильма: счётчики голосов и свой голос запоминается."
+      ]
+    },
+    {
+      "versionCode": 71,
+      "versionName": "0.6.2",
+      "notes": [
+        "Рамка фокуса на первом чипе строк («Фильтры», выбор сезона и озвучки) больше не обрезается слева."
+      ]
+    },
+    {
+      "versionCode": 69,
+      "versionName": "0.6.1",
+      "notes": [
+        "Исправления по код-ревью: галочки серий совпадают между озвучками и не обещают «Продолжить» без сохранённой позиции, старые позиции просмотра переносятся на новый формат ключей, окно фильтров больше не прячет нижний ряд под панелью навигации."
+      ]
+    },
+    {
+      "versionCode": 67,
+      "versionName": "0.6.0",
+      "notes": [
+        "Сериалы: просмотренные серии отмечаются галочкой, текущая выделена и в фокусе, кнопка «Смотреть» продолжает с нужной серии, сезон выбирается автоматически. Позиции просмотра больше не теряются при обновлении ссылок."
+      ]
+    },
+    {
+      "versionCode": 65,
+      "versionName": "0.5.9",
+      "notes": [
+        "Окно фильтров в каталоге больше не двигается и не меняет размер: прокручивается только содержимое"
+      ]
+    },
+    {
+      "versionCode": 63,
+      "versionName": "0.5.8",
+      "notes": [
+        "Стабильность отзывов: устранены гонки загрузки и падения на некорректных данных"
+      ]
+    },
+    {
+      "versionCode": 61,
+      "versionName": "0.5.7",
+      "notes": [
+        "Кнопка «Свернуть» в отзывах снова доступна с пульта"
+      ]
+    },
+    {
+      "versionCode": 59,
+      "versionName": "0.5.6",
+      "notes": [
+        "Отзывы на странице фильма"
+      ]
+    },
+    {
+      "versionCode": 57,
+      "versionName": "0.5.5",
+      "notes": [
+        "Новый раздел Настройки: выбор видеоплеера (встроенный или внешний — MX Player, VLC), качество и обновления в одном месте. Исправлена история просмотров: просмотры снова попадают в историю и список обновляется сразу."
+      ]
+    },
+    {
+      "versionCode": 55,
+      "versionName": "0.5.4",
+      "notes": [
+        "Detail: the watch button can no longer be squeezed out by a long title and a wide chip row. Search: a spoken query's results stay on screen. Favourites and history: a network failure now offers a retry instead of asking you to sign in, and pairing survives a font-size change. Playback: the resume position is saved when you leave. Filters: resetting keeps the focus inside the sheet."
+      ]
+    },
+    {
+      "versionCode": 51,
+      "versionName": "0.5.3",
+      "notes": [
+        "Playback: volume and play/pause keys work again while the controls are hidden. Favourites: a failure loading «Смотреть позже» no longer hides the favourites that did load. Filters: choosing a country no longer moves the chip out from under the focus ring."
+      ]
+    },
+    {
+      "versionCode": 47,
+      "versionName": "0.5.2",
+      "notes": [
+        "Search: the clear button can be reached with the remote — right out of the text field, centre to clear. Press back first if the on-screen keyboard is up, since it owns the D-pad while open."
+      ]
+    },
+    {
+      "versionCode": 44,
+      "versionName": "0.5.1",
+      "notes": [
+        "Playback: the on-screen controls can be summoned again with any key on the remote — CENTRE, the D-pad or play/pause — including after they time out mid-film."
+      ]
+    },
+    {
+      "versionCode": 41,
+      "versionName": "0.5.0",
+      "notes": [
+        "Android TV: rail tabs select on focus with a visible ring, BACK returns to Home, lists come back where you left them, search reaches its results, focus visible on every button, country filter previews Россия/Израиль/США/Корея/Франция/Германия, and pairing now populates history and favourites without a restart."
+      ]
+    },
+    {
+      "versionCode": 27,
+      "versionName": "0.4.0",
+      "notes": [
+        "Android TV: D-pad focus, TV layout sizing, working voice search"
+      ]
+    }
+  ]
 }
