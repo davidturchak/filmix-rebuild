@@ -125,12 +125,92 @@ minutes the app still sees the previous release and honestly reports
 «Установлена последняя версия». Check `curl -sSI … | grep source-age` before
 suspecting the app.
 
+`BUILD/` keeps **only the current release** — `release.sh` deletes the previous
+APK, because each one is ~3MB of binary that would sit in git history forever.
+So a direct link to `filmix-ng-<version>.apk` 404s the moment you ship the next
+one. The stable thing to hand anybody is `latest.json`, which always names the
+current `apkUrl`.
+
 **`client/keystore/` is gitignored and irreplaceable.** Lose it and no existing
 install can ever be updated in place again; every user has to uninstall and
 re-pair. Back it up outside the repo.
 
 `git push` is denied by the user's settings. Do not burn attempts on it — ask
 them to run `! git push`.
+
+## Launcher icon and banner
+
+Four sets of artwork, all **generated** rather than hand-drawn:
+
+| | |
+|---|---|
+| `mipmap-*/ic_launcher_foreground.png` | adaptive foreground — 108/162/216/324/432 |
+| `mipmap-*/ic_launcher_background.png` | adaptive background — same sizes |
+| `mipmap-*/ic_launcher{,_round}.png` | legacy pre-API-26 — 48/72/96/144/192 |
+| `drawable-xhdpi/banner.png` | Leanback banner — 320x180 |
+
+Adaptive layers are **2.25x the legacy size** at every density.
+
+The palette is Filmix's own, read out of
+`filmix.gg/templates/Filmix/media/public/css/main.css` rather than guessed:
+`#F26739` primary (98 uses there, and the favicon's dominant colour), `#F05521`
+deep, on grounds `#292C33` / `#1A1B22`.
+
+**The adaptive background is a bitmap, not a colour.** It used to be
+`@color/ic_launcher_background`, a flat orange. The ground is now a gradient, so
+`ic_launcher.xml` points at `@mipmap/ic_launcher_background`. The colour
+resource still exists holding the dark base, but **nothing references it** —
+editing it changes nothing on screen, which is the wrong thing to discover
+halfway through debugging a tile.
+
+**The foreground must fit the 66/108dp safe circle**, or some launcher masks
+clip it and others do not. Fit it by measuring, not by eye: scan the alpha for
+the furthest opaque pixel from centre and scale so that radius lands on
+`(66/108)/2 x canvas`. A wordmark is far more exposed to this than a single
+glyph, being wider.
+
+Which artwork a TV actually shows depends on the launcher, and the two disagree:
+the **Leanback** launcher draws the banner and never the square icon, while
+**Google TV** — what the TCL runs — draws the adaptive icon. Both are declared,
+on the application *and* the activity. So "the tile is wrong on TV" does not
+tell you which file to edit; check which launcher you are looking at first.
+
+### Verifying icons actually shipped
+
+Release builds **shorten resource paths**: `res/mipmap-xxxhdpi/ic_launcher.png`
+becomes `res/Gx.png`. Grepping a release APK for the resource name finds nothing
+and proves nothing. Match on dimensions instead, then composite the two adaptive
+layers to see what a launcher will draw — the foreground is the mostly
+transparent one of the pair:
+
+```bash
+unzip -o -q BUILD/filmix-ng-*.apk 'res/*.png' -d /tmp/apkcheck
+# 432x432 appears twice (foreground + background); 320x180 is the banner
+```
+
+**Launchers cache icons hard.** After an update the old tile often persists
+until a reboot — that is the launcher, not a failed build. The banner tends to
+refresh before the square icon, so a new banner beside a stale icon is expected
+and is not evidence of a bad install.
+
+### Image tooling on this host
+
+There is no ImageMagick and no SVG renderer — no `convert`, `magick`,
+`rsvg-convert`, `inkscape`, `cairosvg`. **Pillow only**, so draw geometry
+directly and supersample about 4x for antialiasing. Fonts are DejaVu and Lato
+(`/usr/share/fonts/truetype/lato/`, Black through Hairline).
+
+To show the user a rendered image, POST it to the uploader running on this host
+and hand them the URL it answers with:
+
+```bash
+curl -sS -F "file=@icon.png" http://192.168.1.223:8080/upload
+# {"url":"https://files.ku4er.net/f/<id>.png"}
+```
+
+Render a contact sheet at real launcher sizes (96/72/48) before asking the user
+to judge a design. Type that reads at 512dp can be a smudge at 48px, and that is
+only visible if you actually render it.
 
 ## The API
 
