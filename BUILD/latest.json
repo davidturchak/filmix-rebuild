@@ -1,12 +1,20 @@
 {
-  "versionCode": 91,
-  "versionName": "0.6.11",
-  "commit": "c7b7351",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.11.apk",
-  "sizeBytes": 2987313,
-  "sha256": "d2f198e6249403f2387e8e06843dd2deaf475837a13e083eba401f3cfe885551",
-  "notes": "Значок приложения в лаунчере Android TV: плитка больше не остаётся пустой.",
+  "versionCode": 93,
+  "versionName": "0.6.12",
+  "commit": "6bfe6d4",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.12.apk",
+  "sizeBytes": 3035994,
+  "sha256": "259b0f33030b28d4bc96d39344d1a55124d7e93f04e3a1f3d7931fbc6301ef1c",
+  "notes": "Новый значок приложения: на плитке лаунчера теперь целиком написано «Filmix NG» — белым и фирменным оранжевым Filmix на тёмном фоне. Баннер на Android TV перерисован в том же стиле, чтобы плитка и баннер выглядели одинаково.",
   "changelog": [
+    {
+      "versionCode": 93,
+      "versionName": "0.6.12",
+      "notes": [
+        "Новый значок приложения: на плитке лаунчера теперь целиком написано «Filmix NG» — белым и фирменным оранжевым Filmix на тёмном фоне.",
+        "Баннер на Android TV перерисован в том же стиле, чтобы плитка и баннер выглядели одинаково."
+      ]
+    },
     {
       "versionCode": 91,
       "versionName": "0.6.11",
@@ -138,13 +146,6 @@
       "versionName": "0.5.3",
       "notes": [
         "Playback: volume and play/pause keys work again while the controls are hidden. Favourites: a failure loading «Смотреть позже» no longer hides the favourites that did load. Filters: choosing a country no longer moves the chip out from under the focus ring."
-      ]
-    },
-    {
-      "versionCode": 47,
-      "versionName": "0.5.2",
-      "notes": [
-        "Search: the clear button can be reached with the remote — right out of the text field, centre to clear. Press back first if the on-screen keyboard is up, since it owns the D-pad while open."
       ]
     }
   ]
