@@ -1,12 +1,19 @@
 {
-  "versionCode": 85,
-  "versionName": "0.6.8",
-  "commit": "49ef296",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.8.apk",
-  "sizeBytes": 2987257,
-  "sha256": "eee822bf2a727636088a30e819a40ffbab5588a5488b4c2ef4a52e863cb71159",
-  "notes": "Обновление показывает, что нового во всех версиях с момента вашей.",
+  "versionCode": 87,
+  "versionName": "0.6.9",
+  "commit": "37602ee",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.9.apk",
+  "sizeBytes": 2987313,
+  "sha256": "6a01cb4748cac31db9af94ad72b4b36346457dbef0d11315156a57d22bde7ab1",
+  "notes": "Кнопки обновления больше не теряют фокус: после нажатия курсор остаётся на них, а не уходит на боковое меню.",
   "changelog": [
+    {
+      "versionCode": 87,
+      "versionName": "0.6.9",
+      "notes": [
+        "Кнопки обновления больше не теряют фокус: после нажатия курсор остаётся на них, а не уходит на боковое меню."
+      ]
+    },
     {
       "versionCode": 85,
       "versionName": "0.6.8",
@@ -138,13 +145,6 @@
       "versionName": "0.5.0",
       "notes": [
         "Android TV: rail tabs select on focus with a visible ring, BACK returns to Home, lists come back where you left them, search reaches its results, focus visible on every button, country filter previews Россия/Израиль/США/Корея/Франция/Германия, and pairing now populates history and favourites without a restart."
-      ]
-    },
-    {
-      "versionCode": 27,
-      "versionName": "0.4.0",
-      "notes": [
-        "Android TV: D-pad focus, TV layout sizing, working voice search"
       ]
     }
   ]
