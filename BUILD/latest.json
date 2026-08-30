@@ -1,12 +1,19 @@
 {
-  "versionCode": 89,
-  "versionName": "0.6.10",
-  "commit": "ae7d912",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.10.apk",
-  "sizeBytes": 2987301,
-  "sha256": "a3a286641f2b06ab96b7ba5f9182b89271d5fbb399005da0e030c96c76e73468",
-  "notes": "Технический выпуск: нужен, чтобы проверить обновление на телевизоре. Функциональных изменений нет.",
+  "versionCode": 91,
+  "versionName": "0.6.11",
+  "commit": "c7b7351",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.11.apk",
+  "sizeBytes": 2987313,
+  "sha256": "d2f198e6249403f2387e8e06843dd2deaf475837a13e083eba401f3cfe885551",
+  "notes": "Значок приложения в лаунчере Android TV: плитка больше не остаётся пустой.",
   "changelog": [
+    {
+      "versionCode": 91,
+      "versionName": "0.6.11",
+      "notes": [
+        "Значок приложения в лаунчере Android TV: плитка больше не остаётся пустой."
+      ]
+    },
     {
       "versionCode": 89,
       "versionName": "0.6.10",
@@ -138,13 +145,6 @@
       "versionName": "0.5.2",
       "notes": [
         "Search: the clear button can be reached with the remote — right out of the text field, centre to clear. Press back first if the on-screen keyboard is up, since it owns the D-pad while open."
-      ]
-    },
-    {
-      "versionCode": 44,
-      "versionName": "0.5.1",
-      "notes": [
-        "Playback: the on-screen controls can be summoned again with any key on the remote — CENTRE, the D-pad or play/pause — including after they time out mid-film."
       ]
     }
   ]
