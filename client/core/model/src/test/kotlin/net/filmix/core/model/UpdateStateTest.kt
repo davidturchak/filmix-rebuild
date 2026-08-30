@@ -96,6 +96,37 @@ class UpdateStateTest {
     }
 
     @Test
+    fun `a download's progress ticks stay one stage`() {
+        // The regression this pins: keying focus restoration on the state
+        // itself would re-claim the cursor on every percent, yanking it back
+        // twenty times while the bar fills.
+        assertEquals(
+            UpdateState.Downloading(update, 1).stage,
+            UpdateState.Downloading(update, 99).stage,
+        )
+    }
+
+    @Test
+    fun `each set of controls is its own stage`() {
+        assertEquals(UpdateStage.Check, UpdateState.Idle.stage)
+        assertEquals(UpdateStage.Check, UpdateState.Checking.stage)
+        assertEquals(UpdateStage.Check, UpdateState.UpToDate.stage)
+        assertEquals(UpdateStage.Available, UpdateState.Available(update).stage)
+        assertEquals(UpdateStage.Downloading, UpdateState.Downloading(update, 40).stage)
+        assertEquals(UpdateStage.Ready, UpdateState.ReadyToInstall(update).stage)
+        assertEquals(UpdateStage.Failed, UpdateState.Failed("boom").stage)
+    }
+
+    @Test
+    fun `only a download has nowhere to put the cursor`() {
+        assertFalse(UpdateStage.Downloading.hasAction)
+        assertTrue(UpdateStage.Check.hasAction)
+        assertTrue(UpdateStage.Available.hasAction)
+        assertTrue(UpdateStage.Ready.hasAction)
+        assertTrue(UpdateStage.Failed.hasAction)
+    }
+
+    @Test
     fun `states with their own buttons do not add another`() {
         assertFalse(UpdateState.Available(update).offersCheck)
         assertFalse(UpdateState.Downloading(update, 40).offersCheck)

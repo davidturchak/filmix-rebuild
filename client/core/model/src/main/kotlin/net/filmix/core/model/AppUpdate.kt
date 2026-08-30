@@ -93,4 +93,34 @@ sealed interface UpdateState {
      */
     val offersCheck: Boolean
         get() = this is Idle || this is Checking || this is UpToDate
+
+    /**
+     * Which set of controls the section is showing.
+     *
+     * Coarser than the state on purpose: a download's progress ticks are a new
+     * [Downloading] every few percent but the same stage throughout, and the
+     * cursor must not be re-claimed twenty times while the bar fills.
+     */
+    val stage: UpdateStage
+        get() = when {
+            offersCheck -> UpdateStage.Check
+            this is Available -> UpdateStage.Available
+            this is Downloading -> UpdateStage.Downloading
+            this is ReadyToInstall -> UpdateStage.Ready
+            else -> UpdateStage.Failed
+        }
+}
+
+enum class UpdateStage {
+    Check,
+    Available,
+    Downloading,
+    Ready,
+    Failed;
+
+    /**
+     * Whether the stage has a control to hand the cursor to. A download shows
+     * only a progress bar, so there is nothing to focus until it finishes.
+     */
+    val hasAction: Boolean get() = this != Downloading
 }

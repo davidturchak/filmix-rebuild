@@ -10,8 +10,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import net.filmix.core.designsystem.component.PrimaryButton
@@ -34,6 +42,25 @@ fun UpdateSection(
     onGrantPermission: () -> Unit = {},
     canInstall: Boolean = true,
 ) {
+    // Every press here swaps one branch of the when for another, so the button
+    // the user pressed leaves composition and Compose drops the focus with it —
+    // the cursor was landing back on the nav rail after every press. Hand it to
+    // whatever replaced the control instead.
+    val primary = remember { FocusRequester() }
+    var claimFocus by remember { mutableStateOf(false) }
+    val claiming = { action: () -> Unit -> { claimFocus = true; action() } }
+
+    val stage = state.stage
+    LaunchedEffect(stage) {
+        if (!claimFocus || !stage.hasAction) return@LaunchedEffect
+        // Same shape as the launch prompt's claim: the replacement is composed
+        // after this runs, so yield a frame and never throw over it.
+        repeat(FocusRestoreFrames) {
+            withFrameNanos { }
+            if (runCatching { primary.requestFocus() }.isSuccess) return@LaunchedEffect
+        }
+    }
+
     Column(
         modifier.fillMaxWidth().padding(top = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -46,7 +73,10 @@ fun UpdateSection(
             // no cursor. The result goes underneath instead. Which states those
             // are lives on UpdateState.offersCheck, where it is tested.
             state.offersCheck -> {
-                TextButton(onClick = onCheck) {
+                TextButton(
+                    onClick = claiming(onCheck),
+                    modifier = Modifier.focusRequester(primary),
+                ) {
                     Text(
                         if (state == UpdateState.Checking) {
                             "Проверка обновлений…"
@@ -81,11 +111,17 @@ fun UpdateSection(
                         color = MaterialTheme.colorScheme.error,
                         textAlign = TextAlign.Center,
                     )
-                    PrimaryButton(onClick = onGrantPermission) {
+                    PrimaryButton(
+                        onClick = claiming(onGrantPermission),
+                        modifier = Modifier.focusRequester(primary),
+                    ) {
                         Text("Открыть настройки")
                     }
                 } else {
-                    PrimaryButton(onClick = onDownload) {
+                    PrimaryButton(
+                        onClick = claiming(onDownload),
+                        modifier = Modifier.focusRequester(primary),
+                    ) {
                         Text("Обновить · ${state.update.sizeLabel}")
                     }
                 }
@@ -109,7 +145,10 @@ fun UpdateSection(
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
-                PrimaryButton(onClick = onInstall) {
+                PrimaryButton(
+                    onClick = claiming(onInstall),
+                    modifier = Modifier.focusRequester(primary),
+                ) {
                     Text("Установить")
                 }
             }
@@ -123,7 +162,10 @@ fun UpdateSection(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.error,
                 )
-                TextButton(onClick = onCheck) { Text("Повторить") }
+                TextButton(
+                    onClick = claiming(onCheck),
+                    modifier = Modifier.focusRequester(primary),
+                ) { Text("Повторить") }
             }
         }
     }
@@ -144,3 +186,6 @@ private fun Card(content: @Composable ColumnScope.() -> Unit) {
         )
     }
 }
+
+/** Frames to keep trying for, before leaving the cursor where it fell. */
+private const val FocusRestoreFrames = 8

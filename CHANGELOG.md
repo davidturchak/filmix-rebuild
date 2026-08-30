@@ -7,6 +7,9 @@ the version and build number once the build tells it what they are.
 The app shows every entry newer than the installed version when it offers an
 update, so write for the person watching, not for the commit log.
 
+## Unreleased
+- Кнопки обновления больше не теряют фокус: после нажатия курсор остаётся на них, а не уходит на боковое меню.
+
 ## 0.6.8 (85)
 - Обновление показывает, что нового во всех версиях с момента вашей.
 
