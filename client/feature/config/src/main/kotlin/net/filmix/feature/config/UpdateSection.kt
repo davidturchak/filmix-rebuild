@@ -37,27 +37,32 @@ fun UpdateSection(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        when (state) {
-            // One button across both states rather than a button replaced by a
-            // label: on a remote, swapping it out takes the focus the user just
-            // pressed with it, leaving the screen with no cursor mid-check.
-            UpdateState.Idle, UpdateState.Checking -> TextButton(onClick = onCheck) {
-                Text(
-                    if (state == UpdateState.Checking) {
-                        "Проверка обновлений…"
-                    } else {
-                        "Проверить обновления"
-                    },
-                )
+        when {
+            // One button across every state that offers a check, rather than a
+            // button replaced by a label: on a remote, swapping it out takes
+            // the focus the user just pressed with it, leaving the screen with
+            // no cursor. The result goes underneath instead. Which states those
+            // are lives on UpdateState.offersCheck, where it is tested.
+            state.offersCheck -> {
+                TextButton(onClick = onCheck) {
+                    Text(
+                        if (state == UpdateState.Checking) {
+                            "Проверка обновлений…"
+                        } else {
+                            "Проверить обновления"
+                        },
+                    )
+                }
+                if (state == UpdateState.UpToDate) {
+                    Text(
+                        "Установлена последняя версия",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
-            UpdateState.UpToDate -> Text(
-                "Установлена последняя версия",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            is UpdateState.Available -> Card {
+            state is UpdateState.Available -> Card {
                 Text(
                     "Доступна версия ${state.update.versionName}",
                     style = MaterialTheme.typography.titleMedium,
@@ -88,7 +93,7 @@ fun UpdateSection(
                 }
             }
 
-            is UpdateState.Downloading -> Card {
+            state is UpdateState.Downloading -> Card {
                 Text(
                     "Загрузка ${state.percent}%",
                     style = MaterialTheme.typography.titleMedium,
@@ -100,7 +105,7 @@ fun UpdateSection(
                 )
             }
 
-            is UpdateState.ReadyToInstall -> Card {
+            state is UpdateState.ReadyToInstall -> Card {
                 Text(
                     "Версия ${state.update.versionName} загружена",
                     style = MaterialTheme.typography.titleMedium,
@@ -111,7 +116,7 @@ fun UpdateSection(
                 }
             }
 
-            is UpdateState.Failed -> Column(
+            state is UpdateState.Failed -> Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {

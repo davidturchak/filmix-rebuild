@@ -28,4 +28,18 @@ sealed interface UpdateState {
     data class Downloading(val update: AppUpdate, val percent: Int) : UpdateState
     data class ReadyToInstall(val update: AppUpdate) : UpdateState
     data class Failed(val message: String) : UpdateState
+
+    /**
+     * Whether the plain "check for updates" button belongs on screen.
+     *
+     * UpToDate must be included. Nothing ever returns the state to Idle, so
+     * hiding the button there stranded it for the life of the process: a check
+     * that found nothing could not be repeated, while a failed one could. It
+     * also costs the remote its cursor, since the button it was on leaves
+     * composition.
+     *
+     * Failed and the download states carry their own buttons.
+     */
+    val offersCheck: Boolean
+        get() = this is Idle || this is Checking || this is UpToDate
 }
