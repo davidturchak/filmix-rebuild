@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -95,10 +96,18 @@ fun ScrollableChangelog(
                 )
                 .verticalScroll(scroll),
         )
-        // matchParentSize rather than fillMaxHeight: the rail must be as tall
-        // as the text turned out to be, not as tall as the bound it was given,
-        // or a one-entry changelog reserves the whole window in blank space.
-        ReadingRail(scroll, focused, Modifier.matchParentSize())
+        // The rail must be as tall as the text turned out to be, not as tall
+        // as the bound it was given, or a one-entry changelog reserves the
+        // whole window in blank space. matchParentSize is the only modifier
+        // that measures against the Box's *resolved* size — but it hands down
+        // fixed constraints, and Modifier.width coerces its request up into
+        // the minimum it is given. Handed to the rail directly it therefore
+        // drew a 4dp rule as a full-width orange slab across the changelog,
+        // which is what 0.6.22 shipped. It goes on a wrapper instead, whose
+        // children are measured loosely and can be 4dp wide.
+        Box(Modifier.matchParentSize()) {
+            ReadingRail(scroll, focused, Modifier.fillMaxHeight())
+        }
     }
 }
 
