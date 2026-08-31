@@ -7,7 +7,7 @@ the version and build number once the build tells it what they are.
 The app shows every entry newer than the installed version when it offers an
 update, so write for the person watching, not for the commit log.
 
-## Unreleased
+## 0.6.17 (110)
 - Длинное описание фильма наконец можно прочитать с пульта. Раньше нажатие «вниз» перепрыгивало его целиком, и добраться до текста было нельзя.
 - На странице описание свёрнуто до четырёх строк, а под ним появилась кнопка «Читать далее». Она открывает полный текст: он листается кнопками «вверх» и «вниз», «Назад» закрывает его и возвращает к фильму.
 - Кнопка появляется только тогда, когда описание действительно не поместилось.
