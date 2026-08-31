@@ -47,6 +47,14 @@ class ConfigViewModel(
         viewModelScope.launch { settings.setExternalPlayerPackage(packageName) }
     }
 
+    /** Null means "follow the device", which is what [voiceLanguages] offers last. */
+    val voiceLanguage: StateFlow<String?> = settings.voiceLanguage
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    fun setVoiceLanguage(tag: String?) {
+        viewModelScope.launch { settings.setVoiceLanguage(tag) }
+    }
+
     private val _updateState = MutableStateFlow<UpdateState>(UpdateState.Idle)
     val updateState: StateFlow<UpdateState> = _updateState.asStateFlow()
 

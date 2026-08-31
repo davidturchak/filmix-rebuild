@@ -20,6 +20,8 @@ import net.filmix.core.designsystem.component.FocusChip
 import net.filmix.core.model.AppVersion
 import net.filmix.core.model.ExternalPlayer
 import net.filmix.core.model.UpdateState
+import net.filmix.core.model.voiceLanguageBadge
+import net.filmix.core.model.voiceLanguages
 
 @Composable
 fun ConfigScreen(
@@ -28,8 +30,11 @@ fun ConfigScreen(
     selectedPlayerPackage: String?,
     updateState: UpdateState,
     modifier: Modifier = Modifier,
+    voiceLanguage: String? = null,
+    systemLanguageTag: String = "",
     onQualityChange: (Int?) -> Unit = {},
     onPlayerChange: (String?) -> Unit = {},
+    onVoiceLanguageChange: (String?) -> Unit = {},
     canInstallUpdates: Boolean = true,
     onCheckUpdate: () -> Unit = {},
     onDownloadUpdate: () -> Unit = {},
@@ -53,6 +58,8 @@ fun ConfigScreen(
             QualityPreference(preferredQuality, onQualityChange)
 
             PlayerChoice(players, selectedPlayerPackage, onPlayerChange)
+
+            VoiceLanguageChoice(voiceLanguage, systemLanguageTag, onVoiceLanguageChange)
 
             UpdateSection(
                 state = updateState,
@@ -139,6 +146,52 @@ private fun PlayerChoice(
         }
         Text(
             "Позиция просмотра сохраняется, если внешний плеер её сообщает (MX Player, VLC).",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+/**
+ * Which language the microphone listens in.
+ *
+ * "Как в системе" names the language it resolves to, because that is the whole
+ * trap this setting exists for: the TVs this runs on ship as en-US, so the
+ * device default listened in English for a Russian catalog and nothing on
+ * screen said so.
+ */
+@Composable
+private fun VoiceLanguageChoice(
+    selectedTag: String?,
+    systemLanguageTag: String,
+    onChange: (String?) -> Unit,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.padding(top = 8.dp),
+    ) {
+        Text(
+            "Язык голосового поиска",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            voiceLanguages.forEach { language ->
+                FocusChip(
+                    selected = language.tag == selectedTag,
+                    onClick = { onChange(language.tag) },
+                    label = if (language.tag == null && systemLanguageTag.isNotEmpty()) {
+                        "${language.label} (${voiceLanguageBadge(systemLanguageTag)})"
+                    } else {
+                        language.label
+                    },
+                )
+            }
+        }
+        Text(
+            "Распознавание — системное: язык, для которого на устройстве нет данных, ничего не вернёт.",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,

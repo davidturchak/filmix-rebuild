@@ -44,6 +44,21 @@ class SettingsStore(private val context: Context) {
         }
     }
 
+    /**
+     * Language tag the voice search listens in, or null to follow the device.
+     *
+     * Stored as the tag rather than an index so a list that gains an entry
+     * cannot silently reinterpret an existing choice.
+     */
+    val voiceLanguage: Flow<String?> = context.settingsDataStore.data
+        .map { it[KEY_VOICE_LANGUAGE]?.takeIf(String::isNotBlank) }
+
+    suspend fun setVoiceLanguage(tag: String?) {
+        context.settingsDataStore.edit { prefs ->
+            if (tag == null) prefs.remove(KEY_VOICE_LANGUAGE) else prefs[KEY_VOICE_LANGUAGE] = tag
+        }
+    }
+
     /** Catalog sort, stored as the raw API value so new options stay readable. */
     suspend fun catalogSort(): String? =
         context.settingsDataStore.data.first()[KEY_SORT]
@@ -73,6 +88,7 @@ class SettingsStore(private val context: Context) {
     private companion object {
         val KEY_QUALITY = intPreferencesKey("preferred_quality")
         val KEY_EXTERNAL_PLAYER = stringPreferencesKey("external_player_package")
+        val KEY_VOICE_LANGUAGE = stringPreferencesKey("voice_language")
         val KEY_SORT = stringPreferencesKey("catalog_sort")
         val KEY_SORT_ASC = booleanPreferencesKey("catalog_sort_asc")
         val KEY_DISMISSED_UPDATE = intPreferencesKey("dismissed_update_code")

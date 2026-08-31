@@ -63,6 +63,8 @@ import net.filmix.core.designsystem.component.rememberVoiceSearch
 import net.filmix.core.designsystem.theme.LocalIsTv
 import net.filmix.core.designsystem.theme.LocalDimensions
 import net.filmix.core.model.Post
+import net.filmix.core.model.voiceLanguageBadge
+import java.util.Locale
 
 /**
  * A collapsed caret sitting on the last character — the only state from which
@@ -83,6 +85,8 @@ fun SearchScreen(
     modifier: Modifier = Modifier,
     compact: Boolean = false,
     searched: Boolean = false,
+    /** Already resolved: the stored choice, or the device's own language. */
+    voiceLanguageTag: String = Locale.getDefault().toLanguageTag(),
     onQueryChange: (String) -> Unit = {},
     onSubmit: () -> Unit = {},
     onClear: () -> Unit = {},
@@ -106,7 +110,12 @@ fun SearchScreen(
 
     // On a remote, typing means driving an on-screen grid key by key. Voice is
     // the faster path and is what the original app offered on TV.
-    val voice = rememberVoiceSearch(prompt = "Что найти?", onResult = onVoiceResult)
+    val voice = rememberVoiceSearch(
+        prompt = "Что найти?",
+        languageTag = voiceLanguageTag,
+        onResult = onVoiceResult,
+    )
+    val languageBadge = voiceLanguageBadge(voiceLanguageTag)
     val micFocus = remember { FocusRequester() }
     val fieldFocus = remember { FocusRequester() }
 
@@ -128,7 +137,7 @@ fun SearchScreen(
             // Leading, so the D-pad meets it on the way in from the rail —
             // and on TV voice is the primary input anyway.
             if (voice.available && isTv) {
-                MicButton(micFocus, voice.listening, voice::start)
+                MicButton(micFocus, voice.listening, languageBadge, voice::start)
             }
         OutlinedTextField(
             value = field,
@@ -219,7 +228,7 @@ fun SearchScreen(
             }
 
             if (voice.available && !isTv) {
-                MicButton(micFocus, voice.listening, voice::start)
+                MicButton(micFocus, voice.listening, languageBadge, voice::start)
             }
         }
 
@@ -247,28 +256,48 @@ fun SearchScreen(
     }
 }
 
+/**
+ * The microphone, with the language it listens in named underneath.
+ *
+ * Which language that is used to be invisible — the recogniser took the device
+ * locale, and on an en-US TV a Russian catalog was searched in English with
+ * nothing on screen to say so. Two letters under the button is enough to notice
+ * it, and Настройки is where it changes.
+ */
 @Composable
 private fun MicButton(
     focusRequester: FocusRequester,
     listening: Boolean,
+    languageBadge: String,
     onClick: () -> Unit,
 ) {
-    FilledTonalIconButton(
-        onClick = onClick,
-        colors = if (listening) {
-            IconButtonDefaults.filledTonalIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            )
-        } else {
-            null
-        },
-        // While listening the container is the accent itself, so the accent
-        // ring would vanish exactly when the button matters most.
-        ringColor = if (listening) MaterialTheme.colorScheme.onPrimary else null,
-        modifier = Modifier.focusRequester(focusRequester),
-    ) {
-        Icon(Icons.Filled.Mic, contentDescription = "Голосовой поиск")
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        FilledTonalIconButton(
+            onClick = onClick,
+            colors = if (listening) {
+                IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                )
+            } else {
+                null
+            },
+            // While listening the container is the accent itself, so the accent
+            // ring would vanish exactly when the button matters most.
+            ringColor = if (listening) MaterialTheme.colorScheme.onPrimary else null,
+            modifier = Modifier.focusRequester(focusRequester),
+        ) {
+            Icon(Icons.Filled.Mic, contentDescription = "Голосовой поиск ($languageBadge)")
+        }
+        Text(
+            languageBadge,
+            style = MaterialTheme.typography.labelSmall,
+            color = if (listening) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
+        )
     }
 }
 

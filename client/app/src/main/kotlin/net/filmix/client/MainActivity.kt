@@ -35,6 +35,7 @@ import net.filmix.core.model.VideoSource
 import net.filmix.feature.catalog.CatalogScreen
 import net.filmix.feature.catalog.CatalogViewModel
 import net.filmix.feature.config.ConfigScreen
+import net.filmix.core.model.resolveVoiceLanguage
 import net.filmix.feature.config.ConfigViewModel
 import net.filmix.feature.config.UpdatePrompt
 import net.filmix.feature.detail.DetailScreen
@@ -49,6 +50,7 @@ import net.filmix.feature.profile.ProfileScreen
 import net.filmix.feature.profile.ProfileViewModel
 import net.filmix.feature.search.SearchScreen
 import net.filmix.feature.search.SearchViewModel
+import java.util.Locale
 
 /**
  * What is playing plus where it sits in a series. Season and episode exist only
@@ -119,6 +121,13 @@ private fun FilmixApp(graph: AppGraph) {
     // session that most needs the check would otherwise never run it. Only the
     // prompt waits below, so nothing is raised over playback.
     val configVm: ConfigViewModel = viewModel(factory = factory)
+
+    // Read here rather than in the Search branch: the setting lives on the
+    // hoisted Настройки ViewModel, and both screens need the same answer — the
+    // search screen to listen in it, Настройки to show which chip is on.
+    val voiceLanguage by configVm.voiceLanguage.collectAsState()
+    val systemLanguageTag = remember { Locale.getDefault().toLanguageTag() }
+    val voiceLanguageTag = resolveVoiceLanguage(voiceLanguage, systemLanguageTag)
 
     val active = playing
     if (active != null) {
@@ -261,6 +270,7 @@ private fun FilmixApp(graph: AppGraph) {
                         results = results,
                         compact = compact,
                         searched = submitted.isNotEmpty(),
+                        voiceLanguageTag = voiceLanguageTag,
                         modifier = modifier,
                         onQueryChange = vm::onQueryChange,
                         onSubmit = vm::submit,
@@ -342,8 +352,11 @@ private fun FilmixApp(graph: AppGraph) {
                         selectedPlayerPackage = selectedPlayer,
                         updateState = updateState,
                         modifier = modifier,
+                        voiceLanguage = voiceLanguage,
+                        systemLanguageTag = systemLanguageTag,
                         onQualityChange = vm::setPreferredQuality,
                         onPlayerChange = vm::setPlayer,
+                        onVoiceLanguageChange = vm::setVoiceLanguage,
                         canInstallUpdates = canInstall,
                         onCheckUpdate = vm::checkForUpdate,
                         onDownloadUpdate = vm::downloadUpdate,
