@@ -5,11 +5,11 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -80,19 +80,37 @@ internal fun SynopsisReader(
     val scroll = rememberScrollState()
     val interaction = rememberFocusInteraction()
     val body = remember { FocusRequester() }
+    val close = remember { FocusRequester() }
     val focused by interaction.isFocused()
     val scope = rememberCoroutineScope()
 
     // A dialog arrives with nothing focused, which on a remote reads as a
-    // frozen screen. The body takes it rather than «Закрыть», so the first
-    // DOWN pages the text instead of skipping it — the whole point of opening
-    // this. Retried per frame and never allowed to throw, the same way
-    // UpdatePrompt and the detail screen's play button claim focus: the
-    // requester is attached a frame or more after this effect first runs.
+    // frozen screen.
     LaunchedEffect(text) {
+        // Wait for the first layout. Until the text is measured there is no
+        // telling whether it scrolls, and that is what decides who should hold
+        // the cursor.
+        var frames = 0
+        while (scroll.viewportSize == 0 && frames < FOCUS_ATTEMPTS) {
+            withFrameNanos { }
+            frames++
+        }
+        // Text that scrolls keeps the cursor on the body, so the first DOWN
+        // pages it instead of skipping to the button — the whole point of
+        // opening this. Text that fits has nothing to page and no rail to light
+        // up, and since this window draws no ring around the body, leaving the
+        // cursor there would open it with nothing marked at all. «Закрыть»
+        // rings, so it takes the cursor instead.
+        //
+        // An unmeasured scroll state still reports maxValue = Int.MAX_VALUE, so
+        // giving up on the wait falls through to the body — the safe half.
+        val target = if (scroll.maxValue > 0) body else close
+        // Retried per frame and never allowed to throw, the same way
+        // UpdatePrompt and the detail screen's play button claim focus: the
+        // requester is attached a frame or more after this effect first runs.
         repeat(FOCUS_ATTEMPTS) {
             withFrameNanos { }
-            if (runCatching { body.requestFocus() }.isSuccess) return@LaunchedEffect
+            if (runCatching { target.requestFocus() }.isSuccess) return@LaunchedEffect
         }
     }
 
@@ -123,9 +141,20 @@ internal fun SynopsisReader(
                     // box — which is the whole panel's worth of attention spent
                     // on saying "focused" in a window holding two focusable
                     // things. The rail says it instead, by lighting up.
-                    Row(Modifier.weight(1f)) {
+                    //
+                    // The gap is the Row's arrangement rather than a Spacer,
+                    // because the rail is absent whenever the text fits — which
+                    // is most of the time, since a synopsis only has to overrun
+                    // four lines on the page to open this near-full-screen
+                    // window. A Spacer would leave that gap behind as an
+                    // unexplained indent with nothing in it.
+                    Row(
+                        Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(
+                            if (compact) 14.dp else 20.dp,
+                        ),
+                    ) {
                         ReadingRail(scroll, focused, Modifier.fillMaxHeight())
-                        Spacer(Modifier.width(if (compact) 14.dp else 20.dp))
                         Text(
                             text,
                             style = MaterialTheme.typography.bodyLarge.let {
@@ -182,7 +211,12 @@ internal fun SynopsisReader(
                                 .verticalScroll(scroll),
                         )
                     }
-                    TextButton(onClick = onClose, modifier = Modifier.align(Alignment.End)) {
+                    TextButton(
+                        onClick = onClose,
+                        modifier = Modifier
+                            .align(Alignment.End)
+                            .focusRequester(close),
+                    ) {
                         Text("Закрыть")
                     }
                 }
