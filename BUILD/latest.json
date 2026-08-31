@@ -2,7 +2,7 @@
   "versionCode": 143,
   "versionName": "0.6.26",
   "commit": "b39a81e",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.26.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/bd902503e29c4fb732917595fb8a47f6d5704d5b/BUILD/filmix-ng-0.6.26.apk",
   "sizeBytes": 3052378,
   "sha256": "b5fa247c4ba34bdf8c60b4144303fca4c6be430d4fda380a15ea8a4ea30e6249",
   "notes": "Кнопка «Обновить» в окне обновления теперь действительно начинает загрузку. Раньше она только открывала Настройки, а кнопка загрузки оставалась ниже края экрана — со стороны выглядело, будто нажатие ничего не делает. Настройки сами прокручиваются к карточке обновления, пока идёт загрузка, и курсор переходит на её кнопку, как только там есть что нажать: раньше он оставался на боковом меню.",
