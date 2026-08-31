@@ -17,6 +17,9 @@ android {
 }
 
 dependencies {
+    // PageScroll: the page-turn arithmetic behind pageOnDpad, kept where the
+    // pure functions worth testing live.
+    implementation(project(":core:model"))
     implementation(platform(libs.compose.bom))
     api(libs.compose.ui)
     api(libs.compose.ui.graphics)

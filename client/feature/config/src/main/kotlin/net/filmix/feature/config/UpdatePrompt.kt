@@ -9,8 +9,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -73,15 +71,15 @@ fun UpdatePrompt(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                // Bounded and scrollable: a device several versions behind gets
-                // several entries, and the dialog must not push its own buttons
-                // off the screen.
-                ChangelogList(
+                // Bounded: a device several versions behind gets several
+                // entries, and the dialog must not push its own buttons off the
+                // screen. UP from «Обновить» enters the window; it pages from
+                // there and hands the cursor back at the end.
+                ScrollableChangelog(
                     entries = update.changesSince(installed),
                     modifier = Modifier
-                        .heightIn(max = 220.dp)
-                        .verticalScroll(rememberScrollState())
-                        .padding(top = 12.dp),
+                        .padding(top = 12.dp)
+                        .heightIn(max = 220.dp),
                 )
             }
         },
