@@ -193,6 +193,8 @@ private fun Content(
 ) {
     // Keyed on the post so opening a related title collapses the thread again.
     var commentsExpanded by rememberSaveable(post.id) { mutableStateOf(false) }
+    // Same: the reader must not survive onto the next title's description.
+    var readerOpen by rememberSaveable(post.id) { mutableStateOf(false) }
     val watch = remember(post.playlist, selection, progress) {
         selection.resolve(post.playlist)?.let { (season, translation) ->
             SeriesProgress.seasonWatch(season, translation, progress)
@@ -240,11 +242,11 @@ private fun Content(
         if (post.shortStory.isNotEmpty()) {
             item("synopsis") {
                 Section("Описание") {
-                    Text(
-                        post.shortStory,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.fillMaxWidth(if (compact) 1f else 0.75f),
+                    Synopsis(
+                        text = post.shortStory,
+                        postId = post.id,
+                        compact = compact,
+                        onExpand = { readerOpen = true },
                     )
                 }
             }
@@ -344,6 +346,60 @@ private fun Content(
                     }
                 }
             }
+        }
+    }
+
+    if (readerOpen) {
+        SynopsisReader(
+            title = post.title,
+            text = post.shortStory,
+            onClose = { readerOpen = false },
+        )
+    }
+}
+
+/**
+ * The description, clamped to a few lines with a way into the full text.
+ *
+ * It used to be the whole synopsis, inert, in one lazy item — and on a remote
+ * that made it the one part of this screen nobody could read. The D-pad scrolls
+ * a LazyColumn by hopping between focusable nodes, so with nothing focusable
+ * here DOWN went from the hero straight to «Озвучки и качество» and the list
+ * scrolled only far enough to show it: anything taller than the screen went
+ * past in a single jump, unreachable in either direction. The button is the
+ * focus stop that was missing, and [SynopsisReader] is where the text can
+ * actually be paged.
+ *
+ * The button appears only when the text is genuinely cut off. A two-line
+ * synopsis growing a «Читать далее» that reveals nothing is worse than no
+ * button at all, and visual overflow is the only honest way to know.
+ */
+@Composable
+private fun Synopsis(
+    text: String,
+    postId: Int,
+    compact: Boolean,
+    onExpand: () -> Unit,
+) {
+    var overflowed by remember(postId) { mutableStateOf(false) }
+    Text(
+        text,
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = SYNOPSIS_PREVIEW_LINES,
+        overflow = TextOverflow.Ellipsis,
+        onTextLayout = { overflowed = it.hasVisualOverflow },
+        modifier = Modifier.fillMaxWidth(if (compact) 1f else 0.75f),
+    )
+    if (overflowed) {
+        // Full width for the same reason the comments toggle is: D-pad focus
+        // search scores candidates by 13·vertical² plus the horizontal centre
+        // offset squared, and the text above is inset to three quarters of the
+        // screen — a button matching it would pay that minor-axis penalty
+        // against full-width neighbours a whole section away. The Section
+        // already applies the gutter, so this needs no padding of its own.
+        TextButton(onClick = onExpand, modifier = Modifier.fillMaxWidth()) {
+            Text("Читать далее")
         }
     }
 }
@@ -631,6 +687,12 @@ private fun SectionTitle(title: String) {
 }
 
 private const val COMMENTS_PREVIEW = 3
+
+/**
+ * Enough of the description to tell whether the film is worth the rest, without
+ * the section pushing «Озвучки и качество» off a 540dp screen.
+ */
+private const val SYNOPSIS_PREVIEW_LINES = 4
 
 /** The Loading, Failed, and empty states share one note-under-title item. */
 private fun LazyListScope.commentsNote(text: String) {
