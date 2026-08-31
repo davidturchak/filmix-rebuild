@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -45,11 +47,29 @@ fun ConfigScreen(
     onGrantInstallPermission: () -> Unit = {},
     version: AppVersion? = null,
 ) {
+    val scroll = rememberScrollState()
+
+    // A download is the one thing here that starts without this screen being
+    // touched — accepting the launch prompt arrives with it already running —
+    // and the card it reports into is the last section of a page taller than
+    // the TV. Without this the user agrees to an update and is shown the
+    // quality presets. Harmless on the manual path, where the card is already
+    // in view.
+    val downloading = updateState is UpdateState.Downloading
+    LaunchedEffect(downloading) {
+        if (!downloading) return@LaunchedEffect
+        // Nothing is measured on the frame this screen first composes, and a
+        // scroll to a maxValue of zero is a scroll to the top.
+        var frames = 0
+        while (scroll.maxValue == 0 && frames++ < ScrollAttempts) withFrameNanos { }
+        scroll.animateScrollTo(scroll.maxValue)
+    }
+
     Box(
         modifier
             .fillMaxSize()
             // Three sections plus the footer overflow the 540dp-tall TV window.
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scroll)
             .padding(32.dp),
         contentAlignment = Alignment.TopCenter,
     ) {
@@ -232,3 +252,6 @@ private fun VersionFooter(version: AppVersion) {
         )
     }
 }
+
+/** Frames to wait for a first layout before scrolling to the update card. */
+private const val ScrollAttempts = 8

@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import net.filmix.core.designsystem.component.PrimaryButton
 import net.filmix.core.designsystem.component.TextButton
 import net.filmix.core.model.AppVersion
+import net.filmix.core.model.UpdateStage
 import net.filmix.core.model.UpdateState
 
 /**
@@ -52,7 +53,11 @@ fun UpdateSection(
 
     val stage = state.stage
     LaunchedEffect(stage) {
-        if (!claimFocus || !stage.hasAction) return@LaunchedEffect
+        // Ready is claimed whoever started the download: accepting the launch
+        // prompt downloads without a press landing here, so «Установить» would
+        // otherwise appear with the cursor still on the nav rail — one step
+        // from the end of an update the user already agreed to.
+        if (!(claimFocus || stage == UpdateStage.Ready) || !stage.hasAction) return@LaunchedEffect
         // Same shape as the launch prompt's claim: the replacement is composed
         // after this runs, so yield a frame and never throw over it.
         repeat(FocusRestoreFrames) {

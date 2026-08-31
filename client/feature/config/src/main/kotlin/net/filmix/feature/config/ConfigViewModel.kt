@@ -109,11 +109,22 @@ class ConfigViewModel(
     }
 
     /**
-     * "Обновить" — closes the prompt without recording a dismissal, because the
-     * user is being sent to Настройки to finish the job, not declining it.
+     * "Обновить" — closes the prompt without recording a dismissal, and starts
+     * the download the button just promised.
+     *
+     * It used to only close the prompt and let MainActivity navigate to
+     * Настройки, on the reasoning that the download, the permission prompt and
+     * the installer handoff all already live there. But the update card is the
+     * last section of a screen taller than a TV, so the user pressed «Обновить»
+     * and landed on a settings page showing quality presets, with the button
+     * that actually downloads below the fold and the cursor parked on the nav
+     * rail: the press read as doing nothing at all. Seen on the TV going from
+     * 0.6.24 to 0.6.25. The state moves on its own now; Настройки is where the
+     * progress is watched, not where the job is started a second time.
      */
     fun acceptLaunchUpdate() {
         _launchUpdate.value = null
+        downloadUpdate()
     }
 
     fun checkForUpdate() {
