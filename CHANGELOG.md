@@ -7,7 +7,7 @@ the version and build number once the build tells it what they are.
 The app shows every entry newer than the installed version when it offers an
 update, so write for the person watching, not for the commit log.
 
-## Unreleased
+## 0.6.23 (133)
 - На экране профиля появилось фото аккаунта — то же, что на сайте. Если фото не загружено, рисуется силуэт.
 
 ## 0.6.22 (130)
