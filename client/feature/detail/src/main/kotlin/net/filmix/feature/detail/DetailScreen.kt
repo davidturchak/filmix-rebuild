@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -392,13 +393,28 @@ private fun Synopsis(
         modifier = Modifier.fillMaxWidth(if (compact) 1f else 0.75f),
     )
     if (overflowed) {
-        // Full width for the same reason the comments toggle is: D-pad focus
+        // The button's bounds are where its focus ring is drawn, and they start
+        // immediately under the last line of the paragraph. Without this the
+        // ring sits against the text.
+        Spacer(Modifier.height(4.dp))
+        // Sized to its label and lined up under the paragraph, the way the
+        // filter sheet's «Ещё N» sits. Full width was overcautious: D-pad focus
         // search scores candidates by 13·vertical² plus the horizontal centre
-        // offset squared, and the text above is inset to three quarters of the
-        // screen — a button matching it would pay that minor-axis penalty
-        // against full-width neighbours a whole section away. The Section
-        // already applies the gutter, so this needs no padding of its own.
-        TextButton(onClick = onExpand, modifier = Modifier.fillMaxWidth()) {
+        // offset squared, and that vertical term dominates so heavily here that
+        // a button one line below the text beats a full-width row a whole
+        // section away even paying the offset penalty.
+        //
+        // The negative offset cancels the button's own content padding, so the
+        // label starts exactly where the description does rather than a step
+        // inside it. There is a 32dp gutter to the left for the ring to sit in.
+        TextButton(
+            onClick = onExpand,
+            modifier = Modifier.offset(x = -SYNOPSIS_BUTTON_INSET),
+            contentPadding = PaddingValues(
+                horizontal = SYNOPSIS_BUTTON_INSET,
+                vertical = 6.dp,
+            ),
+        ) {
             Text("Читать далее")
         }
     }
@@ -693,6 +709,9 @@ private const val COMMENTS_PREVIEW = 3
  * the section pushing «Озвучки и качество» off a 540dp screen.
  */
 private const val SYNOPSIS_PREVIEW_LINES = 4
+
+/** Cancelled by an equal negative offset, so «Читать далее» reads as flush. */
+private val SYNOPSIS_BUTTON_INSET = 8.dp
 
 /** The Loading, Failed, and empty states share one note-under-title item. */
 private fun LazyListScope.commentsNote(text: String) {

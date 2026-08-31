@@ -1,9 +1,11 @@
 package net.filmix.core.designsystem.component
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
@@ -96,6 +98,12 @@ fun TextButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    /**
+     * Material's padding by default. A caller tightens it to sit a label flush
+     * with a column of text beside it, and then owns keeping the focus ring
+     * clear of what it surrounds.
+     */
+    contentPadding: PaddingValues = ButtonDefaults.TextButtonContentPadding,
     content: @Composable RowScope.() -> Unit,
 ) {
     val interaction = remember { MutableInteractionSource() }
@@ -103,6 +111,7 @@ fun TextButton(
         onClick = onClick,
         enabled = enabled,
         interactionSource = interaction,
+        contentPadding = contentPadding,
         modifier = modifier.focusRing(interactionSource = interaction),
         content = content,
     )
