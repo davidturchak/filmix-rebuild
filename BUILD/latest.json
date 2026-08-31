@@ -2,7 +2,7 @@
   "versionCode": 122,
   "versionName": "0.6.20",
   "commit": "2ed56ed",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.20.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/098c86a5c111c3fd5b51bcd0755daced316d70bf/BUILD/filmix-ng-0.6.20.apk",
   "sizeBytes": 3052378,
   "sha256": "6cf8fe51d62b5d8c6057f244030eefeeec5c9e9df7b57077eca7c09723f01943",
   "notes": "Кнопка «Читать далее» больше не растянута во всю ширину: теперь она по размеру надписи и стоит ровно под описанием, как «Ещё» в фильтрах.",
