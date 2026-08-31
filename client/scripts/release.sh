@@ -65,13 +65,18 @@ mkdir -p "$BUILD_DIR"
 rm -f "$BUILD_DIR"/filmix-client-*.apk "$BUILD_DIR"/filmix-ng-*.apk
 cp "$APK" "$BUILD_DIR/$NAME"
 
-# refs/heads/main, not the bare "main": raw.githubusercontent.com answers 400
-# Bad Request for this repo's APK under the short ref while serving the very
-# same blob under refs/heads/main, HEAD or a commit SHA — and latest.json
-# itself is fine under either. It broke in-app updating for 0.6.14 with
-# "Не удалось проверить обновления" and no way for the user to get past it.
-# The fully-qualified ref is the same content, unambiguously addressed.
-RAW_BASE="https://raw.githubusercontent.com/davidturchak/filmix-rebuild/refs/heads/main/BUILD"
+# A placeholder ref. raw.githubusercontent.com intermittently answers 400 Bad
+# Request for this repo's APK under a *branch* ref — it did so for the bare
+# "main" on 0.6.14 and for refs/heads/main on 0.6.16, while serving the very
+# same blob under the other spelling and under the commit SHA, and latest.json
+# is fine throughout. Whichever spelling goes in here can therefore be dead on
+# arrival, which breaks in-app updating with no way past it.
+#
+# So the published apkUrl must be pinned to the commit that contains the APK —
+# see "Pin apkUrl to the publish commit" in the client skill. That commit does
+# not exist yet at this point: release.sh refuses to run on a dirty tree, and
+# BUILD/ is committed afterwards. Hence a placeholder, rewritten after.
+RAW_BASE="https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD"
 # Stamps the Unreleased heading with this build's version and returns the
 # notes and the full changelog; the tree is dirty afterwards, which is why the
 # publish commit carries CHANGELOG.md alongside BUILD/.

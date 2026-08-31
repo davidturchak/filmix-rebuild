@@ -2,7 +2,7 @@
   "versionCode": 105,
   "versionName": "0.6.16",
   "commit": "facda64",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/refs/heads/main/BUILD/filmix-ng-0.6.16.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/4e2e3015c764f708bdb0f57609848d6d4aa020eb/BUILD/filmix-ng-0.6.16.apk",
   "sizeBytes": 3035994,
   "sha256": "832349a6865517e5d9bfb7b43ffc2d3af2da61994a2363ba42f0035c2fe0376f",
   "notes": "Кнопка микрофона в поиске вернулась на своё место: подпись с языком больше не поднимала её выше строки поиска, а просто висит под ней.",

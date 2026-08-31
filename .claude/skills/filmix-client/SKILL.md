@@ -118,6 +118,38 @@ cannot parse it can never update itself again. So add keys, never change one:
 throws on every install in the field. `ManifestContractTest` in `:core:data`
 pins this against a copy of the old DTO — it fails loudly if you try.
 
+### Pin apkUrl to the publish commit
+
+`release.sh` writes `apkUrl` with a **placeholder** branch ref. Rewrite it to
+the commit that contains the APK, or the release may be undownloadable:
+
+    git commit -m "Publish filmix-ng <version> (<code>)"   # BUILD/ + CHANGELOG.md
+    python3 client/scripts/pin_apk_url.py                  # rewrites apkUrl to HEAD
+    git commit -am "Pin the <version> apkUrl to its publish commit"
+
+Because **raw.githubusercontent.com intermittently answers `400 Bad Request`
+for this repo's APK under a branch ref.** It did so for the bare `main` on
+0.6.14 and for `refs/heads/main` on 0.6.16 — each time serving the identical
+blob under the other spelling, under `HEAD`, and under the commit SHA, with
+`x-cache: MISS` (so the origin, not a cache), no ref ambiguity on the remote,
+and a cache-busting query string making no difference. `latest.json` is served
+fine under either spelling throughout, so the updater *finds* the release and
+then cannot fetch it. Chasing the working spelling is whack-a-mole; the commit
+SHA has been reliable in every test.
+
+The pin also outlives the next release: `BUILD/` keeps only the current APK, but
+the old publish commit still holds its own, so a SHA-pinned link never 404s.
+
+Note the ordering this works around. The SHA cannot come from `release.sh`,
+which runs *before* the publish commit exists — and the `commit` it records is
+the **source** commit, which does not contain the APK, so pinning to that 404s.
+Two commits per release is the price.
+
+Verify what a client will actually get, end to end, before calling it shipped:
+
+    curl -sS .../BUILD/latest.json | python3 -c "import json,sys;print(json.load(sys.stdin)['apkUrl'])"
+    # then GET that URL: expect 200, and sha256 of the bytes == manifest sha256
+
 Then commit `BUILD/` and push — the updater fetches `latest.json` from
 raw.githubusercontent.com, so **a release is not live until pushed**. Pushed is
 not the same as served: that URL is cached `max-age=300`, so for up to five
