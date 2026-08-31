@@ -105,6 +105,8 @@ version and build number once the build reports what they are.
 # 3. commit both
 client/scripts/release.sh
 # 4. commit CHANGELOG.md (now stamped) together with BUILD/
+python3 client/scripts/pin_apk_url.py   # 5. apkUrl -> the publish commit
+# 6. commit latest.json, then ask the user to push
 ```
 
 Builds a signed release, copies it to `BUILD/`, and writes `latest.json`
@@ -112,56 +114,26 @@ Builds a signed release, copies it to `BUILD/`, and writes `latest.json`
 refuses to run on a dirty tree, because a release must be reproducible from a
 commit. versionCode comes from the git commit count automatically.
 
+Two commits per release, because step 5 needs a SHA that does not exist at
+step 4 — see below.
+
 `latest.json` is read by **every version ever released**, and a client that
 cannot parse it can never update itself again. So add keys, never change one:
 `notes` in particular must stay a string, because turning it into an array
 throws on every install in the field. `ManifestContractTest` in `:core:data`
 pins this against a copy of the old DTO — it fails loudly if you try.
 
-### Pin apkUrl to the publish commit
-
-`release.sh` writes `apkUrl` with a **placeholder** branch ref. Rewrite it to
-the commit that contains the APK, or the release may be undownloadable:
-
-    git commit -m "Publish filmix-ng <version> (<code>)"   # BUILD/ + CHANGELOG.md
-    python3 client/scripts/pin_apk_url.py                  # rewrites apkUrl to HEAD
-    git commit -am "Pin the <version> apkUrl to its publish commit"
-
-Because **raw.githubusercontent.com intermittently answers `400 Bad Request`
-for this repo's APK under a branch ref.** It did so for the bare `main` on
-0.6.14 and for `refs/heads/main` on 0.6.16 — each time serving the identical
-blob under the other spelling, under `HEAD`, and under the commit SHA, with
-`x-cache: MISS` (so the origin, not a cache), no ref ambiguity on the remote,
-and a cache-busting query string making no difference. `latest.json` is served
-fine under either spelling throughout, so the updater *finds* the release and
-then cannot fetch it. Chasing the working spelling is whack-a-mole; the commit
-SHA has been reliable in every test.
-
-The pin also outlives the next release: `BUILD/` keeps only the current APK, but
-the old publish commit still holds its own, so a SHA-pinned link never 404s.
-
-Note the ordering this works around. The SHA cannot come from `release.sh`,
-which runs *before* the publish commit exists — and the `commit` it records is
-the **source** commit, which does not contain the APK, so pinning to that 404s.
-Two commits per release is the price.
-
-Verify what a client will actually get, end to end, before calling it shipped:
-
-    curl -sS .../BUILD/latest.json | python3 -c "import json,sys;print(json.load(sys.stdin)['apkUrl'])"
-    # then GET that URL: expect 200, and sha256 of the bytes == manifest sha256
-
-Then commit `BUILD/` and push — the updater fetches `latest.json` from
-raw.githubusercontent.com, so **a release is not live until pushed**. Pushed is
-not the same as served: that URL is cached `max-age=300`, so for up to five
-minutes the app still sees the previous release and honestly reports
-«Установлена последняя версия». Check `curl -sSI … | grep source-age` before
-suspecting the app.
+The updater fetches `latest.json` from raw.githubusercontent.com, so **a
+release is not live until pushed**. Pushed is not the same as served: that URL
+is cached `max-age=300`, so for up to five minutes the app still sees the
+previous release and honestly reports «Установлена последняя версия». Check
+`curl -sSI … | grep source-age` before suspecting the app.
 
 `BUILD/` keeps **only the current release** — `release.sh` deletes the previous
 APK, because each one is ~3MB of binary that would sit in git history forever.
-So a direct link to `filmix-ng-<version>.apk` 404s the moment you ship the next
-one. The stable thing to hand anybody is `latest.json`, which always names the
-current `apkUrl`.
+So a *branch-ref* link to `filmix-ng-<version>.apk` 404s the moment you ship the
+next one, which is one more reason `apkUrl` names a commit. The stable thing to
+hand anybody is `latest.json`, which always names the current `apkUrl`.
 
 **`client/keystore/` is gitignored and irreplaceable.** Lose it and no existing
 install can ever be updated in place again; every user has to uninstall and
@@ -169,6 +141,38 @@ re-pair. Back it up outside the repo.
 
 `git push` is denied by the user's settings. Do not burn attempts on it — ask
 them to run `! git push`.
+
+### Pin apkUrl to the publish commit
+
+`release.sh` writes `apkUrl` with a **placeholder** branch ref, and
+`pin_apk_url.py` rewrites it to the commit that holds the APK. Skip that and the
+release may be undownloadable, because **raw.githubusercontent.com
+intermittently answers `400 Bad Request` for this repo's APK under a branch
+ref**. It did so for the bare `main` on 0.6.14 and for `refs/heads/main` on
+0.6.16 — each time serving the identical blob under the other spelling, under
+`HEAD`, and under the commit SHA, with `x-cache: MISS` (the origin, not a
+cache), no ref ambiguity on the remote, and a cache-busting query string making
+no difference. `latest.json` is served fine under either spelling throughout, so
+the updater *finds* the release and then cannot fetch it, which surfaces as a
+download failure and not as "no new version". Chasing the working spelling is
+whack-a-mole; the commit SHA has been reliable in every test.
+
+The SHA cannot come from `release.sh`: it runs before the publish commit exists,
+and the `commit` it records is the **source** commit, whose tree has no APK in
+it — pinning to that 404s. `pin_apk_url.py` resolves the commit that last
+touched the APK and verifies the blob is in that tree before naming it.
+
+Then confirm what a client will actually get, rather than that the file exists:
+
+```bash
+M=https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/latest.json
+U=$(curl -sS "$M" | python3 -c "import json,sys;print(json.load(sys.stdin)['apkUrl'])")
+curl -sS -o "$S/served.apk" -w '%{http_code}\n' "$U"   # $S = your scratchpad
+sha256sum "$S/served.apk"                              # expect the manifest's sha256
+```
+
+Three consecutive releases came out at byte-identical sizes, so size proves
+nothing; the sha256 and `aapt2 dump badging` do.
 
 ## Launcher icon and banner
 
@@ -353,13 +357,20 @@ RecognitionServiceImpl: logStartListening: callingApp: dev.turchak.filmixng
 RecognitionClient: #onResults withSpeech: true
 ```
 
-**Never hardcode the language**: one the recognizer lacks data for captures
-audio and returns nothing, looking exactly like a broken microphone. It is a
-user setting instead — `SettingsStore.voiceLanguage` holds a BCP-47 tag (null =
-follow the device), `resolveVoiceLanguage` turns that into the tag handed to
-`rememberVoiceSearch(languageTag = …)`, and `voiceLanguageBadge` puts it under
-the microphone. The device locale is only the fallback, and on these TVs it is
-`en-US` — which is how a Russian catalog came to be searched in English.
+**The language is a user setting, never hardcoded**: one the recognizer lacks
+data for captures audio and returns nothing, looking exactly like a broken
+microphone. `SettingsStore.voiceLanguage` holds the choice — a BCP-47 tag, the
+`VOICE_LANGUAGE_SYSTEM` sentinel for "follow the device", or absent for never
+asked, which `resolveVoiceLanguage` reads as **`ru-RU`**. That resolved tag is
+what `rememberVoiceSearch(languageTag = …)` takes, and `voiceLanguageBadge`
+shows it under the microphone.
+
+The device locale is deliberately *not* the default: these TVs ship as `en-US`
+(`persist.sys.locale`), so following the device searched a Russian catalog in
+English with nothing on screen to say so. Google TV's recognizer is
+`com.google.android.katniss`, not the phone's Google app, and it **does** honour
+`EXTRA_LANGUAGE` — `ru-RU` recognises Russian, verified on hardware — so the
+in-app setting is sufficient and no Assistant-settings workaround is needed.
 
 ### Do not diagnose accessibility from uiautomator
 
@@ -439,6 +450,24 @@ visit:
 Failures there must not fold into an empty list: `favourites`, `history` and
 `deferred` all answer `[]` when unpaired, so a dead request and an empty library
 are indistinguishable unless the state says which.
+
+## An empty pager must carry its load states
+
+`PagingData.empty()` — the no-argument overload — builds a `PageEvent.StaticList`
+with **null** load states, so the presenter publishes no update and
+`LazyPagingItems` keeps its own initial value, which is `refresh =
+LoadState.Loading`. A screen that shows a spinner on `refresh is Loading` then
+spins forever over a deliberately empty pager.
+
+It is worse than it looks, because `cachedIn` replays its *accumulated* events
+(idle by then) on a second collection: the spinner appears on first visit to the
+tab and never again, which reads like a race rather than a constant. Pass the
+states explicitly — `PagingData.empty(LoadStates(NotLoading(true), …))`, as
+`SearchViewModel.IDLE_LOAD_STATES` does.
+
+While you are there: `itemCount == 0` alone cannot tell "nothing searched yet"
+from "found nothing". `SearchViewModel.submittedQuery` exists so the empty state
+can say which.
 
 ## Conventions
 
