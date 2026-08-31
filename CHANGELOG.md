@@ -7,7 +7,7 @@ the version and build number once the build tells it what they are.
 The app shows every entry newer than the installed version when it offers an
 update, so write for the person watching, not for the commit log.
 
-## Unreleased
+## 0.6.15 (103)
 - Обновление теперь честно говорит, что именно не получилось: «не удалось проверить» или «не удалось скачать», и показывает причину — раньше сорвавшаяся загрузка выглядела как неудачная проверка.
 - Кнопка «Повторить» после сорвавшейся загрузки повторяет загрузку, а не проверку: до этого она ничего не делала.
 - Ссылка на APK в манифесте обновлений исправлена — по прежнему адресу GitHub отдавал ошибку, и версия 0.6.14 находилась, но не скачивалась.
