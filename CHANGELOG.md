@@ -7,7 +7,7 @@ the version and build number once the build tells it what they are.
 The app shows every entry newer than the installed version when it offers an
 update, so write for the person watching, not for the commit log.
 
-## Unreleased
+## 0.6.20 (122)
 - Кнопка «Читать далее» больше не растянута во всю ширину: теперь она по размеру надписи и стоит ровно под описанием, как «Ещё» в фильтрах.
 
 ## 0.6.19 (118)
