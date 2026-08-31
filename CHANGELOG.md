@@ -7,7 +7,7 @@ the version and build number once the build tells it what they are.
 The app shows every entry newer than the installed version when it offers an
 update, so write for the person watching, not for the commit log.
 
-## Unreleased
+## 0.6.18 (114)
 - Окно с полным описанием стало заметно больше: текст занимает почти весь экран, а поля вокруг него уменьшены — особенно снизу, у кнопки «Закрыть».
 - Из этого окна убрано название фильма: там, где ничего кроме описания нет, оно только отнимало место под текст.
 
