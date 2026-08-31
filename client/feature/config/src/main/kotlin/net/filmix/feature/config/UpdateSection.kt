@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import net.filmix.core.designsystem.component.PrimaryButton
 import net.filmix.core.designsystem.component.TextButton
 import net.filmix.core.model.AppVersion
-import net.filmix.core.model.UpdateStage
 import net.filmix.core.model.UpdateState
 
 /**
@@ -42,22 +41,29 @@ fun UpdateSection(
     onInstall: () -> Unit = {},
     onGrantPermission: () -> Unit = {},
     canInstall: Boolean = true,
+    /**
+     * Hands this section the cursor as soon as it has a control to give it,
+     * for a caller that opened Настройки on the user's behalf rather than at
+     * their request — accepting the launch prompt starts a download here with
+     * nothing on this screen having been pressed.
+     */
+    claimFocus: Boolean = false,
 ) {
     // Every press here swaps one branch of the when for another, so the button
     // the user pressed leaves composition and Compose drops the focus with it —
     // the cursor was landing back on the nav rail after every press. Hand it to
     // whatever replaced the control instead.
     val primary = remember { FocusRequester() }
-    var claimFocus by remember { mutableStateOf(false) }
-    val claiming = { action: () -> Unit -> { claimFocus = true; action() } }
+    var claiming by remember { mutableStateOf(claimFocus) }
+    // A caller can arm it after this section is already composed — the prompt
+    // can be accepted while Настройки is the open tab — so remember alone
+    // would miss it.
+    LaunchedEffect(claimFocus) { if (claimFocus) claiming = true }
+    val claim = { action: () -> Unit -> { claiming = true; action() } }
 
     val stage = state.stage
     LaunchedEffect(stage) {
-        // Ready is claimed whoever started the download: accepting the launch
-        // prompt downloads without a press landing here, so «Установить» would
-        // otherwise appear with the cursor still on the nav rail — one step
-        // from the end of an update the user already agreed to.
-        if (!(claimFocus || stage == UpdateStage.Ready) || !stage.hasAction) return@LaunchedEffect
+        if (!claiming || !stage.hasAction) return@LaunchedEffect
         // Same shape as the launch prompt's claim: the replacement is composed
         // after this runs, so yield a frame and never throw over it.
         repeat(FocusRestoreFrames) {
@@ -79,7 +85,7 @@ fun UpdateSection(
             // are lives on UpdateState.offersCheck, where it is tested.
             state.offersCheck -> {
                 TextButton(
-                    onClick = claiming(onCheck),
+                    onClick = claim(onCheck),
                     modifier = Modifier.focusRequester(primary),
                 ) {
                     Text(
@@ -117,14 +123,14 @@ fun UpdateSection(
                         textAlign = TextAlign.Center,
                     )
                     PrimaryButton(
-                        onClick = claiming(onGrantPermission),
+                        onClick = claim(onGrantPermission),
                         modifier = Modifier.focusRequester(primary),
                     ) {
                         Text("Открыть настройки")
                     }
                 } else {
                     PrimaryButton(
-                        onClick = claiming(onDownload),
+                        onClick = claim(onDownload),
                         modifier = Modifier.focusRequester(primary),
                     ) {
                         Text("Обновить · ${state.update.sizeLabel}")
@@ -151,7 +157,7 @@ fun UpdateSection(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 PrimaryButton(
-                    onClick = claiming(onInstall),
+                    onClick = claim(onInstall),
                     modifier = Modifier.focusRequester(primary),
                 ) {
                     Text("Установить")
@@ -161,14 +167,14 @@ fun UpdateSection(
             state is UpdateState.Failed -> Failure(
                 headline = "Не удалось проверить обновления",
                 reason = state.message,
-                onRetry = claiming(onCheck),
+                onRetry = claim(onCheck),
                 focusRequester = primary,
             )
 
             state is UpdateState.DownloadFailed -> Failure(
                 headline = "Не удалось скачать обновление",
                 reason = state.message,
-                onRetry = claiming(onDownload),
+                onRetry = claim(onDownload),
                 focusRequester = primary,
                 // A download can fail for good — a dead apkUrl is exactly how
                 // 0.6.14 failed — and this state holds the update it was
@@ -178,7 +184,7 @@ fun UpdateSection(
                 // for the life of the process, even after a fixed manifest is
                 // published. Secondary, so «Повторить» keeps the cursor.
                 secondaryLabel = "Проверить обновления",
-                onSecondary = claiming(onCheck),
+                onSecondary = claim(onCheck),
             )
         }
     }

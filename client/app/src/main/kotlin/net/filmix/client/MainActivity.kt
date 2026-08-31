@@ -200,6 +200,15 @@ private fun FilmixApp(graph: AppGraph) {
 
     val launchUpdate by configVm.launchUpdate.collectAsState()
 
+    // Whether Настройки was opened to finish an update rather than visited.
+    // It decides who holds the cursor there, so it lasts exactly as long as
+    // that errand: leaving the tab is the user saying they came for something
+    // else, and the card must not grab the cursor off them next time.
+    var updateAccepted by remember { mutableStateOf(false) }
+    LaunchedEffect(destination) {
+        if (destination != Destination.Config) updateAccepted = false
+    }
+
     launchUpdate?.let { update ->
         UpdatePrompt(
             update = update,
@@ -210,7 +219,12 @@ private fun FilmixApp(graph: AppGraph) {
                 // handoff all already live on the Настройки screen; sending the
                 // user there reuses that path instead of duplicating it.
                 destination = Destination.Config
+                // The cursor goes to the rail only because the dialog's button
+                // left composition and something must hold it — the update card
+                // takes it back as soon as the card has a control to give,
+                // which a running download does not.
                 railFocusTick++
+                updateAccepted = true
             },
             onDismiss = configVm::dismissLaunchUpdate,
         )
@@ -352,6 +366,7 @@ private fun FilmixApp(graph: AppGraph) {
                         selectedPlayerPackage = selectedPlayer,
                         updateState = updateState,
                         modifier = modifier,
+                        claimUpdateFocus = updateAccepted,
                         voiceLanguage = voiceLanguage,
                         systemLanguageTag = systemLanguageTag,
                         onQualityChange = vm::setPreferredQuality,

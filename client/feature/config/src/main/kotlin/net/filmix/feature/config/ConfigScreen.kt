@@ -46,6 +46,8 @@ fun ConfigScreen(
     onInstallUpdate: () -> Unit = {},
     onGrantInstallPermission: () -> Unit = {},
     version: AppVersion? = null,
+    /** True when this screen was opened to finish an update, not visited. */
+    claimUpdateFocus: Boolean = false,
 ) {
     val scroll = rememberScrollState()
 
@@ -92,6 +94,7 @@ fun ConfigScreen(
                 onDownload = onDownloadUpdate,
                 onInstall = onInstallUpdate,
                 onGrantPermission = onGrantInstallPermission,
+                claimFocus = claimUpdateFocus,
             )
 
             if (version != null) {
