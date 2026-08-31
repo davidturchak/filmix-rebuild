@@ -2,7 +2,7 @@
   "versionCode": 118,
   "versionName": "0.6.19",
   "commit": "0a8f508",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.19.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/92fbd79493ffdf268eca49de768a24cf8cedcfa1/BUILD/filmix-ng-0.6.19.apk",
   "sizeBytes": 3052378,
   "sha256": "5a03ec272392b4b8fa39cc7e6a496857d36f935ddc140c6b2fb4acf68c03ce44",
   "notes": "Окно с описанием больше не отсвечивает оранжевым: панель тёмная, как и весь остальной интерфейс, и отделена от фона тонкой рамкой. Слева от текста появилась полоса чтения: сразу видно, сколько ещё осталось. Она загорается оранжевым, когда текст в фокусе, — по ней же понятно, что листать можно прямо сейчас. Строки в описании стали просторнее: читать с дивана заметно легче.",
