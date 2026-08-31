@@ -117,12 +117,28 @@ fun TextButton(
     )
 }
 
-/** The plain icon button. Round, so the ring is too. */
+/**
+ * The plain icon button. Round, so the ring is too.
+ *
+ * It states its content colour rather than inheriting one. Material's
+ * `IconButton` tints from `LocalContentColor`, which is only provided by an
+ * enclosing `Surface` — and a button sitting straight on the page background,
+ * as the search field's clear button does, therefore got the composition
+ * local's own default of **black**. On this app's near-black ground that drew
+ * the glyph darker than the surface behind it: measured at rgb(9,10,12) on
+ * rgb(14,15,19), which is not a dim icon but an invisible one.
+ *
+ * [contentColor] is `onSurfaceVariant`, the muted foreground the search
+ * field's own magnifier already uses, so a bare icon button reads as the
+ * secondary control it is. An `Icon` may still override it with its own
+ * `tint`, which is how the detail screen's back arrow takes `onBackground`.
+ */
 @Composable
 fun IconButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    contentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     content: @Composable () -> Unit,
 ) {
     val interaction = remember { MutableInteractionSource() }
@@ -130,6 +146,7 @@ fun IconButton(
         onClick = onClick,
         enabled = enabled,
         interactionSource = interaction,
+        colors = IconButtonDefaults.iconButtonColors(contentColor = contentColor),
         modifier = modifier.focusRing(
             shape = CircleShape,
             interactionSource = interaction,
