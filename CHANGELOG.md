@@ -7,7 +7,7 @@ the version and build number once the build tells it what they are.
 The app shows every entry newer than the installed version when it offers an
 update, so write for the person watching, not for the commit log.
 
-## Unreleased
+## 0.6.16 (105)
 - Кнопка микрофона в поиске вернулась на своё место: подпись с языком больше не поднимала её выше строки поиска, а просто висит под ней.
 
 ## 0.6.15 (103)
