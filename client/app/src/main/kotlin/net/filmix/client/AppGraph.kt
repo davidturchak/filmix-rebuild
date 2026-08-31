@@ -154,7 +154,11 @@ class GraphViewModelFactory(private val graph: AppGraph) : ViewModelProvider.Fac
             ) as T
 
         modelClass.isAssignableFrom(HomeViewModel::class.java) ->
-            HomeViewModel(graph.catalogRepository) as T
+            HomeViewModel(
+                graph.catalogRepository,
+                graph.libraryRepository,
+                graph.sessionState,
+            ) as T
 
         modelClass.isAssignableFrom(HistoryViewModel::class.java) ->
             HistoryViewModel(graph.libraryRepository, graph.sessionState) as T
