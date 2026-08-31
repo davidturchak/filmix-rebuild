@@ -2,7 +2,7 @@
   "versionCode": 114,
   "versionName": "0.6.18",
   "commit": "f0e0392",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.18.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/d9d7635a9df4891ac5018dcc4a874647aa685b96/BUILD/filmix-ng-0.6.18.apk",
   "sizeBytes": 3052378,
   "sha256": "7fe3321602c05df623da3a8c5b9331238ab1e9915769cb30da8b3ac47268be00",
   "notes": "Окно с полным описанием стало заметно больше: текст занимает почти весь экран, а поля вокруг него уменьшены — особенно снизу, у кнопки «Закрыть». Из этого окна убрано название фильма: там, где ничего кроме описания нет, оно только отнимало место под текст.",
