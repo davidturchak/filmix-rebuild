@@ -32,3 +32,6 @@ client/**/build/
 # Release signing material — losing it breaks in-place updates, but it must
 # not be published either. Back it up outside the repo.
 client/keystore/
+
+# Sales deck — the working copy lives here but is not part of the product
+*.pptx
