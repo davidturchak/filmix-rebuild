@@ -45,7 +45,11 @@ class SettingsStore(private val context: Context) {
     }
 
     /**
-     * Language tag the voice search listens in, or null to follow the device.
+     * The language the voice search listens in, or null when the user has not
+     * chosen — which resolveVoiceLanguage reads as Russian, not as the device
+     * locale. "Как в системе" is stored as its own sentinel rather than as an
+     * absent value, so following the device stays distinguishable from never
+     * having been asked.
      *
      * Stored as the tag rather than an index so a list that gains an entry
      * cannot silently reinterpret an existing choice.
@@ -53,10 +57,8 @@ class SettingsStore(private val context: Context) {
     val voiceLanguage: Flow<String?> = context.settingsDataStore.data
         .map { it[KEY_VOICE_LANGUAGE]?.takeIf(String::isNotBlank) }
 
-    suspend fun setVoiceLanguage(tag: String?) {
-        context.settingsDataStore.edit { prefs ->
-            if (tag == null) prefs.remove(KEY_VOICE_LANGUAGE) else prefs[KEY_VOICE_LANGUAGE] = tag
-        }
+    suspend fun setVoiceLanguage(tag: String) {
+        context.settingsDataStore.edit { it[KEY_VOICE_LANGUAGE] = tag }
     }
 
     /** Catalog sort, stored as the raw API value so new options stay readable. */

@@ -47,11 +47,15 @@ class ConfigViewModel(
         viewModelScope.launch { settings.setExternalPlayerPackage(packageName) }
     }
 
-    /** Null means "follow the device", which is what [voiceLanguages] offers last. */
+    /**
+     * Null means "not chosen", which resolves to Russian — not to the device.
+     * The initial null therefore reads the same as the stored default, so the
+     * badge under the microphone does not flip once DataStore answers.
+     */
     val voiceLanguage: StateFlow<String?> = settings.voiceLanguage
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    fun setVoiceLanguage(tag: String?) {
+    fun setVoiceLanguage(tag: String) {
         viewModelScope.launch { settings.setVoiceLanguage(tag) }
     }
 

@@ -16,10 +16,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import net.filmix.core.designsystem.component.ChipRow
 import net.filmix.core.designsystem.component.FocusChip
 import net.filmix.core.model.AppVersion
 import net.filmix.core.model.ExternalPlayer
 import net.filmix.core.model.UpdateState
+import net.filmix.core.model.VOICE_LANGUAGE_SYSTEM
+import net.filmix.core.model.selectedVoiceLanguage
 import net.filmix.core.model.voiceLanguageBadge
 import net.filmix.core.model.voiceLanguages
 
@@ -34,7 +37,7 @@ fun ConfigScreen(
     systemLanguageTag: String = "",
     onQualityChange: (Int?) -> Unit = {},
     onPlayerChange: (String?) -> Unit = {},
-    onVoiceLanguageChange: (String?) -> Unit = {},
+    onVoiceLanguageChange: (String) -> Unit = {},
     canInstallUpdates: Boolean = true,
     onCheckUpdate: () -> Unit = {},
     onDownloadUpdate: () -> Unit = {},
@@ -163,10 +166,11 @@ private fun PlayerChoice(
  */
 @Composable
 private fun VoiceLanguageChoice(
-    selectedTag: String?,
+    storedTag: String?,
     systemLanguageTag: String,
-    onChange: (String?) -> Unit,
+    onChange: (String) -> Unit,
 ) {
+    val selectedTag = selectedVoiceLanguage(storedTag)
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -177,12 +181,16 @@ private fun VoiceLanguageChoice(
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onBackground,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Wrapping, not a Row: these are the longest chip labels on the screen
+        // — "Как в системе" carries the resolved language too — and three of
+        // them overflow a narrow phone, which clipped the last one off screen
+        // where it could be neither seen nor tapped.
+        ChipRow {
             voiceLanguages.forEach { language ->
                 FocusChip(
                     selected = language.tag == selectedTag,
                     onClick = { onChange(language.tag) },
-                    label = if (language.tag == null && systemLanguageTag.isNotEmpty()) {
+                    label = if (language.tag == VOICE_LANGUAGE_SYSTEM && systemLanguageTag.isNotEmpty()) {
                         "${language.label} (${voiceLanguageBadge(systemLanguageTag)})"
                     } else {
                         language.label

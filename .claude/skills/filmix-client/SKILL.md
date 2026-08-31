@@ -321,8 +321,13 @@ RecognitionServiceImpl: logStartListening: callingApp: dev.turchak.filmixng
 RecognitionClient: #onResults withSpeech: true
 ```
 
-Pass the **device locale**; a hardcoded language the recognizer lacks data for
-captures audio and returns nothing, looking exactly like a broken microphone.
+**Never hardcode the language**: one the recognizer lacks data for captures
+audio and returns nothing, looking exactly like a broken microphone. It is a
+user setting instead — `SettingsStore.voiceLanguage` holds a BCP-47 tag (null =
+follow the device), `resolveVoiceLanguage` turns that into the tag handed to
+`rememberVoiceSearch(languageTag = …)`, and `voiceLanguageBadge` puts it under
+the microphone. The device locale is only the fallback, and on these TVs it is
+`en-US` — which is how a Russian catalog came to be searched in English.
 
 ### Do not diagnose accessibility from uiautomator
 

@@ -139,8 +139,10 @@ private fun listener(
 private fun listenIntent(context: Context, prompt: String, languageTag: String): Intent =
     Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
         putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-        // The device locale, not a hardcoded one: forcing a language the
-        // recogniser has no data for makes it capture and return nothing.
+        // Whatever the caller resolved — the user's choice under Настройки, or
+        // the device locale when they have not made one. Never hardcoded here:
+        // a language the recogniser has no data for captures audio and returns
+        // nothing, which is why the choice is the user's to make and to see.
         putExtra(RecognizerIntent.EXTRA_LANGUAGE, languageTag)
         putExtra(RecognizerIntent.EXTRA_PROMPT, prompt)
         putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)

@@ -7,19 +7,38 @@ import org.junit.Test
 class VoiceLanguageTest {
 
     @Test
-    fun `a stored choice wins over the device locale`() {
-        assertEquals("ru-RU", resolveVoiceLanguage("ru-RU", "en-US"))
+    fun `nothing stored listens in Russian, not the device language`() {
+        assertEquals("ru-RU", resolveVoiceLanguage(null, "en-US"))
+        assertEquals("ru-RU", selectedVoiceLanguage(null))
     }
 
     @Test
-    fun `no stored choice follows the device`() {
-        assertEquals("en-US", resolveVoiceLanguage(null, "en-US"))
+    fun `a stored choice wins`() {
+        assertEquals("en-US", resolveVoiceLanguage("en-US", "ru-RU"))
     }
 
     @Test
-    fun `a blank stored choice follows the device rather than asking for nothing`() {
-        assertEquals("en-US", resolveVoiceLanguage("", "en-US"))
-        assertEquals("en-US", resolveVoiceLanguage("   ", "en-US"))
+    fun `the system sentinel follows the device`() {
+        assertEquals("en-US", resolveVoiceLanguage(VOICE_LANGUAGE_SYSTEM, "en-US"))
+        assertEquals("uk-UA", resolveVoiceLanguage(VOICE_LANGUAGE_SYSTEM, "uk-UA"))
+    }
+
+    @Test
+    fun `a blank stored choice is no choice at all`() {
+        assertEquals("ru-RU", resolveVoiceLanguage("", "en-US"))
+        assertEquals("ru-RU", resolveVoiceLanguage("   ", "en-US"))
+    }
+
+    @Test
+    fun `an unusable system tag falls back rather than asking for nothing`() {
+        assertEquals("ru-RU", resolveVoiceLanguage(VOICE_LANGUAGE_SYSTEM, ""))
+        assertEquals("ru-RU", resolveVoiceLanguage(VOICE_LANGUAGE_SYSTEM, "  "))
+    }
+
+    @Test
+    fun `the resolved tag is never the sentinel`() {
+        val resolved = voiceLanguages.map { resolveVoiceLanguage(it.tag, "en-US") }
+        assertTrue(resolved.none { it == VOICE_LANGUAGE_SYSTEM })
     }
 
     @Test
@@ -42,9 +61,10 @@ class VoiceLanguageTest {
     }
 
     @Test
-    fun `the offered list carries exactly one follow-the-device entry, last`() {
-        assertEquals(1, voiceLanguages.count { it.tag == null })
-        assertEquals(null, voiceLanguages.last().tag)
-        assertTrue(voiceLanguages.all { it.label.isNotBlank() })
+    fun `the offered list leads with the default and ends with the device`() {
+        assertEquals(VOICE_LANGUAGE_DEFAULT, voiceLanguages.first().tag)
+        assertEquals(VOICE_LANGUAGE_SYSTEM, voiceLanguages.last().tag)
+        assertEquals(1, voiceLanguages.count { it.tag == VOICE_LANGUAGE_SYSTEM })
+        assertTrue(voiceLanguages.all { it.label.isNotBlank() && it.tag.isNotBlank() })
     }
 }

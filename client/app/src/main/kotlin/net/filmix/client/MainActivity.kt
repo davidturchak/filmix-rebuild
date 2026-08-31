@@ -32,10 +32,10 @@ import androidx.window.core.layout.WindowWidthSizeClass
 import net.filmix.core.designsystem.theme.FilmixTheme
 import net.filmix.core.model.Post
 import net.filmix.core.model.VideoSource
+import net.filmix.core.model.resolveVoiceLanguage
 import net.filmix.feature.catalog.CatalogScreen
 import net.filmix.feature.catalog.CatalogViewModel
 import net.filmix.feature.config.ConfigScreen
-import net.filmix.core.model.resolveVoiceLanguage
 import net.filmix.feature.config.ConfigViewModel
 import net.filmix.feature.config.UpdatePrompt
 import net.filmix.feature.detail.DetailScreen
