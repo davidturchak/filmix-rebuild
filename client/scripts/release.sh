@@ -65,7 +65,13 @@ mkdir -p "$BUILD_DIR"
 rm -f "$BUILD_DIR"/filmix-client-*.apk "$BUILD_DIR"/filmix-ng-*.apk
 cp "$APK" "$BUILD_DIR/$NAME"
 
-RAW_BASE="https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD"
+# refs/heads/main, not the bare "main": raw.githubusercontent.com answers 400
+# Bad Request for this repo's APK under the short ref while serving the very
+# same blob under refs/heads/main, HEAD or a commit SHA — and latest.json
+# itself is fine under either. It broke in-app updating for 0.6.14 with
+# "Не удалось проверить обновления" and no way for the user to get past it.
+# The fully-qualified ref is the same content, unambiguously addressed.
+RAW_BASE="https://raw.githubusercontent.com/davidturchak/filmix-rebuild/refs/heads/main/BUILD"
 # Stamps the Unreleased heading with this build's version and returns the
 # notes and the full changelog; the tree is dirty afterwards, which is why the
 # publish commit carries CHANGELOG.md alongside BUILD/.

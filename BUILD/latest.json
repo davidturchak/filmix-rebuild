@@ -2,7 +2,7 @@
   "versionCode": 100,
   "versionName": "0.6.14",
   "commit": "e0fbb17",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.14.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/refs/heads/main/BUILD/filmix-ng-0.6.14.apk",
   "sizeBytes": 3035994,
   "sha256": "b5b4fb56945c83d6e9c27c745ea8156fb19925dbf657b890d4b8bddbdd4a08f3",
   "notes": "Голосовой поиск теперь слушает по-русски. Раньше он брал язык системы, а телевизоры продаются с английским — поэтому русские названия почти никогда не распознавались. Язык можно сменить: «Настройки» → «Язык голосового поиска» — Русский, English или «Как в системе». Под кнопкой микрофона написано, на каком языке идёт распознавание, — так что английский вместо русского больше не остаётся незамеченным.",
