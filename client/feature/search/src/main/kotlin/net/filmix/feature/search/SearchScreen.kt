@@ -82,6 +82,7 @@ fun SearchScreen(
     results: LazyPagingItems<Post>,
     modifier: Modifier = Modifier,
     compact: Boolean = false,
+    searched: Boolean = false,
     onQueryChange: (String) -> Unit = {},
     onSubmit: () -> Unit = {},
     onClear: () -> Unit = {},
@@ -242,7 +243,7 @@ fun SearchScreen(
             )
         }
 
-        ResultsGrid(results, compact, onPostClick)
+        ResultsGrid(results, compact, searched, onPostClick)
     }
 }
 
@@ -275,6 +276,7 @@ private fun MicButton(
 private fun ResultsGrid(
     results: LazyPagingItems<Post>,
     compact: Boolean,
+    searched: Boolean,
     onPostClick: (Post) -> Unit,
 ) {
     val refreshing = results.loadState.refresh is LoadState.Loading
@@ -298,8 +300,11 @@ private fun ResultsGrid(
                 modifier = Modifier.align(Alignment.Center),
             )
 
+            // An empty grid means two different things, and telling the user
+            // to start typing after they have just searched reads as if the
+            // query never arrived.
             results.itemCount == 0 -> Text(
-                "Начните вводить название",
+                if (searched) "Ничего не найдено" else "Начните вводить название",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.align(Alignment.Center),

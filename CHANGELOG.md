@@ -7,6 +7,10 @@ the version and build number once the build tells it what they are.
 The app shows every entry newer than the installed version when it offers an
 update, so write for the person watching, not for the commit log.
 
+## Unreleased
+- Поиск больше не встречает вас крутящимся индикатором загрузки: при первом открытии сразу видно подсказку «Начните вводить название».
+- Если по запросу ничего не нашлось, так и написано — «Ничего не найдено», вместо просьбы начать вводить название.
+
 ## 0.6.12 (93)
 - Новый значок приложения: на плитке лаунчера теперь целиком написано «Filmix NG» — белым и фирменным оранжевым Filmix на тёмном фоне.
 - Баннер на Android TV перерисован в том же стиле, чтобы плитка и баннер выглядели одинаково.

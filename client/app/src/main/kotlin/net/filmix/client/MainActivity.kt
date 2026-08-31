@@ -253,12 +253,14 @@ private fun FilmixApp(graph: AppGraph) {
                     val vm: SearchViewModel = viewModel(factory = factory)
                     val q by vm.query.collectAsState()
                     val suggestions by vm.suggestions.collectAsState()
+                    val submitted by vm.submittedQuery.collectAsState()
                     val results = vm.results.collectAsLazyPagingItems()
                     SearchScreen(
                         query = q,
                         suggestions = suggestions,
                         results = results,
                         compact = compact,
+                        searched = submitted.isNotEmpty(),
                         modifier = modifier,
                         onQueryChange = vm::onQueryChange,
                         onSubmit = vm::submit,

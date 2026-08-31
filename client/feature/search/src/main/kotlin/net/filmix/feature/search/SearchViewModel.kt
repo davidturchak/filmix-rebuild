@@ -2,6 +2,8 @@ package net.filmix.feature.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.LoadState
+import androidx.paging.LoadStates
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,11 +34,17 @@ class SearchViewModel(private val catalog: CatalogRepository) : ViewModel() {
     /** Set only when the user commits a query; typing alone shows suggestions. */
     private val submitted = MutableStateFlow("")
 
+    /**
+     * Exposed so an empty grid can say which kind of empty it is: nothing
+     * searched yet, or a search that found nothing.
+     */
+    val submittedQuery: StateFlow<String> = submitted.asStateFlow()
+
     // StateFlow already conflates, so no distinctUntilChanged is needed here.
     val results: Flow<PagingData<Post>> = submitted
         .flatMapLatest { term ->
             if (term.length < MIN_QUERY) {
-                flowOf(PagingData.empty())
+                flowOf(PagingData.empty(IDLE_LOAD_STATES))
             } else {
                 catalog.searchPager(term).flow
             }
@@ -97,5 +105,19 @@ class SearchViewModel(private val catalog: CatalogRepository) : ViewModel() {
     private companion object {
         const val SUGGEST_DEBOUNCE_MS = 300L
         const val MIN_QUERY = 2
+
+        /**
+         * The no-argument `PagingData.empty()` carries *no* load states, so
+         * `LazyPagingItems` never hears from the presenter and keeps its own
+         * initial value — `refresh = Loading`. The screen then shows a spinner
+         * over an empty search field on first open, and only stops once
+         * `cachedIn` replays its accumulated events (idle by then) on a second
+         * visit. Spelling the states out makes "no query yet" read as idle.
+         */
+        val IDLE_LOAD_STATES = LoadStates(
+            refresh = LoadState.NotLoading(endOfPaginationReached = true),
+            prepend = LoadState.NotLoading(endOfPaginationReached = true),
+            append = LoadState.NotLoading(endOfPaginationReached = true),
+        )
     }
 }
