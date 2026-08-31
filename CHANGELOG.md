@@ -7,7 +7,7 @@ the version and build number once the build tells it what they are.
 The app shows every entry newer than the installed version when it offers an
 update, so write for the person watching, not for the commit log.
 
-## Unreleased
+## 0.6.14 (100)
 - Голосовой поиск теперь слушает по-русски. Раньше он брал язык системы, а телевизоры продаются с английским — поэтому русские названия почти никогда не распознавались.
 - Язык можно сменить: «Настройки» → «Язык голосового поиска» — Русский, English или «Как в системе».
 - Под кнопкой микрофона написано, на каком языке идёт распознавание, — так что английский вместо русского больше не остаётся незамеченным.

@@ -1,12 +1,21 @@
 {
-  "versionCode": 96,
-  "versionName": "0.6.13",
-  "commit": "659fbe9",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.13.apk",
+  "versionCode": 100,
+  "versionName": "0.6.14",
+  "commit": "e0fbb17",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.14.apk",
   "sizeBytes": 3035994,
-  "sha256": "a7dbaaa5d515daa3bea3f2853b7b98bc7dc1ba2956e21e7296fab7ce2fa24f4c",
-  "notes": "Поиск больше не встречает вас крутящимся индикатором загрузки: при первом открытии сразу видно подсказку «Начните вводить название». Если по запросу ничего не нашлось, так и написано — «Ничего не найдено», вместо просьбы начать вводить название.",
+  "sha256": "b5b4fb56945c83d6e9c27c745ea8156fb19925dbf657b890d4b8bddbdd4a08f3",
+  "notes": "Голосовой поиск теперь слушает по-русски. Раньше он брал язык системы, а телевизоры продаются с английским — поэтому русские названия почти никогда не распознавались. Язык можно сменить: «Настройки» → «Язык голосового поиска» — Русский, English или «Как в системе». Под кнопкой микрофона написано, на каком языке идёт распознавание, — так что английский вместо русского больше не остаётся незамеченным.",
   "changelog": [
+    {
+      "versionCode": 100,
+      "versionName": "0.6.14",
+      "notes": [
+        "Голосовой поиск теперь слушает по-русски. Раньше он брал язык системы, а телевизоры продаются с английским — поэтому русские названия почти никогда не распознавались.",
+        "Язык можно сменить: «Настройки» → «Язык голосового поиска» — Русский, English или «Как в системе».",
+        "Под кнопкой микрофона написано, на каком языке идёт распознавание, — так что английский вместо русского больше не остаётся незамеченным."
+      ]
+    },
     {
       "versionCode": 96,
       "versionName": "0.6.13",
@@ -140,13 +149,6 @@
       "versionName": "0.5.5",
       "notes": [
         "Новый раздел Настройки: выбор видеоплеера (встроенный или внешний — MX Player, VLC), качество и обновления в одном месте. Исправлена история просмотров: просмотры снова попадают в историю и список обновляется сразу."
-      ]
-    },
-    {
-      "versionCode": 55,
-      "versionName": "0.5.4",
-      "notes": [
-        "Detail: the watch button can no longer be squeezed out by a long title and a wide chip row. Search: a spoken query's results stay on screen. Favourites and history: a network failure now offers a retry instead of asking you to sign in, and pairing survives a font-size change. Playback: the resume position is saved when you leave. Filters: resetting keeps the focus inside the sheet."
       ]
     }
   ]
