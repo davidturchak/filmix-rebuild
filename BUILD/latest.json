@@ -2,7 +2,7 @@
   "versionCode": 139,
   "versionName": "0.6.25",
   "commit": "afc8011",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.25.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/ce4f38b3faa230dd2286aaa9c608ebd16437c423/BUILD/filmix-ng-0.6.25.apk",
   "sizeBytes": 3052378,
   "sha256": "5b3836b60920f688ee3bd45773387b0665bf7b8489fb19f3f353495a5bde0c76",
   "notes": "Полоса чтения в окне обновления больше не закрывает сам список изменений: в 0.6.22 она разворачивалась во всю ширину и текст пропадал под оранжевым прямоугольником.",
