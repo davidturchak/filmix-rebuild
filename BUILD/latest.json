@@ -2,7 +2,7 @@
   "versionCode": 136,
   "versionName": "0.6.24",
   "commit": "9120faf",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.24.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/7830d9f2b859cc6887a0723cf226d3e7e8c0139b/BUILD/filmix-ng-0.6.24.apk",
   "sizeBytes": 3052378,
   "sha256": "511f8ed2f9bb28a1440a0ffaa1097dbcde5dde697dbf03cfc8117485e42b7638",
   "notes": "«Продолжить просмотр» на главной больше не застревает на том, что было при запуске приложения: рейл обновляется сразу, как только вы что-то включили, и появляется сразу после привязки устройства — раньше для этого приходилось перезапускать приложение. Остальные рейлы при этом не перезагружаются и не прыгают под курсором.",
