@@ -2,7 +2,7 @@
   "versionCode": 133,
   "versionName": "0.6.23",
   "commit": "8aeb2ec",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.23.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/0a5d82c73d4b76c72692b0c8b69c968aaf808d9c/BUILD/filmix-ng-0.6.23.apk",
   "sizeBytes": 3052378,
   "sha256": "2256655a7728f01b64a2a94edb8b5794d86e7d8874d6f9e4049e3ef1169a8109",
   "notes": "На экране профиля появилось фото аккаунта — то же, что на сайте. Если фото не загружено, рисуется силуэт.",
