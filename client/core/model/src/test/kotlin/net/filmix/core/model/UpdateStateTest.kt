@@ -115,6 +115,10 @@ class UpdateStateTest {
         assertEquals(UpdateStage.Downloading, UpdateState.Downloading(update, 40).stage)
         assertEquals(UpdateStage.Ready, UpdateState.ReadyToInstall(update).stage)
         assertEquals(UpdateStage.Failed, UpdateState.Failed("boom").stage)
+        assertEquals(
+            UpdateStage.Failed,
+            UpdateState.DownloadFailed(update, "download HTTP 400").stage,
+        )
     }
 
     @Test
@@ -132,5 +136,13 @@ class UpdateStateTest {
         assertFalse(UpdateState.Downloading(update, 40).offersCheck)
         assertFalse(UpdateState.ReadyToInstall(update).offersCheck)
         assertFalse(UpdateState.Failed("boom").offersCheck)
+        assertFalse(UpdateState.DownloadFailed(update, "download HTTP 400").offersCheck)
+    }
+
+    @Test
+    fun `a failed download keeps the update, so retrying can download it again`() {
+        val failed = UpdateState.DownloadFailed(update, "download HTTP 400")
+        assertEquals(update, failed.update)
+        assertEquals("download HTTP 400", failed.message)
     }
 }

@@ -78,7 +78,18 @@ sealed interface UpdateState {
     data class Available(val update: AppUpdate) : UpdateState
     data class Downloading(val update: AppUpdate, val percent: Int) : UpdateState
     data class ReadyToInstall(val update: AppUpdate) : UpdateState
+    /** A check that failed. "Повторить" here means check again. */
     data class Failed(val message: String) : UpdateState
+
+    /**
+     * A download that failed, carrying the update it was fetching so retrying
+     * means downloading again rather than re-checking — and so the failure can
+     * say which of the two steps actually broke. One shared Failed state told
+     * the user "не удалось проверить обновления" for a download that died on an
+     * HTTP 400, and its retry button re-ran the check, which succeeded, which
+     * left no way out of the loop.
+     */
+    data class DownloadFailed(val update: AppUpdate, val message: String) : UpdateState
 
     /**
      * Whether the plain "check for updates" button belongs on screen.

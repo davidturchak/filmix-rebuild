@@ -127,7 +127,13 @@ class ConfigViewModel(
     }
 
     fun downloadUpdate() {
-        val available = (_updateState.value as? UpdateState.Available)?.update ?: return
+        val available = when (val current = _updateState.value) {
+            is UpdateState.Available -> current.update
+            // Retrying a failed download: the state is no longer Available, and
+            // reading only that made "Повторить" do nothing at all.
+            is UpdateState.DownloadFailed -> current.update
+            else -> null
+        } ?: return
         viewModelScope.launch {
             runCatching {
                 updates.download(available).collect { progress ->
@@ -141,7 +147,9 @@ class ConfigViewModel(
                         }
                     }
                 }
-            }.onFailure { _updateState.value = UpdateState.Failed(it.message.orEmpty()) }
+            }.onFailure {
+                _updateState.value = UpdateState.DownloadFailed(available, it.message.orEmpty())
+            }
         }
     }
 }

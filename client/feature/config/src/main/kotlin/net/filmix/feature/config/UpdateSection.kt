@@ -153,21 +153,61 @@ fun UpdateSection(
                 }
             }
 
-            state is UpdateState.Failed -> Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Text(
-                    "Не удалось проверить обновления",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.error,
-                )
-                TextButton(
-                    onClick = claiming(onCheck),
-                    modifier = Modifier.focusRequester(primary),
-                ) { Text("Повторить") }
-            }
+            state is UpdateState.Failed -> Failure(
+                headline = "Не удалось проверить обновления",
+                reason = state.message,
+                onRetry = claiming(onCheck),
+                focusRequester = primary,
+            )
+
+            state is UpdateState.DownloadFailed -> Failure(
+                headline = "Не удалось скачать обновление",
+                reason = state.message,
+                onRetry = claiming(onDownload),
+                focusRequester = primary,
+            )
         }
+    }
+}
+
+/**
+ * A failed step, with what went wrong under it.
+ *
+ * The reason is shown rather than swallowed: it is where the HTTP code lands,
+ * and a download that failed on "download HTTP 400" said only "не удалось
+ * проверить обновления" on screen, which sent the diagnosis in exactly the
+ * wrong direction. Unlocalised — it comes from the exception — so it is set
+ * small and dim, under a headline that is not.
+ */
+@Composable
+private fun Failure(
+    headline: String,
+    reason: String,
+    onRetry: () -> Unit,
+    focusRequester: FocusRequester,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(
+            headline,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+        )
+        if (reason.isNotBlank()) {
+            Text(
+                reason,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.outline,
+                textAlign = TextAlign.Center,
+            )
+        }
+        TextButton(
+            onClick = onRetry,
+            modifier = Modifier.focusRequester(focusRequester),
+        ) { Text("Повторить") }
     }
 }
 
