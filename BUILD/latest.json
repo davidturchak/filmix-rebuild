@@ -1,12 +1,20 @@
 {
-  "versionCode": 93,
-  "versionName": "0.6.12",
-  "commit": "6bfe6d4",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.12.apk",
+  "versionCode": 96,
+  "versionName": "0.6.13",
+  "commit": "659fbe9",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.13.apk",
   "sizeBytes": 3035994,
-  "sha256": "259b0f33030b28d4bc96d39344d1a55124d7e93f04e3a1f3d7931fbc6301ef1c",
-  "notes": "Новый значок приложения: на плитке лаунчера теперь целиком написано «Filmix NG» — белым и фирменным оранжевым Filmix на тёмном фоне. Баннер на Android TV перерисован в том же стиле, чтобы плитка и баннер выглядели одинаково.",
+  "sha256": "a7dbaaa5d515daa3bea3f2853b7b98bc7dc1ba2956e21e7296fab7ce2fa24f4c",
+  "notes": "Поиск больше не встречает вас крутящимся индикатором загрузки: при первом открытии сразу видно подсказку «Начните вводить название». Если по запросу ничего не нашлось, так и написано — «Ничего не найдено», вместо просьбы начать вводить название.",
   "changelog": [
+    {
+      "versionCode": 96,
+      "versionName": "0.6.13",
+      "notes": [
+        "Поиск больше не встречает вас крутящимся индикатором загрузки: при первом открытии сразу видно подсказку «Начните вводить название».",
+        "Если по запросу ничего не нашлось, так и написано — «Ничего не найдено», вместо просьбы начать вводить название."
+      ]
+    },
     {
       "versionCode": 93,
       "versionName": "0.6.12",
@@ -139,13 +147,6 @@
       "versionName": "0.5.4",
       "notes": [
         "Detail: the watch button can no longer be squeezed out by a long title and a wide chip row. Search: a spoken query's results stay on screen. Favourites and history: a network failure now offers a retry instead of asking you to sign in, and pairing survives a font-size change. Playback: the resume position is saved when you leave. Filters: resetting keeps the focus inside the sheet."
-      ]
-    },
-    {
-      "versionCode": 51,
-      "versionName": "0.5.3",
-      "notes": [
-        "Playback: volume and play/pause keys work again while the controls are hidden. Favourites: a failure loading «Смотреть позже» no longer hides the favourites that did load. Filters: choosing a country no longer moves the chip out from under the focus ring."
       ]
     }
   ]
