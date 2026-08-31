@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import net.filmix.core.data.CatalogRepository
 import net.filmix.core.model.Post
 
@@ -46,7 +47,14 @@ class SearchViewModel(private val catalog: CatalogRepository) : ViewModel() {
             if (term.length < MIN_QUERY) {
                 flowOf(PagingData.empty(IDLE_LOAD_STATES))
             } else {
+                // Loading first, for the same reason the idle states exist:
+                // `submittedQuery` turns the empty grid's message into
+                // «Ничего не найдено» the moment the query is committed, but
+                // the pager takes a few dispatches to say it is loading — so
+                // the first search off an empty screen could answer "found
+                // nothing" before it had looked. This says "looking" at once.
                 catalog.searchPager(term).flow
+                    .onStart { emit(PagingData.empty(SEARCHING_LOAD_STATES)) }
             }
         }
         .cachedIn(viewModelScope)
@@ -118,6 +126,13 @@ class SearchViewModel(private val catalog: CatalogRepository) : ViewModel() {
             refresh = LoadState.NotLoading(endOfPaginationReached = true),
             prepend = LoadState.NotLoading(endOfPaginationReached = true),
             append = LoadState.NotLoading(endOfPaginationReached = true),
+        )
+
+        /** The same trick, for the gap before a new pager reports for itself. */
+        val SEARCHING_LOAD_STATES = LoadStates(
+            refresh = LoadState.Loading,
+            prepend = LoadState.NotLoading(endOfPaginationReached = false),
+            append = LoadState.NotLoading(endOfPaginationReached = false),
         )
     }
 }

@@ -17,7 +17,12 @@ REPO = "https://raw.githubusercontent.com/davidturchak/filmix-rebuild"
 
 
 def main() -> int:
-    manifest = json.load(open(MANIFEST))
+    # Explicitly UTF-8, never the locale default: the notes and changelog are
+    # Russian, and under LC_ALL=C — a cron job, a bare CI container — the
+    # default is ASCII and this read dies, which silently leaves the release
+    # pointing at the branch ref that intermittently 400s.
+    with open(MANIFEST, encoding="utf-8") as f:
+        manifest = json.load(f)
     name = manifest["apkUrl"].rsplit("/", 1)[1]
 
     # The commit that last touched this APK, not HEAD: pinning survives the

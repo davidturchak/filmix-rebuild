@@ -165,6 +165,15 @@ fun UpdateSection(
                 reason = state.message,
                 onRetry = claiming(onDownload),
                 focusRequester = primary,
+                // A download can fail for good — a dead apkUrl is exactly how
+                // 0.6.14 failed — and this state holds the update it was
+                // fetching, so retrying only ever asks for the same broken
+                // file. Nothing returns the state to Idle, so without a way
+                // back to the check the user is stranded on that one release
+                // for the life of the process, even after a fixed manifest is
+                // published. Secondary, so «Повторить» keeps the cursor.
+                secondaryLabel = "Проверить обновления",
+                onSecondary = claiming(onCheck),
             )
         }
     }
@@ -185,6 +194,9 @@ private fun Failure(
     reason: String,
     onRetry: () -> Unit,
     focusRequester: FocusRequester,
+    /** A second way out, for a step whose retry can only fail the same way. */
+    secondaryLabel: String? = null,
+    onSecondary: () -> Unit = {},
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -208,6 +220,9 @@ private fun Failure(
             onClick = onRetry,
             modifier = Modifier.focusRequester(focusRequester),
         ) { Text("Повторить") }
+        if (secondaryLabel != null) {
+            TextButton(onClick = onSecondary) { Text(secondaryLabel) }
+        }
     }
 }
 
