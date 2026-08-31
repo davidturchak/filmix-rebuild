@@ -7,7 +7,7 @@ the version and build number once the build tells it what they are.
 The app shows every entry newer than the installed version when it offers an
 update, so write for the person watching, not for the commit log.
 
-## Unreleased
+## 0.6.24 (136)
 - «Продолжить просмотр» на главной больше не застревает на том, что было при запуске приложения: рейл обновляется сразу, как только вы что-то включили, и появляется сразу после привязки устройства — раньше для этого приходилось перезапускать приложение. Остальные рейлы при этом не перезагружаются и не прыгают под курсором.
 
 ## 0.6.23 (133)
