@@ -351,8 +351,8 @@ private fun Content(
 
     if (readerOpen) {
         SynopsisReader(
-            title = post.title,
             text = post.shortStory,
+            compact = compact,
             onClose = { readerOpen = false },
         )
     }
