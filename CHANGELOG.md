@@ -7,6 +7,9 @@ the version and build number once the build tells it what they are.
 The app shows every entry newer than the installed version when it offers an
 update, so write for the person watching, not for the commit log.
 
+## Unreleased
+- Кнопка «Читать далее» больше не растянута во всю ширину: теперь она по размеру надписи и стоит ровно под описанием, как «Ещё» в фильтрах.
+
 ## 0.6.19 (118)
 - Окно с описанием больше не отсвечивает оранжевым: панель тёмная, как и весь остальной интерфейс, и отделена от фона тонкой рамкой.
 - Слева от текста появилась полоса чтения: сразу видно, сколько ещё осталось. Она загорается оранжевым, когда текст в фокусе, — по ней же понятно, что листать можно прямо сейчас.
