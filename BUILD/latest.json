@@ -2,7 +2,7 @@
   "versionCode": 130,
   "versionName": "0.6.22",
   "commit": "c46f3d0",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.22.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/fec8d617e276d67bee573930c834fe718515e5f3/BUILD/filmix-ng-0.6.22.apk",
   "sizeBytes": 3052378,
   "sha256": "c8f1549a79158e0aa544a85665ac59e74848771440b8e0765d3fd11ce697d4f2",
   "notes": "Список изменений в окне обновления теперь листается: раньше всё, что не помещалось, прочитать было нельзя — пультом в него было не попасть. Слева появилась полоса чтения, по ней сразу видно, что текст продолжается.",
