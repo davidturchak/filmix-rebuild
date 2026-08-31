@@ -3,7 +3,6 @@ package net.filmix.feature.detail
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +26,6 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.ThumbDown
 import androidx.compose.material.icons.filled.ThumbUp
@@ -59,6 +57,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import net.filmix.core.designsystem.component.AccentChip
+import net.filmix.core.designsystem.component.Avatar
 import net.filmix.core.designsystem.component.ChipRow
 import net.filmix.core.designsystem.component.MetaChip
 import net.filmix.core.designsystem.component.PosterCard
@@ -772,25 +771,7 @@ private fun CommentRow(comment: Comment, modifier: Modifier = Modifier) {
             .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        if (comment.avatarUrl != null) {
-            AsyncImage(
-                model = comment.avatarUrl,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.size(36.dp).clip(CircleShape),
-            )
-        } else {
-            Icon(
-                Icons.Filled.Person,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(6.dp),
-            )
-        }
+        Avatar(comment.avatarUrl, size = 36.dp)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),

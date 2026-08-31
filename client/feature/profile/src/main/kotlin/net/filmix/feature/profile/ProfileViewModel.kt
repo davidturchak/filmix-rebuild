@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import net.filmix.core.data.AuthRepository
 import net.filmix.core.data.PairingState
+import net.filmix.core.model.Avatar
 
 class ProfileViewModel(
     private val auth: AuthRepository,
@@ -58,4 +59,5 @@ private fun net.filmix.core.network.dto.UserDataDto.toSignedIn() = ProfileUiStat
     displayName = displayName.ifEmpty { login },
     isPro = isPro || isProPlus,
     proUntil = proDate,
+    avatarUrl = Avatar.urlOrNull(foto),
 )

@@ -10,6 +10,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.JsonPrimitive
+import net.filmix.core.model.Avatar
 import net.filmix.core.model.Comment
 import net.filmix.core.model.FilterOption
 import net.filmix.core.model.FilterOptions
@@ -229,7 +230,7 @@ fun CommentDto.toDomain(): Comment = Comment(
     date = date,
     author = Html.toPlainText(gastName),
     text = Html.toPlainText(text),
-    avatarUrl = avatar.takeIf { it.startsWith("http") },
+    avatarUrl = Avatar.urlOrNull(avatar),
 )
 
 /**

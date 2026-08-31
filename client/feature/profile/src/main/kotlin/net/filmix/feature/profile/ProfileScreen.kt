@@ -18,8 +18,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import net.filmix.core.data.PairingState
+import net.filmix.core.designsystem.component.Avatar
 import net.filmix.core.designsystem.component.OutlinedButton
 import net.filmix.core.designsystem.component.PrimaryButton
+import net.filmix.core.designsystem.theme.LocalDimensions
 
 sealed interface ProfileUiState {
     data object Idle : ProfileUiState
@@ -33,6 +35,8 @@ sealed interface ProfileUiState {
         val displayName: String,
         val isPro: Boolean,
         val proUntil: String,
+        /** The account's picture, or null when it has none. */
+        val avatarUrl: String? = null,
     ) : ProfileUiState
 
     data class Failed(val message: String) : ProfileUiState
@@ -105,6 +109,17 @@ fun ProfileScreen(
                 }
 
                 is ProfileUiState.SignedIn -> {
+                    // The one screen in the app that is about the person
+                    // rather than about a film, and until now it opened on a
+                    // line of text. The portrait is also the quickest way to
+                    // see *which* account a shared television is signed into.
+                    // Sized off Dimensions, because 96dp reads at arm's length
+                    // and disappears at three metres.
+                    Avatar(
+                        url = state.avatarUrl,
+                        size = LocalDimensions.current.avatarSize,
+                        contentDescription = "Фото профиля",
+                    )
                     Text(
                         state.displayName,
                         style = MaterialTheme.typography.titleLarge,

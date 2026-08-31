@@ -22,6 +22,8 @@ data class Dimensions(
     val posterHeightCompact: Dp,
     val heroHeight: Dp,
     val heroHeightCompact: Dp,
+    /** The account portrait on the profile screen. */
+    val avatarSize: Dp,
 )
 
 /** Phones and tablets, at arm's length. */
@@ -35,6 +37,7 @@ val TouchDimensions = Dimensions(
     posterHeightCompact = 162.dp,
     heroHeight = 420.dp,
     heroHeightCompact = 280.dp,
+    avatarSize = 96.dp,
 )
 
 /**
@@ -52,6 +55,7 @@ val TvDimensions = Dimensions(
     posterHeightCompact = 240.dp,
     heroHeight = 300.dp,
     heroHeightCompact = 300.dp,
+    avatarSize = 120.dp,
 )
 
 val LocalDimensions = staticCompositionLocalOf { TouchDimensions }
