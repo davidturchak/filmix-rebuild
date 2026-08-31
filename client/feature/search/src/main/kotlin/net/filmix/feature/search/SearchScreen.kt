@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -263,6 +264,13 @@ fun SearchScreen(
  * locale, and on an en-US TV a Russian catalog was searched in English with
  * nothing on screen to say so. Two letters under the button is enough to notice
  * it, and Настройки is where it changes.
+ *
+ * The badge is offset out of the layout rather than stacked in a Column: laid
+ * out, it made this cell taller than the text field beside it, and the header
+ * Row's centring then lifted the button clear of where it had always sat. Only
+ * the button is measured, so the row keeps the height and the alignment it had
+ * before the badge existed, and the two letters hang in the header's own bottom
+ * padding.
  */
 @Composable
 private fun MicButton(
@@ -271,7 +279,7 @@ private fun MicButton(
     languageBadge: String,
     onClick: () -> Unit,
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Box(contentAlignment = Alignment.Center) {
         FilledTonalIconButton(
             onClick = onClick,
             colors = if (listening) {
@@ -297,9 +305,15 @@ private fun MicButton(
             } else {
                 MaterialTheme.colorScheme.onSurfaceVariant
             },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .offset(y = BadgeDrop),
         )
     }
 }
+
+/** Clears the button's bottom edge, staying inside the header's 16dp padding. */
+private val BadgeDrop = 15.dp
 
 @Composable
 private fun ResultsGrid(
