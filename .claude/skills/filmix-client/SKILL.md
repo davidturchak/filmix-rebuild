@@ -316,6 +316,22 @@ button vanishes with the state that showed it. `FocusReturn` restores the cursor
 into a list; elsewhere hand focus somewhere deliberate rather than letting it
 fall back to whatever is first.
 
+### The TV pins the focused row a third of the way down
+
+Compose Foundation 1.7 swaps the default `BringIntoViewSpec` for a pivot spec
+on television: every focus move scrolls the list so the focused item sits at
+30% of the viewport, even when it was already fully visible. That is why a
+single DOWN from the hero throws the whole header off the top. It is the
+platform's Leanback-style behaviour, not a bug — but it means **an item far
+above the cursor comes back into view on almost any UP**, and a lazy item
+that re-enters composition re-runs everything inside it.
+
+So never put a one-shot `LaunchedEffect` that requests focus *inside* a
+`LazyColumn` item. The detail hero did, and every UP from the episode grid
+that scrolled the hero back in re-fired it and snatched the cursor onto
+«Смотреть». Own such requests from the list's parent, keyed on the screen's
+identity, and hand the `FocusRequester` down.
+
 ### While the on-screen keyboard is up, it owns the D-pad
 
 Not the app. Presses die in the keyboard's window, so a text field that has just
