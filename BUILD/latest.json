@@ -2,7 +2,7 @@
   "versionCode": 149,
   "versionName": "0.6.28",
   "commit": "909f151",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.28.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/19afd64931a9977d92d112a7e9d6dd66ef5d89f8/BUILD/filmix-ng-0.6.28.apk",
   "sizeBytes": 3052402,
   "sha256": "47bc13b205ba4755527833024ea9336434158fe47c5806715856e394d1e128e9",
   "notes": "Кнопка «Назад» на главной снова выходит из приложения. После установки обновления кнопкой «Открыть» каждый запуск с главного экрана Google TV открывал новую копию приложения поверх старой, и «Назад» показывала ту старую копию — с устаревшими данными и прыгающим курсором — вместо выхода.",
