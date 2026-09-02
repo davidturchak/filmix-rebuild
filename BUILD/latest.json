@@ -2,7 +2,7 @@
   "versionCode": 157,
   "versionName": "0.6.30",
   "commit": "1a66854",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.30.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/776351268a46ef21d406529016143a3257cbab1c/BUILD/filmix-ng-0.6.30.apk",
   "sizeBytes": 3052402,
   "sha256": "2c4e6b1a35f3e1a9a0661a77e9299b5f1d5aae63324e5b26912d66824fd182db",
   "notes": "Приложение теперь называется «Filmix NG» — на главном экране Google TV, в списке приложений и в подписи на экране Настроек.",
