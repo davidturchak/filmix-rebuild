@@ -200,6 +200,26 @@ private fun Content(
             SeriesProgress.seasonWatch(season, translation, progress)
         }
     }
+    // On a remote the screen opens with focus on the back arrow, which overlays
+    // the list — focus search cannot descend from it into the LazyColumn, so
+    // the D-pad appears dead. Claim focus for the primary action instead; BACK
+    // still exits via the hardware key.
+    //
+    // Owned here, not by the hero, because the hero is a lazy item: scroll it
+    // off the top and it is disposed, scroll back and it is composed afresh —
+    // and an effect inside it ran again on every return. On TV the list pins
+    // the focused row a third of the way down, so UP from the episode grid
+    // onto a chip row pulled the hero back into view, the effect re-fired, and
+    // focus was snatched off the chip onto «Смотреть» — the cursor visibly
+    // jumped to the top of the page. One request per title, from a scope that
+    // lives as long as the screen, is what was meant.
+    val playFocus = remember { FocusRequester() }
+    LaunchedEffect(post.id) {
+        // The requester must be attached before it can be used; yielding a
+        // frame avoids a silent no-op.
+        withFrameNanos { }
+        runCatching { playFocus.requestFocus() }
+    }
     LazyColumn(
         contentPadding = PaddingValues(bottom = LocalDimensions.current.sectionGap),
         verticalArrangement = Arrangement.spacedBy(LocalDimensions.current.sectionGap),
@@ -218,6 +238,7 @@ private fun Content(
                 currentEpisode = watch?.current,
                 continueWatching = watch?.currentInProgress == true,
                 onPlayEpisode = onPlayEpisode,
+                playFocus = playFocus,
             )
         }
 
@@ -432,6 +453,8 @@ private fun Backdrop(
     currentEpisode: Episode?,
     continueWatching: Boolean,
     onPlayEpisode: (Episode) -> Unit,
+    /** Requested once per title by [Content]; see the note there. */
+    playFocus: FocusRequester,
 ) {
     Box(
         Modifier
@@ -520,18 +543,6 @@ private fun Backdrop(
                     val centred = Modifier.align(Alignment.CenterVertically)
                     val best = post.sources.firstOrNull()
                     if (best != null || currentEpisode != null) {
-                        // On a remote the screen opens with focus on the back
-                        // arrow, which overlays the list — focus search cannot
-                        // descend from it into the LazyColumn, so the D-pad
-                        // appears dead. Claim focus for the primary action
-                        // instead; BACK still exits via the hardware key.
-                        val playFocus = remember { FocusRequester() }
-                        LaunchedEffect(post.id) {
-                            // The requester must be attached before it can be
-                            // used; yielding a frame avoids a silent no-op.
-                            withFrameNanos { }
-                            runCatching { playFocus.requestFocus() }
-                        }
                         PrimaryButton(
                             onClick = {
                                 when {
