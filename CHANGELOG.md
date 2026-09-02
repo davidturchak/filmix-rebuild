@@ -7,7 +7,7 @@ the version and build number once the build tells it what they are.
 The app shows every entry newer than the installed version when it offers an
 update, so write for the person watching, not for the commit log.
 
-## Unreleased
+## 0.6.30 (157)
 - Приложение теперь называется «Filmix NG» — на главном экране Google TV, в списке приложений и в подписи на экране Настроек.
 
 ## 0.6.29 (152)
