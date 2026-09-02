@@ -7,6 +7,9 @@ the version and build number once the build tells it what they are.
 The app shows every entry newer than the installed version when it offers an
 update, so write for the person watching, not for the commit log.
 
+## Unreleased
+- Кнопка «Назад» на главной снова выходит из приложения. После установки обновления кнопкой «Открыть» каждый запуск с главного экрана Google TV открывал новую копию приложения поверх старой, и «Назад» показывала ту старую копию — с устаревшими данными и прыгающим курсором — вместо выхода.
+
 ## 0.6.27 (146)
 - Крестик, стирающий запрос в поиске, снова видно: он рисовался чёрным на почти чёрном фоне и выглядел так, будто его нет.
 

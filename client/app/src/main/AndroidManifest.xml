@@ -47,9 +47,16 @@
              one to the other — but a launcher that reads the activity's banner
              field directly sees 0 and draws a blank tile, which is what a TCL
              Leanback launcher did with the application-level banner alone. -->
+        <!-- singleTask: the package installer's «Открыть» roots the task with
+             a MAIN+LAUNCHER intent, and adb's `am start -n` with a category-less
+             one; the Google TV launcher then sends MAIN+LEANBACK_LAUNCHER, which
+             is not filterEquals to either, so a standard activity got stacked on
+             top of that stale root — and BACK from Home resumed a days-old copy
+             of the app instead of leaving it. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:banner="@drawable/banner"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
             android:theme="@style/Theme.FilmixClient">
