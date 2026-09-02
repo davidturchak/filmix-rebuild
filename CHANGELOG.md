@@ -7,6 +7,9 @@ the version and build number once the build tells it what they are.
 The app shows every entry newer than the installed version when it offers an
 update, so write for the person watching, not for the commit log.
 
+## Unreleased
+- Приложение теперь называется «Filmix NG» — на главном экране Google TV, в списке приложений и в подписи на экране Настроек.
+
 ## 0.6.29 (152)
 - На экране фильма курсор больше не улетает на кнопку «Смотреть» при нажатии «вверх» из списка серий или из ряда «Похожее». Шапка экрана заново запрашивала фокус каждый раз, когда прокрутка возвращала её на экран, и уводила курсор с только что выбранной строки.
 

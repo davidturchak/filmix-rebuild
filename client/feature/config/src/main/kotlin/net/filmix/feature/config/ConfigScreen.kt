@@ -243,7 +243,7 @@ private fun VersionFooter(version: AppVersion) {
         modifier = Modifier.padding(top = 32.dp),
     ) {
         Text(
-            "Filmix-ng by Ku4eR",
+            "Filmix NG by Ku4eR",
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
