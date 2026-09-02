@@ -2,7 +2,7 @@
   "versionCode": 152,
   "versionName": "0.6.29",
   "commit": "c3b534c",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.29.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/bcb5ecedc03d54cf119b9ae84843926368d6f7df/BUILD/filmix-ng-0.6.29.apk",
   "sizeBytes": 3052402,
   "sha256": "48e9f5605aa78569b50114b81c4bef4e0e9228f3c1e6495e074ea17537fadf7b",
   "notes": "На экране фильма курсор больше не улетает на кнопку «Смотреть» при нажатии «вверх» из списка серий или из ряда «Похожее». Шапка экрана заново запрашивала фокус каждый раз, когда прокрутка возвращала её на экран, и уводила курсор с только что выбранной строки.",
