@@ -7,7 +7,7 @@ the version and build number once the build tells it what they are.
 The app shows every entry newer than the installed version when it offers an
 update, so write for the person watching, not for the commit log.
 
-## Unreleased
+## 0.6.33 (166)
 - Каталог тоже обновляется сам, как и главная: список, открытый больше 15 минут назад, при возврате на вкладку загружается заново — без экрана загрузки, прямо под курсором. Если список был пролистан далеко, он возвращается к началу, где новые фильмы, и курсор встаёт на первую карточку. Неудавшееся обновление оставляет прежний список и повторяется через полминуты.
 
 ## 0.6.32 (163)
