@@ -2,7 +2,7 @@
   "versionCode": 166,
   "versionName": "0.6.33",
   "commit": "e1a2296",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.33.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/2a74a41e58a3e099fc6e75d74efb5afd5be0127f/BUILD/filmix-ng-0.6.33.apk",
   "sizeBytes": 3052402,
   "sha256": "1741bb77507fea3538c5783ab7cc26838b9e413624a3462e147f77fc6ecea117",
   "notes": "Каталог тоже обновляется сам, как и главная: список, открытый больше 15 минут назад, при возврате на вкладку загружается заново — без экрана загрузки, прямо под курсором. Если список был пролистан далеко, он возвращается к началу, где новые фильмы, и курсор встаёт на первую карточку. Неудавшееся обновление оставляет прежний список и повторяется через полминуты.",
