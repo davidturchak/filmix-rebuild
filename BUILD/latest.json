@@ -2,7 +2,7 @@
   "versionCode": 160,
   "versionName": "0.6.31",
   "commit": "0adc2e4",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.31.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/06207e975bf233f4afa1aacaa466678ea467b56a/BUILD/filmix-ng-0.6.31.apk",
   "sizeBytes": 3052402,
   "sha256": "c26ad15dc13d78a5d9839fb818e6c1ea7baaf3cdc4389bef68811515569f7400",
   "notes": "Главная больше не показывает «Новинки», «Популярное» и «Сейчас смотрят» с момента запуска приложения. Раньше они загружались один раз, а на телевизоре приложение живёт в фоне днями — ряды обновлялись только после перезагрузки. Теперь при возврате на главную ряды старше 15 минут подгружаются заново, прямо под курсором и без экрана загрузки.",
