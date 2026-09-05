@@ -241,6 +241,18 @@ private fun FilmixApp(graph: AppGraph) {
                 Destination.Home -> {
                     val vm: HomeViewModel = viewModel(factory = factory)
                     val homeState by vm.state.collectAsState()
+                    val lifecycleOwner = LocalLifecycleOwner.current
+                    // The rails were loaded when the process started, and on
+                    // the TV that can be days ago: the launcher resumes the
+                    // backgrounded app rather than relaunching it. The
+                    // ViewModel decides whether they are old enough to refetch.
+                    DisposableEffect(lifecycleOwner, vm) {
+                        val observer = LifecycleEventObserver { _, event ->
+                            if (event == Lifecycle.Event.ON_RESUME) vm.refreshIfStale()
+                        }
+                        lifecycleOwner.lifecycle.addObserver(observer)
+                        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+                    }
                     HomeScreen(
                         state = homeState,
                         compact = compact,
