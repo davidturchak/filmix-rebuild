@@ -20,6 +20,7 @@ import net.filmix.core.data.LibraryRepository
 import net.filmix.core.data.SessionState
 import net.filmix.core.model.HomeRefresh
 import net.filmix.core.model.Post
+import net.filmix.core.model.RefreshPolicy
 
 /**
  * Rails load concurrently and fail independently: one endpoint erroring leaves
@@ -47,7 +48,7 @@ class HomeViewModel(
      * When the catalog rails were last asked for, landed or not. Stamped
      * before the fetch so a resume that arrives while it is in flight does
      * not start a second one, and so a failure is not retried on every
-     * glance — see [HomeRefresh.RETRY_AFTER_MS].
+     * glance — see [RefreshPolicy.RETRY_AFTER_MS].
      */
     private var catalogAttemptedAt: Long? = null
 
@@ -100,7 +101,7 @@ class HomeViewModel(
 
     /**
      * Refetches Новинки, Популярное and «Сейчас смотрят» if they are older
-     * than [HomeRefresh.STALE_AFTER_MS] — or never loaded — and leaves them
+     * than [RefreshPolicy.STALE_AFTER_MS] — or never loaded — and leaves them
      * alone otherwise. Called on every resume of the Home tab, which includes
      * coming back to it from another tab, because the observer is added to an
      * already-resumed lifecycle; the thresholds are what stop it turning into
@@ -120,7 +121,7 @@ class HomeViewModel(
     fun refreshIfStale() {
         val current = _state.value
         if (current.loading) return
-        if (!HomeRefresh.isDue(catalogLoadedAt, catalogAttemptedAt, SystemClock.elapsedRealtime())) return
+        if (!RefreshPolicy.isDue(catalogLoadedAt, catalogAttemptedAt, SystemClock.elapsedRealtime())) return
         if (current.rails.isEmpty()) {
             refresh()
             return

@@ -259,8 +259,16 @@ private fun FilmixApp(graph: AppGraph) {
                     val sort by vm.sort.collectAsState()
                     val filterOptions by vm.filterOptions.collectAsState()
                     val items = vm.items.collectAsLazyPagingItems()
+                    val reloads by vm.reloads.collectAsState()
+                    // Same as Home: the grid was loaded when the tab was first
+                    // opened and the process can live for days. The ViewModel
+                    // decides whether it is old enough to reload, and learns
+                    // from the presenter when a page has landed.
+                    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { vm.refreshIfStale() }
+                    LaunchedEffect(items.loadState.refresh) { vm.noteRefresh(items.loadState.refresh) }
                     CatalogScreen(
                         items = items,
+                        reloads = reloads,
                         sort = sort.order,
                         direction = sort.direction,
                         filter = sort.filter,

@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +47,12 @@ import net.filmix.core.model.SortOrder
 @Composable
 fun CatalogScreen(
     items: LazyPagingItems<Post>,
+    /**
+     * Bumped for each reload asked for behind a populated grid. Such a reload
+     * keeps the grid on screen while its first page is in flight, where a
+     * sort change shows the spinner.
+     */
+    reloads: Int = 0,
     sort: SortOrder,
     direction: SortDirection,
     modifier: Modifier = Modifier,
@@ -67,6 +74,28 @@ fun CatalogScreen(
         val index = key.toIntOrNull() ?: return@rememberFocusReturn
         if (gridState.layoutInfo.visibleItemsInfo.none { it.index == index }) {
             gridState.scrollToItem(index)
+        }
+    }
+    // True from a stale reload being asked for until its first page lands
+    // or fails. The grid stays up throughout: dropping it for the spinner
+    // would also drop the cursor, and the whole point of the reload is that
+    // the user did not ask for anything.
+    var reloading by remember { mutableStateOf(false) }
+    LaunchedEffect(reloads) {
+        if (reloads > 0) reloading = true
+    }
+    LaunchedEffect(items.loadState.refresh) {
+        val refresh = items.loadState.refresh
+        if (!reloading || refresh is LoadState.Loading) return@LaunchedEffect
+        reloading = false
+        // The reload starts over from page one, so an index deep in the old
+        // list means nothing in the new one — and the card that held the
+        // cursor may not exist any more. Show the top, where what is new
+        // is, and hand the cursor to the first card. Near the top the cards
+        // simply take their new contents under a cursor that never moved.
+        if (refresh is LoadState.NotLoading && gridState.firstVisibleItemIndex > 0 && items.itemCount > 0) {
+            gridState.scrollToItem(0)
+            focusReturn.restore(0)
         }
     }
     Column(
@@ -95,13 +124,19 @@ fun CatalogScreen(
         }
 
         Box(Modifier.fillMaxSize()) {
+            // While a reload asked for behind a populated grid is in flight,
+            // the presenter still holds the old pages: the grid keeps showing
+            // them, and a failure leaves them there — stale beats blank for a
+            // load the user did not ask for. A sort change is not a reload,
+            // and shows the spinner and the error as it always has.
+            val inPlace = reloading && items.itemCount > 0
             when {
-                items.loadState.refresh is LoadState.Loading ->
+                items.loadState.refresh is LoadState.Loading && !inPlace ->
                     CircularProgressIndicator(Modifier.align(Alignment.Center))
 
                 // Error must be checked before "no results": a failed load also
                 // has an item count of zero.
-                items.loadState.refresh is LoadState.Error -> Text(
+                items.loadState.refresh is LoadState.Error && !inPlace -> Text(
                     "Не удалось загрузить каталог",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
