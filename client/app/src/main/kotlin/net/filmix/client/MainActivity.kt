@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -24,8 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.window.core.layout.WindowWidthSizeClass
@@ -241,18 +239,11 @@ private fun FilmixApp(graph: AppGraph) {
                 Destination.Home -> {
                     val vm: HomeViewModel = viewModel(factory = factory)
                     val homeState by vm.state.collectAsState()
-                    val lifecycleOwner = LocalLifecycleOwner.current
                     // The rails were loaded when the process started, and on
                     // the TV that can be days ago: the launcher resumes the
                     // backgrounded app rather than relaunching it. The
                     // ViewModel decides whether they are old enough to refetch.
-                    DisposableEffect(lifecycleOwner, vm) {
-                        val observer = LifecycleEventObserver { _, event ->
-                            if (event == Lifecycle.Event.ON_RESUME) vm.refreshIfStale()
-                        }
-                        lifecycleOwner.lifecycle.addObserver(observer)
-                        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-                    }
+                    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { vm.refreshIfStale() }
                     HomeScreen(
                         state = homeState,
                         compact = compact,
@@ -353,7 +344,6 @@ private fun FilmixApp(graph: AppGraph) {
                     val selectedPlayer by vm.selectedPlayer.collectAsState()
                     val updateState by vm.updateState.collectAsState()
                     val context = LocalContext.current
-                    val lifecycleOwner = LocalLifecycleOwner.current
                     // Both change in other apps while ours is paused: install
                     // permission is granted in Settings, players get installed
                     // or removed in the Play Store — so re-read on resume.
@@ -362,15 +352,9 @@ private fun FilmixApp(graph: AppGraph) {
                     var canInstall by remember {
                         mutableStateOf(UpdateInstaller.canRequestInstalls(context))
                     }
-                    DisposableEffect(lifecycleOwner) {
-                        val observer = LifecycleEventObserver { _, event ->
-                            if (event == Lifecycle.Event.ON_RESUME) {
-                                canInstall = UpdateInstaller.canRequestInstalls(context)
-                                vm.refreshPlayers()
-                            }
-                        }
-                        lifecycleOwner.lifecycle.addObserver(observer)
-                        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+                    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+                        canInstall = UpdateInstaller.canRequestInstalls(context)
+                        vm.refreshPlayers()
                     }
                     ConfigScreen(
                         preferredQuality = quality,

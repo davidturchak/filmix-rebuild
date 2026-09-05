@@ -32,6 +32,7 @@ private const val RestoreFrames = 120
  */
 class FocusReturn internal constructor(
     private val pending: MutableState<String>,
+    private val restores: MutableState<Int>,
     internal val requester: FocusRequester,
     internal val enabled: Boolean,
 ) {
@@ -54,6 +55,17 @@ class FocusReturn internal constructor(
         pending.value = id.toString()
     }
 
+    /**
+     * Puts focus on [id] now, while the list stays on screen. For the item
+     * that took the cursor with it when a refresh dropped it from the list:
+     * the caller names a neighbour and this hands focus over, instead of
+     * leaving it to fall to whatever is first.
+     */
+    fun restore(id: Any) {
+        pending.value = id.toString()
+        restores.value++
+    }
+
     internal fun target(): String = pending.value
 
     internal fun clear() {
@@ -71,13 +83,15 @@ class FocusReturn internal constructor(
 fun rememberFocusReturn(bringIntoView: suspend (String) -> Unit = {}): FocusReturn {
     val enabled = LocalIsTv.current
     val pending = rememberSaveable { mutableStateOf("") }
+    val restores = remember { mutableStateOf(0) }
     val requester = remember { FocusRequester() }
-    val focusReturn = remember(enabled) { FocusReturn(pending, requester, enabled) }
+    val focusReturn = remember(enabled) { FocusReturn(pending, restores, requester, enabled) }
 
-    // Keyed on Unit: this fires when the list re-enters composition, which is
-    // exactly the moment worth restoring. Keying it on the item count instead
-    // would re-fire as paging appends a page and yank focus back mid-scroll.
-    LaunchedEffect(Unit) {
+    // Fires when the list re-enters composition, which is exactly the moment
+    // worth restoring, and again on each [FocusReturn.restore]. Keying it on
+    // the item count instead would re-fire as paging appends a page and yank
+    // focus back mid-scroll.
+    LaunchedEffect(restores.value) {
         val target = focusReturn.target()
         if (!enabled || target.isEmpty()) return@LaunchedEffect
 

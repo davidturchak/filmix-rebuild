@@ -18,13 +18,30 @@ object HomeRefresh {
     const val STALE_AFTER_MS = 15L * 60 * 1000
 
     /**
-     * Whether a resume at [now] should refetch rails loaded at [loadedAt].
-     *
-     * A null [loadedAt] means the first load has not finished: it is either in
-     * flight or failed, and neither wants a second copy racing it.
+     * How long after an attempt — landed or not — before a resume may start
+     * another. Long enough to cover a request in flight, so a resume that
+     * arrives mid-fetch does not race it with a second copy; short enough
+     * that a fetch which failed because Wi-Fi was still reassociating after
+     * standby is retried on the next glance, not in fifteen minutes.
      */
-    fun isDue(loadedAt: Long?, now: Long): Boolean =
-        loadedAt != null && now - loadedAt >= STALE_AFTER_MS
+    const val RETRY_AFTER_MS = 30L * 1000
+
+    /**
+     * Whether a resume at [now] should refetch rails that last loaded at
+     * [loadedAt] — null when they never have — given that the last attempt to
+     * load them was at [attemptedAt], null when there has been none.
+     *
+     * Only a load that came back with something moves [loadedAt]; a failure
+     * moves [attemptedAt] alone, so stale rails stay due and are retried as
+     * soon as the retry gap allows. Rails that never loaded are due outright:
+     * the screen may be showing «Продолжить просмотр» on its own, with
+     * nothing to say the catalog was ever asked.
+     */
+    fun isDue(loadedAt: Long?, attemptedAt: Long?, now: Long): Boolean {
+        val stale = loadedAt == null || now - loadedAt >= STALE_AFTER_MS
+        val attemptedRecently = attemptedAt != null && now - attemptedAt < RETRY_AFTER_MS
+        return stale && !attemptedRecently
+    }
 
     /**
      * Folds a fresh fetch into the rails already on screen.

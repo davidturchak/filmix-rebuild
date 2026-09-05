@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.filmix.core.data.CatalogRepository
 import net.filmix.core.data.LibraryRepository
@@ -36,10 +37,19 @@ class HomeViewModel(
     val state: StateFlow<HomeUiState> = _state.asStateFlow()
 
     /**
-     * When the catalog rails last came back, on the monotonic clock; null
-     * until the first load has landed. Read by [refreshIfStale].
+     * When a catalog rail last came back with something, on the monotonic
+     * clock; null until one has. Only a load that landed moves it — a fetch
+     * that failed leaves the rails as stale as they were.
      */
     private var catalogLoadedAt: Long? = null
+
+    /**
+     * When the catalog rails were last asked for, landed or not. Stamped
+     * before the fetch so a resume that arrives while it is in flight does
+     * not start a second one, and so a failure is not retried on every
+     * glance — see [HomeRefresh.RETRY_AFTER_MS].
+     */
+    private var catalogAttemptedAt: Long? = null
 
     init {
         refresh()
@@ -49,11 +59,9 @@ class HomeViewModel(
         // просмотр» still did not have it — the one rail on the screen that is
         // supposed to be about what you just did.
         //
-        // Only that rail reloads, never the whole page. Nothing about watching
-        // a film changes Новинки or Популярное, and a full refresh would
-        // re-fetch four endpoints plus the hero's detail and shuffle every rail
-        // under whatever the D-pad was pointing at. Those rails age on their
-        // own clock instead — see refreshIfStale.
+        // Only that rail reloads here. Nothing about watching a film changes
+        // Новинки or Популярное; those age on their own clock instead, and
+        // refreshIfStale refetches them in place once they are old enough.
         viewModelScope.launch {
             // drop(1): the revision on subscribing is not news, it is just the
             // count so far.
@@ -75,91 +83,55 @@ class HomeViewModel(
     }
 
     fun refresh() {
+        catalogAttemptedAt = SystemClock.elapsedRealtime()
         viewModelScope.launch {
             _state.value = _state.value.copy(loading = true, error = null)
-            val sections = coroutineScope {
-                listOf(
-                    async { RAIL_CONTINUE to catalog.runCatchingList { history() } },
-                    async { RAIL_NEW to catalog.runCatchingList { newest() } },
-                    async { RAIL_POPULAR to catalog.runCatchingList { popular() } },
-                    async { RAIL_TOP to catalog.runCatchingList { topViews() } },
-                ).awaitAll()
-            }
-
-            val rails = sections
-                .filter { (_, items) -> items.isNotEmpty() }
-                .map { (title, items) -> HomeRail(title, items) }
-
-            // The newest entry makes the hero, but catalog listings carry no
-            // synopsis — fetch its detail so the hero has something to say.
-            val heroSummary = sections.firstOrNull { it.first == RAIL_NEW }?.second?.firstOrNull()
-            val hero = heroSummary?.let { summary ->
-                runCatching { catalog.post(summary.id) }.getOrDefault(summary)
-            }
-
+            val fresh = fetchRails(RAIL_ORDER)
+            noteCatalogLoaded(fresh)
+            val rails = emptyList<HomeRail>().merged(fresh)
             _state.value = HomeUiState(
-                featured = hero,
+                featured = heroFor(newest = fresh[RAIL_NEW]?.firstOrNull(), keep = null),
                 rails = rails,
                 loading = false,
                 error = if (rails.isEmpty()) "Не удалось загрузить каталог" else null,
             )
-            if (rails.isNotEmpty()) catalogLoadedAt = SystemClock.elapsedRealtime()
         }
     }
 
     /**
-     * Refetches Новинки, Популярное and «Сейчас смотрят» behind the screen if
-     * they are older than [HomeRefresh.STALE_AFTER_MS], leaving them alone
-     * otherwise. Called on every resume of the Home tab — which includes
+     * Refetches Новинки, Популярное and «Сейчас смотрят» if they are older
+     * than [HomeRefresh.STALE_AFTER_MS] — or never loaded — and leaves them
+     * alone otherwise. Called on every resume of the Home tab, which includes
      * coming back to it from another tab, because the observer is added to an
-     * already-resumed lifecycle — so the threshold is what stops it turning
-     * into a reload per glance.
+     * already-resumed lifecycle; the thresholds are what stop it turning into
+     * a reload per glance.
      *
-     * In place, like [refreshContinueWatching]: the user is looking at a
-     * populated screen, and the cards are keyed by rail and post id, so the
-     * cursor stays on its card when that card survives the refresh. The hero
-     * is only refetched when the newest title has actually changed, since
-     * its detail is a fifth request the rails do not need.
+     * A screen with rails on it is refreshed behind them, in place, like
+     * [refreshContinueWatching]: the cards are keyed by rail and post id, so
+     * the cursor stays on its card when that card survives, and the screen
+     * hands it to a neighbour when it does not. The hero is only refetched
+     * when the newest title has actually changed, since its detail is a
+     * fifth request the rails do not need.
      *
-     * A first load that failed outright leaves nothing to refresh in place;
-     * the screen is showing «Повторить», and this simply presses it.
+     * A screen with nothing on it is showing «Повторить», and this presses it
+     * — with the same retry gap, so an offline device does not flash the
+     * spinner on every tab switch.
      */
     fun refreshIfStale() {
         val current = _state.value
         if (current.loading) return
+        if (!HomeRefresh.isDue(catalogLoadedAt, catalogAttemptedAt, SystemClock.elapsedRealtime())) return
         if (current.rails.isEmpty()) {
             refresh()
             return
         }
-        if (!HomeRefresh.isDue(catalogLoadedAt, SystemClock.elapsedRealtime())) return
-        // Stamp before the fetch, not after: a resume that arrives while this
-        // is in flight must not start a second one.
-        catalogLoadedAt = SystemClock.elapsedRealtime()
+        catalogAttemptedAt = SystemClock.elapsedRealtime()
         viewModelScope.launch {
-            val fresh = coroutineScope {
-                listOf(
-                    async { RAIL_NEW to catalog.runCatchingList { newest() } },
-                    async { RAIL_POPULAR to catalog.runCatchingList { popular() } },
-                    async { RAIL_TOP to catalog.runCatchingList { topViews() } },
-                ).awaitAll()
-            }.toMap()
-
-            val newest = fresh[RAIL_NEW]?.firstOrNull()
-            val featured = _state.value.featured
-            val hero = when {
-                newest == null || newest.id == featured?.id -> featured
-                else -> runCatching { catalog.post(newest.id) }.getOrDefault(newest)
-            }
-
-            _state.value = _state.value.let { latest ->
-                latest.copy(
-                    featured = hero,
-                    rails = HomeRefresh.mergeRails(
-                        order = RAIL_ORDER,
-                        current = latest.rails.associate { it.title to it.items },
-                        fresh = fresh,
-                    ).map { (title, items) -> HomeRail(title, items) },
-                )
+            val fresh = fetchRails(CATALOG_RAILS)
+            noteCatalogLoaded(fresh)
+            val hero = heroFor(newest = fresh[RAIL_NEW]?.firstOrNull(), keep = _state.value.featured)
+            _state.update { latest ->
+                latest.copy(featured = hero, rails = latest.rails.merged(fresh), error = null)
             }
         }
     }
@@ -181,10 +153,49 @@ class HomeViewModel(
     private fun refreshContinueWatching() {
         continueJob?.cancel()
         continueJob = viewModelScope.launch {
-            val items = catalog.runCatchingList { history() }
-            _state.value = _state.value.withContinueWatching(items)
+            val fresh = fetchRails(listOf(RAIL_CONTINUE))
+            _state.update { latest ->
+                // The rail on screen is dropped before the merge, so that an
+                // empty answer takes it off the screen rather than keeping the
+                // old one: a history cleared from Профиль has to be able to
+                // remove the rail, not just empty it.
+                latest.copy(rails = latest.rails.filterNot { it.title == RAIL_CONTINUE }.merged(fresh))
+            }
         }
     }
+
+    /** Fetches the named rails concurrently; a rail whose request failed comes back empty. */
+    private suspend fun fetchRails(titles: List<String>): Map<String, List<Post>> = coroutineScope {
+        titles.map { title ->
+            async { title to catalog.runCatchingList(RAIL_SOURCES.getValue(title)) }
+        }.awaitAll()
+    }.toMap()
+
+    /** Stamps the catalog clock if [fresh] brought back any catalog rail — «Продолжить просмотр» does not count. */
+    private fun noteCatalogLoaded(fresh: Map<String, List<Post>>) {
+        if (CATALOG_RAILS.any { fresh[it].orEmpty().isNotEmpty() }) {
+            catalogLoadedAt = SystemClock.elapsedRealtime()
+        }
+    }
+
+    /**
+     * The hero for a Новинки rail whose first entry is [newest]. Catalog
+     * listings carry no synopsis, so its detail is fetched for the hero to
+     * have something to say — unless [keep] is already that title, or there
+     * is no newest to replace it with.
+     */
+    private suspend fun heroFor(newest: Post?, keep: Post?): Post? = when {
+        newest == null || newest.id == keep?.id -> keep
+        else -> runCatching { catalog.post(newest.id) }.getOrDefault(newest)
+    }
+
+    /** The rails in canonical order with [fresh] folded in — see [HomeRefresh.mergeRails]. */
+    private fun List<HomeRail>.merged(fresh: Map<String, List<Post>>): List<HomeRail> =
+        HomeRefresh.mergeRails(
+            order = RAIL_ORDER,
+            current = associate { it.title to it.items },
+            fresh = fresh,
+        ).map { (title, items) -> HomeRail(title, items) }
 
     private suspend fun CatalogRepository.runCatchingList(
         block: suspend CatalogRepository.() -> List<Post>,
@@ -198,18 +209,17 @@ class HomeViewModel(
         const val RAIL_NEW = "Новинки"
         const val RAIL_POPULAR = "Популярное"
         const val RAIL_TOP = "Сейчас смотрят"
-        val RAIL_ORDER = listOf(RAIL_CONTINUE, RAIL_NEW, RAIL_POPULAR, RAIL_TOP)
 
-        /**
-         * The rail rebuilt into place: first when there is something to
-         * continue, gone when there is not — a history cleared from Профиль
-         * has to be able to take it off the screen, not just empty it.
-         */
-        fun HomeUiState.withContinueWatching(items: List<Post>): HomeUiState {
-            val rest = rails.filterNot { it.title == RAIL_CONTINUE }
-            return copy(
-                rails = if (items.isEmpty()) rest else listOf(HomeRail(RAIL_CONTINUE, items)) + rest,
-            )
-        }
+        /** Every rail, in the order it appears on screen, with the request that fills it. */
+        val RAIL_SOURCES: Map<String, suspend CatalogRepository.() -> List<Post>> = linkedMapOf(
+            RAIL_CONTINUE to { history() },
+            RAIL_NEW to { newest() },
+            RAIL_POPULAR to { popular() },
+            RAIL_TOP to { topViews() },
+        )
+        val RAIL_ORDER = RAIL_SOURCES.keys.toList()
+
+        /** The rails that age on the site's clock, as opposed to the user's. */
+        val CATALOG_RAILS = RAIL_ORDER - RAIL_CONTINUE
     }
 }

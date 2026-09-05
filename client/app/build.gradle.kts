@@ -13,7 +13,7 @@ plugins {
  * anyone having to remember to bump it; versionName stays hand-managed because
  * it is the number users read.
  */
-val appVersionName = "0.6.31"
+val appVersionName = "0.6.32"
 
 fun git(vararg args: String): String = runCatching {
     providers.exec {
@@ -110,6 +110,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)

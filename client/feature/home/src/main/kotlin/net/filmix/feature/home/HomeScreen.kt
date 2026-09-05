@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -100,6 +101,25 @@ fun HomeScreen(
     val focusReturn = rememberFocusReturn()
     val listState = rememberLazyListState()
 
+    // Which card holds the cursor, as rail title and post id. Not snapshot
+    // state: a D-pad move between cards must not recompose the screen. It is
+    // read only when the rails change, to see whether that card survived —
+    // a refresh landing behind a populated screen can drop the very film the
+    // cursor is on, and Compose then drops the cursor with it. Captured as the
+    // new rails compose, before the lazy list measures them and detaches the
+    // dropped card, since the detach may already have cleared the record.
+    val focusedCard = remember { arrayOfNulls<Pair<String, Int>>(1) }
+    val focusedBefore = remember(state.rails) { focusedCard[0] }
+    LaunchedEffect(state.rails) {
+        val (title, id) = focusedBefore ?: return@LaunchedEffect
+        if (state.rails.any { it.title == title && it.items.any { post -> post.id == id } }) return@LaunchedEffect
+        // Gone: hand the cursor to the head of the same rail, or of the first
+        // one if the whole rail went, rather than let it fall to the hero and
+        // pin the list back to the top from wherever the user was.
+        val rail = state.rails.firstOrNull { it.title == title } ?: state.rails.firstOrNull() ?: return@LaunchedEffect
+        focusReturn.restore(cardKey(rail.title, rail.items.first().id))
+    }
+
     /**
      * The hero is the top item and its only focusable is the play button on
      * its bottom edge. Compose brings that button into view by scrolling the
@@ -143,14 +163,19 @@ fun HomeScreen(
             key = { index -> state.rails[index].title },
         ) { index ->
             val rail = state.rails[index]
-            val cardKey = { post: Post -> "${rail.title}/${post.id}" }
             Rail(
                 title = rail.title,
                 items = rail.items,
                 key = { it.id },
             ) { post ->
                 PosterCard(
-                    modifier = focusReturn.modifier(cardKey(post)),
+                    modifier = focusReturn
+                        .modifier(cardKey(rail.title, post.id))
+                        .onFocusChanged { focus ->
+                            val card = rail.title to post.id
+                            if (focus.hasFocus) focusedCard[0] = card
+                            else if (focusedCard[0] == card) focusedCard[0] = null
+                        },
                     title = post.title,
                     posterUrl = post.posterUrl,
                     rating = post.rating,
@@ -159,7 +184,7 @@ fun HomeScreen(
                     width = if (compact) LocalDimensions.current.posterWidthCompact else LocalDimensions.current.posterWidth,
                     height = if (compact) LocalDimensions.current.posterHeightCompact else LocalDimensions.current.posterHeight,
                     onClick = {
-                        focusReturn.opened(cardKey(post))
+                        focusReturn.opened(cardKey(rail.title, post.id))
                         onPostClick(post)
                     },
                 )
@@ -167,6 +192,9 @@ fun HomeScreen(
         }
     }
 }
+
+/** The focus-return key of one card: unique across the screen, which a post id alone is not. */
+private fun cardKey(rail: String, postId: Int) = "$rail/$postId"
 
 /**
  * Full-bleed backdrop with the title, a metadata line and a single primary
