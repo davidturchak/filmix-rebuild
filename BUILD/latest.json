@@ -2,7 +2,7 @@
   "versionCode": 186,
   "versionName": "0.6.39",
   "commit": "7f86de6",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/ed91e0a487a5174ba5511e6a12e54374e95ce4c0/BUILD/filmix-ng-0.6.39.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/ea22633f669162b10802739e1ba20f5d17a4b2ff/BUILD/filmix-ng-0.6.39.apk",
   "sizeBytes": 3152905,
   "sha256": "fad564d0ec4ea12fb09a6a6f081c9cea0aff3e2c8e9cc661dcd1b6359a8c6b23",
   "notes": "Анонимный сигнал о версии теперь дополняется общими сведениями об устройстве: версия Android, производитель и модель, откуда установлено приложение, язык системы и архитектура процессора. Это помогает понять, на каких устройствах приложение работает, и не содержит ни идентификаторов устройства, ни данных аккаунта, ни истории просмотра.",
