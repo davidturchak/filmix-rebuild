@@ -2,7 +2,7 @@
   "versionCode": 192,
   "versionName": "0.6.40",
   "commit": "5e8b06b",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.40.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/4be599bc8bf7cad72b396bf4c888c655a82a6258/BUILD/filmix-ng-0.6.40.apk",
   "sizeBytes": 3152905,
   "sha256": "236b15a692b6554be8bfd2725818050f738c6a5aa5848716188ab8b3cc83381b",
   "notes": "Приложение, открытое из главного меню телевизора, теперь начинает с Главной: прокрутка сверху, курсор на кнопке «Смотреть». Раньше на экране оставалось то, что было открыто в прошлый раз — хоть несколько дней назад. Возврат из внешнего плеера или настроек по-прежнему ведёт туда, откуда ушли.",
