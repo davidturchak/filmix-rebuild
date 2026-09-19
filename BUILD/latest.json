@@ -2,7 +2,7 @@
   "versionCode": 194,
   "versionName": "0.6.41",
   "commit": "8d8eaef",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.41.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/83ad85d257e9371d226c5814d97eb5cafd6c983f/BUILD/filmix-ng-0.6.41.apk",
   "sizeBytes": 3152905,
   "sha256": "a52043651e3b3008bf12afa977228c26f3d95128638b1e3f63cf6848d011b8ae",
   "notes": "Встроенный плеер больше не даёт заставке телевизора включиться во время фильма: пока идёт воспроизведение, экран удерживается, как в Netflix и YouTube. На паузе заставка запускается как обычно. Внешних плееров (MX Player) это не касается — они держат экран сами.",
