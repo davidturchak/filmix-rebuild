@@ -2,7 +2,7 @@
   "versionCode": 196,
   "versionName": "0.6.42",
   "commit": "6e494f1",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.42.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/8dce688d19fa90ffac5ce1b081741f660c2bd6e5/BUILD/filmix-ng-0.6.42.apk",
   "sizeBytes": 3152905,
   "sha256": "e634c6cce95647280184f1c3e794757e7fb0707a563ac73ff3b018d259201504",
   "notes": "Встроенный плеер теперь показывает, что именно идёт: пока открыты кнопки управления, вверху экрана видно название фильма или сериала с номером серии и сколько осталось до конца — «Осталось 1 ч 23 мин». В сериале, который идёт серия за серией, надпись сменяется вместе с серией.",
