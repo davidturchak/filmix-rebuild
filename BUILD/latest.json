@@ -2,7 +2,7 @@
   "versionCode": 198,
   "versionName": "0.6.43",
   "commit": "127562c",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.43.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/e02d8e491e71c4cd0f6a5c4d5dd994d1bc7565bf/BUILD/filmix-ng-0.6.43.apk",
   "sizeBytes": 3152905,
   "sha256": "4ff044665b1960e2dda6df80e554a9ba4828ffad5032b8a9c2f1b6fb69c4c99f",
   "notes": "Встроенный плеер теперь по умолчанию выбирает русскую звуковую дорожку. Раньше при нескольких дорожках в файле он мог начать с оригинала — немецкого или английского — и приходилось переключать вручную в настройках плеера. Если русской дорожки в файле нет, выбор остаётся прежним; переключить дорожку на время фильма можно, как и раньше.",
