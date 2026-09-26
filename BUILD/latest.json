@@ -2,7 +2,7 @@
   "versionCode": 200,
   "versionName": "0.6.44",
   "commit": "6fdf4e6",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.44.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/340eff1e25b8342927d36ce3ff4ce2db128511b4/BUILD/filmix-ng-0.6.44.apk",
   "sizeBytes": 3152905,
   "sha256": "cf70b0fb502b89205483f20d4b0b83c0520947e387e6de1754f91de297112715",
   "notes": "Когда сервер Filmix не работает, приложение теперь говорит об этом прямо. Раньше при сбое на стороне Filmix все экраны показывали одно и то же «Не удалось загрузить», и было не понять, сломалось ли приложение или сам сервис. Теперь Главная, Каталог, Поиск, Избранное, История, страница фильма и привязка устройства называют причину: «Сервер Filmix не работает (ошибка 500)» — когда Filmix отвечает ошибкой со своей стороны, или «Нет связи с сервером Filmix» — когда ответа нет вовсе и стоит проверить интернет.",
