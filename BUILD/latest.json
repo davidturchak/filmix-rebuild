@@ -2,7 +2,7 @@
   "versionCode": 205,
   "versionName": "0.6.46",
   "commit": "d4624a6",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.46.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/e7d8c3fe43ed563d0f1e0e05e942917479176982/BUILD/filmix-ng-0.6.46.apk",
   "sizeBytes": 3169289,
   "sha256": "85502d7eb913058befd31034e3709631269000ac6523780b7da5129c452757e5",
   "notes": "Исправлено падение приложения при открытии вкладок «Избранное» и «История» в версии 0.6.45.",
