@@ -2,7 +2,7 @@
   "versionCode": 213,
   "versionName": "0.6.50",
   "commit": "94e5cac",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.50.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/ca3ebcddf83aba27c8610469b0bf4a57bb62921e/BUILD/filmix-ng-0.6.50.apk",
   "sizeBytes": 3169289,
   "sha256": "51816b446e4c304ca0ca21b15e51692ab63a9d876921b24621ce2b56cf8cf4fa",
   "notes": "На телевизоре подчёркивание под вкладками «Избранное» и «Смотреть позже» больше не дублирует рамку курсора: пока курсор стоит на вкладках, видна только рамка, а когда он уходит вниз к постерам, подчёркивание показывает, какой список открыт.",
