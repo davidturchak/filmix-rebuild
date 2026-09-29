@@ -2,7 +2,7 @@
   "versionCode": 211,
   "versionName": "0.6.49",
   "commit": "b87ac32",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.49.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/269aa8a74210233fcb0179668f1f3f7f2611c775/BUILD/filmix-ng-0.6.49.apk",
   "sizeBytes": 3169289,
   "sha256": "fb9573cd1961224e67f947b371e429deaae8a65865c987ab1e2ef042efcbb138",
   "notes": "У вкладок «Избранное» и «Смотреть позже» появились значки — сердце и закладка, те же, что на кнопках в карточке фильма, — чтобы было видно с первого взгляда, какой список открыт.",
