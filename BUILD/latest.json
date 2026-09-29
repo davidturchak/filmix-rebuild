@@ -2,7 +2,7 @@
   "versionCode": 209,
   "versionName": "0.6.48",
   "commit": "219deb1",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.48.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/a508d44eaaef4e13a62b538e047ac2273462958c/BUILD/filmix-ng-0.6.48.apk",
   "sizeBytes": 3169289,
   "sha256": "b01fcb98b610341d7c5c31b92489139670ea57a2efc1bdb74aec9ae1820e4ac1",
   "notes": "На телевизоре вкладки «Избранное» и «Смотреть позже» переключаются, как только на них попадает курсор, — без нажатия «ОК», так же как разделы в боковом меню. На планшете, как и раньше, переключение по касанию.",
