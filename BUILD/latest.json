@@ -2,7 +2,7 @@
   "versionCode": 207,
   "versionName": "0.6.47",
   "commit": "83ff875",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.47.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/8a6c0d5bb45bb88c0d5b6651666f1d851c10f83e/BUILD/filmix-ng-0.6.47.apk",
   "sizeBytes": 3169289,
   "sha256": "d6fca7275b80938f4e08f73cace2ea20ec0e3bd2547a79eb4826867f1e8c570a",
   "notes": "Переключение между «Избранное» и «Смотреть позже» теперь тоже обновляет оба списка, как и открытие вкладки: изменения, сделанные на сайте, видны сразу после перехода.",
