@@ -2,7 +2,7 @@
   "versionCode": 216,
   "versionName": "0.6.51",
   "commit": "01dddb2",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.51.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/2169e50c617bd40bae7b61bd5c9a9323d5155acc/BUILD/filmix-ng-0.6.51.apk",
   "sizeBytes": 3169289,
   "sha256": "2a8432632072a88e5f70deab46107411ff37fb96ba2e5d5b496c9cf787aed44d",
   "notes": "При повторном открытии приложения ряд «Новинки» снова начинается с первого постера, даже если за время отсутствия на сайте появились новые фильмы. Раньше новые постеры добавлялись слева за краем экрана, и ряд открывался с того места, где вы остановились.",
