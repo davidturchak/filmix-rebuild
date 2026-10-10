@@ -2,7 +2,7 @@
   "versionCode": 219,
   "versionName": "0.6.52",
   "commit": "eec97e8",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.52.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/120e3473be7540b8e475ffad12211f5e940c6f34/BUILD/filmix-ng-0.6.52.apk",
   "sizeBytes": 3207773,
   "sha256": "711550da800496c9dbaff4552ca5fa81575a9888ef1957e3ace8290be9335a02",
   "notes": "Приложение теперь видно по значку: на телевизоре и планшете над меню слева стоит значок Filmix NG, а на телефоне — надпись FILMIX в углу главного экрана.",
