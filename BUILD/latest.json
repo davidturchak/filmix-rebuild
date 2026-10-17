@@ -2,7 +2,7 @@
   "versionCode": 222,
   "versionName": "0.6.53",
   "commit": "fc85191",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.53.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/7757c8261ae38153d83bc69457139fcf139bab3c/BUILD/filmix-ng-0.6.53.apk",
   "sizeBytes": 3240541,
   "sha256": "3fbeb8c7c152e5f8fa57fbe1a1ab1e98a7f7cbb2092d6e45edfd5aafd7829ee5",
   "notes": "Фильм можно посоветовать друзьям: в карточке фильма появилась кнопка «Посоветовать» — отметьте друзей, и каждый получит личное сообщение на filmix.gg со ссылкой на фильм. Друзей добавляют в Настройках → «Советы друзьям» по логину на filmix.gg. Для этого один раз войдите там в свой аккаунт сайта; пароль в приложении не сохраняется. В Избранном новая вкладка «От друзей»: фильмы, которые вам посоветовали, с именем того, кто посоветовал.",
