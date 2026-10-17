@@ -2,7 +2,7 @@
   "versionCode": 229,
   "versionName": "0.6.55",
   "commit": "c71bb0e",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.55.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/ce55953555a6ddaef3773266f11b213f42911595/BUILD/filmix-ng-0.6.55.apk",
   "sizeBytes": 3240541,
   "sha256": "eee65dcb4c420a4f00b43ae1a6eedd4aa0e333a92467509b0b2ab59ed8c57ffe",
   "notes": "В статистику установок теперь передаётся логин filmix.biz, к которому подключено приложение. После выхода из аккаунта логин больше не передаётся.",
