@@ -2,7 +2,7 @@
   "versionCode": 231,
   "versionName": "0.6.56",
   "commit": "1dfaa1c",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.56.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/0472951f7b0a37841cf1155ff6edbab912c63ed0/BUILD/filmix-ng-0.6.56.apk",
   "sizeBytes": 3240541,
   "sha256": "8a14c38bd29bbac0ac5fc9c20576b5bb7ca96d5ac31b64ba510e964f033d7833",
   "notes": "Вместе с логином filmix.biz в статистику установок передаётся и имя, которое показывается в профиле.",
