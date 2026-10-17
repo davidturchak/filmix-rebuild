@@ -2,7 +2,7 @@
   "versionCode": 225,
   "versionName": "0.6.54",
   "commit": "ff3673b",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.54.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/4d04fbd773707fef837fc9cb2ce371d039eb9d16/BUILD/filmix-ng-0.6.54.apk",
   "sizeBytes": 3240541,
   "sha256": "239fff7adb277364af14a69601310da2920c3a677b02ac9e8d2c7a705cb48cee",
   "notes": "На телевизоре и планшете значок Filmix NG стоит ближе к меню: лишний отступ под ним убран, и нижний пункт «Настройки» больше не обрезается.",
