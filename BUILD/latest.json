@@ -2,7 +2,7 @@
   "versionCode": 233,
   "versionName": "0.6.57",
   "commit": "f20e9f0",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.57.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/b03eb1b5ff42dab833c35779e30a88a7d1c1285f/BUILD/filmix-ng-0.6.57.apk",
   "sizeBytes": 3240541,
   "sha256": "1cc88354156c9ff21510ad86129312fe476abd765541f8dd93027e4aba797af3",
   "notes": "На телевизоре меню слева снова помещается на экран целиком: выделенный пункт «Настройки» больше не уходит за нижний край. Значок Filmix NG над меню стал чуть меньше.",
