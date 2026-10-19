@@ -2,7 +2,7 @@
   "versionCode": 239,
   "versionName": "0.6.59",
   "commit": "927a97f",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.59.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/6f37eb5d727988a1e830e6d2f77615dbf4767117/BUILD/filmix-ng-0.6.59.apk",
   "sizeBytes": 3256925,
   "sha256": "a3f2530b27e48402ba7f5fa93c660354a23fe5dae848d5ad054fbf00cf5c54a0",
   "notes": "Экран привязки в «Профиле» теперь называет точный адрес, где вводить код: filmix.gg/consoles. Раньше там стоял старый адрес filmix.biz, с которого сайт переадресует на главную, и страницу с кодом приходилось искать самому.",
