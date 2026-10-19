@@ -2,7 +2,7 @@
   "versionCode": 235,
   "versionName": "0.6.58",
   "commit": "fb578e0",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.58.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/8bfa805fad45602dfdc6b1f8cd9f83effada3966/BUILD/filmix-ng-0.6.58.apk",
   "sizeBytes": 3256925,
   "sha256": "ad20f8c91b138e2cc4f29ff42fe7e81762e5b7efd12b9c7112bb900c960eb741",
   "notes": "«Советы друзьям» больше не просят войти на filmix.gg заново через день-два: вход сохраняется, как и должен, примерно на год. После этого обновления войдите ещё раз — дальше вход будет держаться.",
