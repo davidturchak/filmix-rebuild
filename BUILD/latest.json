@@ -2,7 +2,7 @@
   "versionCode": 243,
   "versionName": "0.6.61",
   "commit": "212baef",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.61.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/f902b8cc0750e273ffc4c9adccf1f89a7a4b30f1/BUILD/filmix-ng-0.6.61.apk",
   "sizeBytes": 3256921,
   "sha256": "a48ab783f11161de2659276692dbb990a67e5cc13ebad9d02402bcd3f5ca549c",
   "notes": "Друзья в «Советах друзьям» теперь показываются с той аватаркой и тем именем, что стоят у них на filmix.gg сейчас. Раньше список запоминал аватарку на момент добавления друга и не обновлял её.",
