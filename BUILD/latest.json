@@ -2,7 +2,7 @@
   "versionCode": 241,
   "versionName": "0.6.60",
   "commit": "083ae53",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.60.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/e4b9c1d95cb09a3c12765b1e982594881dc078c8/BUILD/filmix-ng-0.6.60.apk",
   "sizeBytes": 3240541,
   "sha256": "00645bb1090f55ccdcf5d5753334c791d3a25aca8fd1b706321aeb1b1f429d48",
   "notes": "«Советы друзьям» снова просили войти на filmix.gg через несколько часов: приложение входило на сайт без галочки «Запомнить меня», и сайт держал такой вход всего около семи часов. Теперь вход запоминается на год, как на самом сайте. После этого обновления войдите ещё раз — последний раз.",
