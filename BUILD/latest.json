@@ -2,7 +2,7 @@
   "versionCode": 245,
   "versionName": "0.6.62",
   "commit": "5c95821",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.62.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/15b9038dc04e77f8da5725cc675f24285ad91219/BUILD/filmix-ng-0.6.62.apk",
   "sizeBytes": 3256925,
   "sha256": "86406ee536fea08268bc3dd9f7e2a4a2d1bfa1bff43e916909629c03542b155e",
   "notes": "Если вышло обновление, а вы его ещё не поставили, значок «Настройки» в меню теперь горит оранжевым с мигающей точкой, а при запуске рядом на несколько секунд появляется подсказка «Доступна версия …». Отметка не пропадает и после «Позже» в окне обновления — она держится, пока новая версия не установлена.",
