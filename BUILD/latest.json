@@ -2,7 +2,7 @@
   "versionCode": 248,
   "versionName": "0.6.63",
   "commit": "019d0c7",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.63.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/589becf5f823815ed4aa14d34c67a2b8212509cd/BUILD/filmix-ng-0.6.63.apk",
   "sizeBytes": 3256889,
   "sha256": "ee43a15c72584ca1f23824cb9e90bd4806d394c083043c343902c88858e8d15a",
   "notes": "После установки обновления появляется экран с кнопкой «Открыть» — она сразу запускает новую версию, не нужно искать приложение среди остальных. Android не даёт приложению открыться самому после обновления, поэтому раньше оно просто закрывалось.",
