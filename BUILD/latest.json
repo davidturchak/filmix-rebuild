@@ -2,7 +2,7 @@
   "versionCode": 255,
   "versionName": "0.6.65",
   "commit": "458936b",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.65.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/6f3312302c4ca70523d50373fd1e8fc35aa84546/BUILD/filmix-ng-0.6.65.apk",
   "sizeBytes": 3256889,
   "sha256": "824b288301ac9d7aec95101a4a81bdc052332a1b9b249163628ee963a6eb38bd",
   "notes": "Без PRO-подписки Filmix отдаёт видео не выше 720p, и теперь приложение это учитывает: такие аккаунты (и не привязанные устройства) смотрят в 720p, а в «Настройках» можно выбрать только 720p или 480p. «Авто», 1080p и 4K там серые, а под ними написано почему. Когда подписка появится, вернётся то качество, что было выбрано раньше.",
