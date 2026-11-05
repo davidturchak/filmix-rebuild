@@ -2,7 +2,7 @@
   "versionCode": 258,
   "versionName": "0.6.66",
   "commit": "72e1f11",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.66.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/54f0b539cfdb25d70b4ab3e1b00a91eae73c08fa/BUILD/filmix-ng-0.6.66.apk",
   "sizeBytes": 3256889,
   "sha256": "4242369d5c317a2adf1f9a867e9ae5ea0ce61de06bde8a9cec8c153c5a16393e",
   "notes": "На странице фильма на телевизоре название и постер больше не обрезаются сверху: страница открывается целиком, а при возврате курсора к кнопке «Смотреть» прокручивается до самого верха.",
