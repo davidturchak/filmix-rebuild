@@ -2,7 +2,7 @@
   "versionCode": 261,
   "versionName": "0.6.67",
   "commit": "396427a",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.67.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/c0b4319cb75237e974130507ef2d05abf496c69f/BUILD/filmix-ng-0.6.67.apk",
   "sizeBytes": 3256893,
   "sha256": "3f473760e0b7ecfd98401d5bc1c80b77bf93c5d4fbec7dbad7698a5ed30dd2ce",
   "notes": "В сериалах на телевизоре кнопка «вниз» из списка серий снова ведёт к описанию («Читать далее»), а не перескакивает сразу к «Похожему».",
