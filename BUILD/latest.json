@@ -2,7 +2,7 @@
   "versionCode": 263,
   "versionName": "0.6.68",
   "commit": "4ccd1fc",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.68.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/867486c42d9952a83e77a8f8fa83ea24c20a1947/BUILD/filmix-ng-0.6.68.apk",
   "sizeBytes": 3256893,
   "sha256": "3cef87a582debe3b67282391fca62a4eed5edfb94ee9a0a0d3a1e46a7853f350",
   "notes": "«Продолжить просмотр» на Главной снова показывает то, что вы смотрели: строка обновляется каждый раз, когда вы возвращаетесь в приложение. Раньше фильм, досмотренный в MX Player или на другом устройстве, появлялся в «Истории», но не на Главной.",
