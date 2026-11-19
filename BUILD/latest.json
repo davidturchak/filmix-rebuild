@@ -2,7 +2,7 @@
   "versionCode": 266,
   "versionName": "0.6.69",
   "commit": "d892dd7",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.69.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/080d1ab13f14284aad44e98669fa39fbd593564e/BUILD/filmix-ng-0.6.69.apk",
   "sizeBytes": 3256893,
   "sha256": "8f26a215651985765daa6434b8845ad96c128db744e6803a6338829923a4d1ac",
   "notes": "На странице сериала список серий больше не уезжает за экран: нажатие «вверх» от серий к выбору озвучки оставляет серии на виду.",
