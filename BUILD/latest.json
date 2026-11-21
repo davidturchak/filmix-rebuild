@@ -2,7 +2,7 @@
   "versionCode": 274,
   "versionName": "0.6.71",
   "commit": "72faa0c",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.71.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/b30080775e55dc2fc6392a97e29fe7ca0a31e98e/BUILD/filmix-ng-0.6.71.apk",
   "sizeBytes": 3256893,
   "sha256": "17293876ee78c1d4352252772598734c86fc98e70e8de49a78cbeeaa04536bf1",
   "notes": "Фильм, убранный из «Истории», сразу пропадает и из «Продолжить просмотр» на Главной.",
