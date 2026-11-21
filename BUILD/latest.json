@@ -2,7 +2,7 @@
   "versionCode": 271,
   "versionName": "0.6.70",
   "commit": "9209a9f",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.70.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/591b61698e95252fd063eec710cd73ab6f27e222/BUILD/filmix-ng-0.6.70.apk",
   "sizeBytes": 3256893,
   "sha256": "d6f640a72d274dc9079e99b95b979d90d705e4542215f041511700f5767c63c7",
   "notes": "Серию можно отметить просмотренной без просмотра: удерживайте OK на пульте (или палец на экране) на номере серии. Повторное долгое нажатие снимает отметку, в том числе во всех озвучках сезона. В «Истории» долгое нажатие OK на пульте теперь убирает фильм из списка, как долгое касание на планшете, а не открывает его.",
