@@ -2,7 +2,7 @@
   "versionCode": 277,
   "versionName": "0.6.72",
   "commit": "b83a77e",
-  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/main/BUILD/filmix-ng-0.6.72.apk",
+  "apkUrl": "https://raw.githubusercontent.com/davidturchak/filmix-rebuild/7f8905e3533bb8d1d950ba2fac59b2897c12c26f/BUILD/filmix-ng-0.6.72.apk",
   "sizeBytes": 3289661,
   "sha256": "89655c39399a9dbb34e00420b5cc4808682342637e5d898335ee22cf264fcc11",
   "notes": "Приложение теперь работает только с привязанным аккаунтом Filmix: без привязки оно открывается на экране входа, который объясняет, зачем нужен аккаунт, и выдаёт код привязки. На телевизоре рядом с кодом показан QR-код — наведите камеру телефона, чтобы открыть filmix.gg/consoles, войти (или зарегистрироваться) и ввести код. Как только устройство привяжется, откроется Главная. Если сеть недоступна, привязанное устройство всё равно пускает в приложение; аккаунт проверится, когда связь вернётся.",
